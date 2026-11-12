@@ -1,9 +1,19 @@
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.core.db import Base, get_session
-from app.main import create_app
+from app.main import create_app, limiter
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    # The slowapi limiter is module-level with in-memory storage keyed by the
+    # TestClient IP; reset it before every test so tests stay order-independent
+    # and can never trip the 10/minute limit on /auth/login.
+    limiter.reset()
+    yield
 
 
 @pytest_asyncio.fixture

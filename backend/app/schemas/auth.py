@@ -21,3 +21,13 @@ class UserOut(BaseModel):
     email: str | None
     phone: str | None
     nickname: str
+
+
+class LoginIn(BaseModel):
+    email: EmailStr | None = None
+    phone: str | None = None
+    password: str
+
+
+class RefreshIn(BaseModel):
+    refresh_token: str
