@@ -9,6 +9,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 from app.api.routes.auth import router as auth_router
 from app.api.routes.ops import router as ops_router
+from app.api.routes.profile import router as profile_router
 
 
 def create_app() -> FastAPI:
@@ -17,6 +18,7 @@ def create_app() -> FastAPI:
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     app.include_router(ops_router, prefix="/ops", tags=["ops"])
     app.include_router(auth_router, tags=["auth"])
+    app.include_router(profile_router, tags=["profile"])
     return app
 
 

@@ -1,4 +1,17 @@
+from enum import Enum
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+
+
+class Sport(str, Enum):
+    HIKING = "hiking"
+    TRAIL_RUNNING = "trail-running"
+    CLIMBING = "climbing"
+    STREAM = "stream"
+    CYCLING = "cycling"
+    CAMPING = "camping"
+    SKIING = "skiing"
+    ORIENTEERING = "orienteering"
 
 
 class RegisterIn(BaseModel):
