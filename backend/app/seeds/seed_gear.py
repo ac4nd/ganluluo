@@ -3,7 +3,7 @@ import asyncio
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.db import Base, SessionLocal, engine
+from app.core.db import SessionLocal
 from app.models.gear import GearModel
 from app.services.gear_catalog import MODELS
 
@@ -24,13 +24,8 @@ async def seed(session: AsyncSession) -> int:
 
 
 async def main() -> None:
-    # gear_models/user_gear have no alembic revision yet (out of Task 7 scope),
-    # so the standalone seed ensures they exist before upserting into dev.db.
-    async with engine.begin() as conn:
-        await conn.run_sync(
-            Base.metadata.create_all,
-            tables=[Base.metadata.tables["gear_models"], Base.metadata.tables["user_gear"]],
-        )
+    # gear_models/user_gear come from alembic revision 0003; the seed only
+    # upserts catalog rows into dev.db.
     async with SessionLocal() as session:
         print("seeded:", await seed(session))
 

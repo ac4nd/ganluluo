@@ -1,8 +1,9 @@
 import uuid
 from datetime import UTC, datetime
+from typing import Any, cast
 
 import jwt
-from sqlalchemy import select, update
+from sqlalchemy import CursorResult, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token, create_refresh_token, decode_token
@@ -11,9 +12,10 @@ from app.models.user import User
 from app.schemas.auth import TokenPair
 
 
-async def _insert_refresh(session: AsyncSession, user_id: int, jti: str, exp: datetime) -> None:
+async def _insert_refresh(session: AsyncSession, user_id: int, jti: str, exp: datetime, *, commit: bool = True) -> None:
     session.add(RefreshToken(user_id=user_id, jti=jti, expires_at=exp))
-    await session.commit()
+    if commit:
+        await session.commit()
 
 
 async def issue_pair(session: AsyncSession, user: User) -> TokenPair:
@@ -40,18 +42,30 @@ async def rotate(session: AsyncSession, refresh_token: str) -> TokenPair:
         jti = payload["jti"]
     except (jwt.InvalidTokenError, ValueError, KeyError):
         raise PermissionError("invalid refresh token") from None
-    row = await _get_by_jti(session, jti)
-    if row is None:
-        raise LookupError("unknown refresh token")
-    if row.revoked:
-        await _revoke_all(session, row.user_id)
+    # Atomic claim: one conditional UPDATE instead of select-then-update, so two
+    # concurrent rotations cannot both read revoked=False and both win — the
+    # UPDATE only succeeds for exactly one caller. (rowcount lives on the
+    # runtime CursorResult, not on the typed Result facade.)
+    res = cast(
+        "CursorResult[Any]",
+        await session.execute(update(RefreshToken).where(RefreshToken.jti == jti, RefreshToken.revoked.is_(False)).values(revoked=True)),
+    )
+    if res.rowcount == 0:
+        if await _get_by_jti(session, jti) is None:
+            raise LookupError("unknown refresh token")
+        # Replay of an already-used token: burn every session for this user.
+        await _revoke_all(session, int(payload["sub"]))
         raise PermissionError("refresh token reuse detected")
-    await session.execute(update(RefreshToken).where(RefreshToken.jti == jti).values(revoked=True))
-    user = (await session.execute(select(User).where(User.id == row.user_id))).scalar_one_or_none()
+    user = (await session.execute(select(User).where(User.id == int(payload["sub"])))).scalar_one_or_none()
     if user is None or user.deleted_at is not None:
         raise PermissionError("invalid refresh token")
+    # Revoke-claim and the successor pair share ONE commit: a crash in between
+    # can no longer strand a revoked token with no replacement to log in with.
+    access = create_access_token(user.id)
+    refresh, new_jti, exp = create_refresh_token(user.id)
+    await _insert_refresh(session, user.id, new_jti, exp, commit=False)
     await session.commit()
-    return await issue_pair(session, user)
+    return TokenPair(access_token=access, refresh_token=refresh)
 
 
 async def revoke(session: AsyncSession, refresh_token: str) -> None:

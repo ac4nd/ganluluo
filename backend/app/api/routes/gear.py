@@ -1,13 +1,11 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy import delete, select
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.core.db import get_session
-from app.models.gear import UserGear
 from app.models.user import User
 from app.schemas.gear import GearItemOut, GearListIn
-from app.services.gear_service import get_catalog
+from app.services import gear_service
 
 # No router prefix: /gear-list is a top-level per-user resource, so the catalog
 # spells its full path and the gear-list endpoints match the brief verbatim.
@@ -16,20 +14,17 @@ router = APIRouter(tags=["gear"])
 
 @router.get("/gear/catalog")
 async def catalog(session: AsyncSession = Depends(get_session)) -> dict:
-    return await get_catalog(session)
+    return await gear_service.get_catalog(session)
 
 
 @router.get("/gear-list", response_model=list[GearItemOut])
 async def get_gear_list(current: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)) -> list[GearItemOut]:
-    rows = (await session.execute(select(UserGear).where(UserGear.user_id == current.id))).scalars().all()
-    return [GearItemOut(item_key=r.item_key, model_id=r.model_id, custom_name=r.custom_name) for r in rows]
+    return await gear_service.get_gear_list(session, current.id)
 
 
 @router.put("/gear-list", response_model=list[GearItemOut])
 async def put_gear_list(data: GearListIn, current: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)) -> list[GearItemOut]:
-    await session.execute(delete(UserGear).where(UserGear.user_id == current.id))
-    for it in data.items:
-        session.add(UserGear(user_id=current.id, item_key=it.item_key, model_id=it.model_id, custom_name=it.custom_name))
-    await session.commit()
-    rows = (await session.execute(select(UserGear).where(UserGear.user_id == current.id))).scalars().all()
-    return [GearItemOut(item_key=r.item_key, model_id=r.model_id, custom_name=r.custom_name) for r in rows]
+    try:
+        return await gear_service.replace_gear_list(session, current.id, data.items)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from None
