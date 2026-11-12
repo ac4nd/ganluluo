@@ -1,0 +1,1002 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>04 画像 · 装备清单 · 赶路咯原型</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="page">
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="ic-boot" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.2h4.6l1.2 3.6 8.6 2.1c1.7.4 2.8 1.5 2.8 3.2V19H4z"/><path d="M5.6 10.8h2.4M6 13.2h2.4"/></g></symbol>
+  <symbol id="ic-axe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.8 21.5 14.2 6.8"/><path d="M12.7 7.7c1.9-1.9 4.4-2.5 7.1-1.7"/><path d="M19.8 6c-.3 1.9-1.1 3.5-2.4 4.9"/><path d="M10.9 17.6l2.6.8"/></g></symbol>
+  <symbol id="ic-pole" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.6 3.4 11.2 20.6"/><path d="M15.4 3.4 12.8 20.6"/><path d="M7 4.2h3.2M13.8 4.2H17"/><path d="M10.4 18.8l1.4.3M12.2 19.1l1.4-.3"/></g></symbol>
+  <symbol id="ic-pack" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5.8" y="5.2" width="12.4" height="14.6" rx="4"/><path d="M9.4 5.2V4a2.6 2.6 0 015.2 0v1.2"/><path d="M5.8 10.6h12.4"/><rect x="9" y="13.4" width="6" height="4" rx="1.6"/></g></symbol>
+  <symbol id="ic-jacket" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 3.2 12 5l2.8-1.8 3.8 2.4-1.7 2.7-1.5-.9V20H8.6V7.4l-1.5.9-1.7-2.7z"/><path d="M12 5v15"/></g></symbol>
+  <symbol id="ic-tee" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.6 3.8 12 5.2 15.4 3.8l3.9 2.4-2 3.1-1.5-.9V20H8.2v-8.6l-1.5.9-2-3.1z"/><path d="M9.5 7.4c1.6.9 3.4.9 5 0"/></g></symbol>
+  <symbol id="ic-pants" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.4h8l1.2 16.8h-4.2l-1-8.8-1 8.8H6.8z"/><path d="M8.4 7.6h7.2"/></g></symbol>
+  <symbol id="ic-lamp" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 12.2a7.4 7.4 0 0114.8 0"/><rect x="8.6" y="9.8" width="6.8" height="5.4" rx="2"/><path d="M8.6 12.5H4.6M15.4 12.5h4"/></g></symbol>
+  <symbol id="ic-watch" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5.4"/><path d="M12 9.6V12l1.9 1.3"/><path d="M9.6 7.4l.5-3.8h3.8l.5 3.8M9.6 16.6l.5 3.8h3.8l.5-3.8"/></g></symbol>
+  <symbol id="ic-battery" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.6" y="8.2" width="14.6" height="7.6" rx="2"/><path d="M18.2 10.4h2.2v3.2h-2.2"/><path d="M6.8 10.6v2.8M9.6 10.6v2.8M12.4 10.6v2.8"/></g></symbol>
+  <symbol id="ic-cap" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 13.6a6.4 6.4 0 0112.8 0"/><path d="M3 13.6c3 1.4 15 1.4 18 0"/><path d="M12 7.2V5.6"/></g></symbol>
+  <symbol id="ic-buff" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="10.8" rx="6.6" ry="5"/><ellipse cx="12" cy="10.8" rx="3.6" ry="2.6"/><path d="M5.4 10.8v3.4c0 2.8 3 5 6.6 5s6.6-2.2 6.6-5v-3.4"/></g></symbol>
+  <symbol id="ic-helmet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 14.4a7.2 7.2 0 0114.4 0v1.8H4.8z"/><path d="M9.2 10.6v3.4M12 9.9v4.1M14.8 10.6v3.4"/><path d="M9 16.2 7.6 19.4M15 16.2l1.4 3.2"/></g></symbol>
+  <symbol id="ic-glove" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 12.6V7.2a3.6 3.6 0 017.2 0v5.4c0 3.4-1.6 5.8-3.6 5.8s-3.6-2.4-3.6-5.8z"/><path d="M8.4 10.8c-1.9.1-3.2 1.3-3.2 2.9 0 1.3 1 2.3 2.3 2.3"/><path d="M9 18.6h6"/></g></symbol>
+  <symbol id="ic-knee" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 4.8h8.8l-.5 8.2a3.9 3.9 0 01-7.8 0z"/><path d="M7.8 7.2H4.6M16.2 7.2h3.2M7.4 11.6H4.2M16.6 11.6h3.2"/></g></symbol>
+  <symbol id="ic-rain" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4a8.8 8.8 0 018.8 8.8H3.2A8.8 8.8 0 0112 3.4z"/><path d="M12 12.2v6.4a2.1 2.1 0 01-4.2 0"/></g></symbol>
+  <symbol id="ic-radio" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.2" y="7.4" width="7.6" height="12.8" rx="2"/><path d="M10.4 7.4V4.2h3.2v3.2"/><path d="M10.3 11h3.4M10.3 13.4h3.4"/><circle cx="12" cy="16.6" r="1.1"/></g></symbol>
+  <symbol id="ic-tent" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2 2.8 19.8h18.4L12 4.2z"/><path d="M12 10.8 8.8 19.8h6.4L12 10.8z"/></g></symbol>
+  <symbol id="ic-sleep" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 3.6h7.2c1.8 0 3.2 1.4 3.2 3.2v9.6a3.6 3.6 0 01-3.6 3.6H8.8a3.6 3.6 0 01-3.6-3.6V6.8c0-1.8 1.4-3.2 3.2-3.2z"/><path d="M5.2 9.4h13.6M5.2 14h13.6"/></g></symbol>
+  <symbol id="ic-mat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="9" width="17.2" height="6" rx="3"/><circle cx="6.8" cy="12" r="1.7"/><path d="M12.6 9v6M16.4 9v6"/></g></symbol>
+  <symbol id="ic-stove" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 10.2h11.6v4.6a3.8 3.8 0 01-3.8 3.8h-4a3.8 3.8 0 01-3.8-3.8z"/><path d="M6.2 11.6H3.4M17.8 11.6h2.8"/><path d="M12 10.2V8"/><path d="M9.8 5.8c0-.9.8-1.1.8-2M12.8 5.8c0-.9.8-1.1.8-2"/></g></symbol>
+  <symbol id="ic-bottle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.8h4v2.8l1.8 2.6V19a2 2 0 01-2 2h-3.6a2 2 0 01-2-2V8.2L10 5.6z"/><path d="M8.2 13.2h7.6"/></g></symbol>
+  <symbol id="ic-filter" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.8 2.8h4.4v4l2.9 8.2a3.2 3.2 0 01-3 4.2h-4.2a3.2 3.2 0 01-3-4.2l2.9-8.2z"/><path d="M12 11.4c1.2 1.5 1.9 2.4 1.9 3.3a1.9 1.9 0 11-3.8 0c0-.9.7-1.8 1.9-3.3z"/></g></symbol>
+  <symbol id="ic-kit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.2" y="7.2" width="15.6" height="12.6" rx="3"/><path d="M12 10.4v5.8M9.1 13.3h5.8"/><path d="M9.6 7.2V5.4h4.8v1.8"/></g></symbol>
+  <symbol id="ic-blanket" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.8" y="5.6" width="14.4" height="12.8" rx="2"/><path d="M4.8 9.8h14.4M4.8 14h14.4"/></g></symbol>
+  <symbol id="ic-spray" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.8" y="9" width="6.4" height="11.2" rx="1.8"/><path d="M10.6 9V6.6h2.8V9"/><path d="M13.4 7.8h2.2"/><path d="M18 5.4l1.3-.7M18.6 7.2h1.5M18 9l1.3.7"/></g></symbol>
+  <symbol id="ic-snowboard" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="10.3" width="18.4" height="3.4" rx="1.7" transform="rotate(-28 12 12)"/><rect x="8" y="8.4" width="2.6" height="2.1" rx=".7" transform="rotate(-28 12 12)"/><rect x="13.4" y="13.2" width="2.6" height="2.1" rx=".7" transform="rotate(-28 12 12)"/></g></symbol>
+  <symbol id="ic-ski" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 20.8L7.2 4.6c.1-.9 1.4-.9 1.6 0L11 20.8"/><path d="M13 20.8L15.6 4.6c.1-.9 1.4-.9 1.6 0L19.4 20.8"/><path d="M6.4 16.6h4M14.8 16.6h4"/></g></symbol>
+  <symbol id="ic-crampon" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8.6h14v2.8H5z"/><path d="M6.4 11.4V18M10.2 11.4V19M13.8 11.4V19M17.6 11.4V18"/><path d="M8.4 8.6V5.4M15.6 8.6V5.4"/></g></symbol>
+  <symbol id="ic-bike" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.4" cy="16.8" r="3.1"/><circle cx="18.6" cy="16.8" r="3.1"/><path d="M5.4 16.8L9 10.8h5.8l3.8 6"/><path d="M9 10.8l3.4 6"/><path d="M8 10.8h2"/></g></symbol>
+  <symbol id="ic-moto" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.2" cy="16.6" r="3"/><circle cx="18.8" cy="16.6" r="3"/><path d="M5.2 16.6l3.6-3.4h4.2l2.4 3.4"/><path d="M13 13.2l1.2-3.6h3.4"/><path d="M8.8 13.2h5.6"/><path d="M16.8 9.6l2.4-1.2"/></g></symbol>
+  <symbol id="ic-sup" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="12.4" width="18.8" height="2.8" rx="1.4" transform="rotate(-10 12 14)"/><path d="M15.6 3.6 11.4 12"/><path d="M17.2 2.4l1.8 2-2.6 1z"/><path d="M4 19.6c2-1.4 4-1.4 6 0s4 1.4 6 0 4-1.4 6 0" opacity=".55"/></g></symbol>
+
+</svg>
+<div class="watermark">赶路咯 · GANLULUO</div>
+<div class="phone">
+  <div class="island"></div>
+  <div class="screen">
+    <div class="status">
+      <span>9:41</span>
+      <span class="sicons">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 9.4a1.3 1.3 0 100 2.2 1.3 1.3 0 000-2.2z"/><path d="M8 5.7c1.6 0 3.1.6 4.1 1.7L10.9 8.6A3.8 3.8 0 008 7.4c-1.1 0-2.1.4-2.9 1.2L3.9 7.4c1-1.1 2.5-1.7 4.1-1.7z"/><path d="M8 2c2.6 0 5 1 6.8 2.8l-1.2 1.2A8 8 0 008 3.7c-2.2 0-4.2.9-5.6 2.3L1.2 4.8A9.6 9.6 0 018 2z"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23 4v4a2.2 2.2 0 000-4z" fill="currentColor" opacity=".4"/></svg>
+      </span>
+    </div>
+
+    <div class="content" style="padding-top:14px;padding-bottom:150px">
+      <div class="step-head">
+        <a class="icon-btn" href="03-onboard-exp.html" style="width:38px;height:38px">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l-7 7 7 7"/></svg>
+        </a>
+        <span class="step-label">用户画像 · 3/3 装备清单</span>
+        <span style="width:38px"></span>
+      </div>
+      <div class="stepper"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i></div>
+
+      <div class="title-lg">挑选你的<em>徒步装备</em></div>
+      <div class="sub" style="margin:10px 0 4px">点开装备，从常见品牌/型号中快速勾选，也可<b style="color:var(--accent)">添加自定义装备</b>。装备将参与路线安全匹配。已带 <b style="color:var(--accent)" id="total">8</b> 件。</div>
+
+      <div class="gear-cats">
+        <span class="chip on" data-cat="all">全部</span>
+        <span class="chip" data-cat="shoes">👟 鞋类</span>
+        <span class="chip" data-cat="tech">🧊 技术装备</span>
+        <span class="chip" data-cat="pack">🎒 背包</span>
+        <span class="chip" data-cat="cloth">🧥 服饰</span>
+        <span class="chip" data-cat="elec">🔋 电子数码</span>
+        <span class="chip" data-cat="sun">🧢 防晒·护具</span>
+        <span class="chip" data-cat="camp">⛺ 露营·过夜</span>
+        <span class="chip" data-cat="water">💧 水具·应急</span>
+      </div>
+
+      <!-- 鞋类 -->
+      <section class="gear-cat" data-cat="shoes">
+        <div class="gear-cat-head"><h4>👟 鞋类</h4><span></span></div>
+
+        <div class="gear-item sel">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-boot"/></svg></span>
+            <span class="gt"><b>登山鞋</b><i>低帮 / 中帮 / 高帮 · 碳板 · 防滑 · 防水 · 透气 · 耐磨</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="dims">
+              <span class="chip on">中帮</span><span class="chip">低帮</span><span class="chip">高帮</span><span class="chip">碳板</span><span class="chip on">防滑大底</span><span class="chip on">防水</span><span class="chip">透气</span><span class="chip">耐磨</span><span class="chip">舒适</span>
+            </div>
+            <div class="mgrid">
+              <span class="model sel"><i class="thumb"><svg class="icon"><use href="#ic-boot"/></svg></i><b>Salomon</b><span>X Ultra 4 Mid GTX</span><em>中帮 · GTX 防水</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-boot"/></svg></i><b>Lowa</b><span>Renegade GTX Mid</span><em>中帮 · 防水</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-boot"/></svg></i><b>Scarpa</b><span>Kailash Trek GTX</span><em>高帮 · 耐磨</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-boot"/></svg></i><b>La Sportiva</b><span>TX5</span><em>高帮 · 技术线路</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-boot"/></svg></i><b>Columbia</b><span>Newton Ridge</span><em>低帮 · 防滑</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-boot"/></svg></i><b>探路者</b><span>KFAH91358</span><em>低帮 · 透气</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-boot">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-boot"/></svg></span>
+            <span class="gt"><b>溯溪鞋</b><i>涉水防滑 · 排水快干 · 软底抓岩</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-boot"/></svg></i><b>KEEN</b><span>Newport H2</span><em>涉水防滑</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-boot"/></svg></i><b>Merrell</b><span>Hydro Moc</span><em>轻量排水</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-boot"/></svg></i><b>探路者</b><span>TFKE92756</span><em>溪流鞋</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-boot">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-boot"/></svg></span>
+            <span class="gt"><b>攀岩鞋</b><i>贴合包脚 · 橡胶粘性 · 脚尖点踩</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-boot"/></svg></i><b>La Sportiva</b><span>Katana</span><em>全能 · 中等攻击性</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-boot"/></svg></i><b>Climb X</b><span>Flashlight</span><em>入门舒适</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-boot"/></svg></i><b>OCUN</b><span>Ozone</span><em>灵敏 · 精准</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-boot">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 技术装备 -->
+      <section class="gear-cat" data-cat="tech">
+        <div class="gear-cat-head"><h4>🧊 技术装备</h4><span></span></div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-axe"/></svg></span>
+            <span class="gt"><b>冰镐</b><i>雪线行走 · 制动 · 攀冰固定</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-axe"/></svg></i><b>Petzl</b><span>Glacier</span><em>行走 · 制动</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-axe"/></svg></i><b>Black Diamond</b><span>Raven Ultra</span><em>轻量 · 雪线</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-axe">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item sel">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-pole"/></svg></span>
+            <span class="gt"><b>登山杖</b><i>材质：铝合金 / 碳纤维 · 锁紧：内锁 / 外锁</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="dims">
+              <span class="chip on">碳纤维</span><span class="chip">铝合金</span><span class="chip on">外锁</span><span class="chip">内锁</span><span class="chip">超轻</span><span class="chip">四节收纳</span>
+            </div>
+            <div class="mgrid">
+              <span class="model sel"><i class="thumb"><svg class="icon"><use href="#ic-pole"/></svg></i><b>Black Diamond</b><span>Trail</span><em>铝合金 · 外锁</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pole"/></svg></i><b>LEKI</b><span>Makalu Lite</span><em>铝合金 · 外锁</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pole"/></svg></i><b>Fizan</b><span>Compact 3</span><em>碳纤维 · 内锁</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pole"/></svg></i><b>NH挪客</b><span>碳素快锁杖</span><em>碳纤维 · 外锁</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-pole">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+<div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-snowboard"/></svg></span>
+            <span class="gt"><b>单板雪橇</b><i>全能板 / 公园板 · 板长 · 硬度</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-snowboard"/></svg></i><b>Burton</b><span>Custom</span><em>全能 · 凸边防刮</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-snowboard"/></svg></i><b>Nitro</b><span>Team</span><em>公园 · 全能</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-snowboard"/></svg></i><b>YES</b><span>Basic</span><em>入门 · 性价比</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-snowboard">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-ski"/></svg></span>
+            <span class="gt"><b>双板雪橇</b><i>道内全能 / 道外野雪 · 板腰宽度</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-ski"/></svg></i><b>Rossignol</b><span>Experience 84</span><em>全能 · 道内道外</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-ski"/></svg></i><b>Atomic</b><span>Cloud Q9</span><em>道内 · 轻松转弯</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-ski"/></svg></i><b>Salomon</b><span>QST 92</span><em>道外 · 野雪浮力</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-ski">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-pole"/></svg></span>
+            <span class="gt"><b>滑雪杖</b><i>材质：铝合金 / 碳素 · 握把雪轮</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pole"/></svg></i><b>LEKI</b><span>Spark S</span><em>铝合金 · 轻量</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pole"/></svg></i><b>Volkl</b><span>Phantastick</span><em>碳素 · 超轻</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pole"/></svg></i><b>迪卡侬</b><span>Wedze 500</span><em>入门 · 性价比</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-pole">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-crampon"/></svg></span>
+            <span class="gt"><b>冰爪</b><i>绑式 / 全绑 · 齿数 · 兼容鞋型</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-crampon"/></svg></i><b>Petzl</b><span>Leopard LLF</span><em>绑式 · 轻量徒步</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-crampon"/></svg></i><b>Black Diamond</b><span>Neve Pro</span><em>全绑 · 技术线路</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-crampon"/></svg></i><b>Grivel</b><span>G10</span><em>经典十齿 · 耐用</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-crampon">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-bike"/></svg></span>
+            <span class="gt"><b>公路自行车</b><i>碳架 / 铝架 · 竞速 / 耐力几何</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-bike"/></svg></i><b>Giant</b><span>TCR Advanced</span><em>碳架 · 竞速</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-bike"/></svg></i><b>Trek</b><span>Emonda ALR</span><em>轻量 · 爬坡</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-bike"/></svg></i><b>Merida</b><span>Scultura</span><em>耐力几何 · 性价比</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-bike">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-bike"/></svg></span>
+            <span class="gt"><b>山地自行车</b><i>XC 硬尾 / 软尾 Trail · 变速套件</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-bike"/></svg></i><b>Giant</b><span>XTC 800</span><em>XC · 硬尾</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-bike"/></svg></i><b>Trek</b><span>Marlin 7</span><em>入门 · 油压碟刹</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-bike"/></svg></i><b>Specialized</b><span>Stumpjumper</span><em>软尾 · Trail</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-bike">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-moto"/></svg></span>
+            <span class="gt"><b>山地摩托车</b><i>Enduro / 林道 · 长行程避震</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-moto"/></svg></i><b>KTM</b><span>350 EXC-F</span><em>Enduro · 越野</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-moto"/></svg></i><b>Honda</b><span>CRF250L</span><em>林道 · 可上牌</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-moto"/></svg></i><b>Yamaha</b><span>WR250F</span><em>越野 · 轻量</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-moto">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-sup"/></svg></span>
+            <span class="gt"><b>桨板</b><i>充气 / 硬板 · 溯溪缓流段 · 钓鱼</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-sup"/></svg></i><b>Aqua Marina</b><span>Vapor</span><em>充气 · 全能</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-sup"/></svg></i><b>迪卡侬</b><span>Itiwit 100</span><em>入门 · 稳定</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-sup"/></svg></i><b>ZRAY</b><span>S9</span><em>旅行 · 钓鱼挂钩</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-sup">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 背包 -->
+      <section class="gear-cat" data-cat="pack">
+        <div class="gear-cat-head"><h4>🎒 背包</h4><span></span></div>
+
+        <div class="gear-item sel">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-pack"/></svg></span>
+            <span class="gt"><b>户外背包</b><i>容量 20-45L+ · 背负系统 · 轻量化 · 防水 · 材质 · 易用性</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="dims">
+              <span class="chip on">28L 档</span><span class="chip">20L 档</span><span class="chip">30L 档</span><span class="chip">38L 档</span><span class="chip">45L+ 重装</span><span class="chip on">背负系统</span><span class="chip">轻量化</span><span class="chip">防泼水</span><span class="chip">易用性</span>
+            </div>
+            <div class="mgrid">
+              <span class="model sel"><i class="thumb"><svg class="icon"><use href="#ic-pack"/></svg></i><b>Osprey</b><span>Kestrel 38L</span><em>38L · AirScape 背负</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pack"/></svg></i><b>Gregory</b><span>Zulu 30L</span><em>30L · 轻量化</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pack"/></svg></i><b>deuter</b><span>Aircontact 45+10</span><em>重装 · 含防雨罩</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pack"/></svg></i><b>凯乐石</b><span>Lesson PY 28L</span><em>28L · 便携</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-pack">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 服饰 -->
+      <section class="gear-cat" data-cat="cloth">
+        <div class="gear-cat-head"><h4>🧥 服饰</h4><span></span></div>
+
+        <div class="gear-item sel">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-jacket"/></svg></span>
+            <span class="gt"><b>冲锋衣</b><i>硬壳 / 软壳 · 透气设计 · 性价比</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="dims">
+              <span class="chip on">硬壳</span><span class="chip">软壳</span><span class="chip on">GTX 防水</span><span class="chip">透气</span><span class="chip">性价比</span>
+            </div>
+            <div class="mgrid">
+              <span class="model sel"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>始祖鸟</b><span>Beta LT</span><em>硬壳 · GORE-TEX</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>Mammut</b><span>Rime IN</span><em>软壳 · 透气保暖</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>凯乐石</b><span>KG710275</span><em>硬壳 · 性价比</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>伯希和</b><span>软壳外套</span><em>软壳 · 日常通勤</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-jacket">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item sel">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-jacket"/></svg></span>
+            <span class="gt"><b>保暖内胆</b><i>羽绒 / 抓绒 · 鹅绒 / 鸭绒 · 蓬松度</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="dims">
+              <span class="chip on">鹅绒</span><span class="chip">鸭绒</span><span class="chip">抓绒</span><span class="chip on">800FP</span><span class="chip">轻量</span>
+            </div>
+            <div class="mgrid">
+              <span class="model sel"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>Patagonia</b><span>Down Sweater</span><em>鹅绒 · 800FP</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>凯乐石</b><span>金字塔羽绒</span><em>鸭绒 · 700FP</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>Patagonia</b><span>R1</span><em>抓绒 · 透气</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>迪卡侬</b><span>MH120 抓绒</span><em>抓绒 · 性价比</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-jacket">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-jacket"/></svg></span>
+            <span class="gt"><b>潜水服 / 溯溪服</b><i>3mm 湿式 · 溯溪保暖</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>Hisky</b><span>3mm 连体湿式</span><em>溯溪 · 保暖</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>BARA</b><span>溯溪分体服</span><em>耐磨 · 弹力</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-jacket">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-jacket"/></svg></span>
+            <span class="gt"><b>防晒皮肤衣</b><i>UPF50+ · 轻薄透气</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>蕉下</b><span>披肩防晒衣</span><em>UPF50+</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>迪卡侬</b><span>防晒皮肤衣</span><em>轻量 · 透气</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-jacket">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-tee"/></svg></span>
+            <span class="gt"><b>速干衣</b><i>排汗快干 · 贴身层</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-tee"/></svg></i><b>始祖鸟</b><span>Phase SL</span><em>轻量 · 排汗</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-tee"/></svg></i><b>迪卡侬</b><span>MH500 速干T</span><em>性价比</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-tee">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-tee"/></svg></span>
+            <span class="gt"><b>运动内衣</b><i>高强度支撑 · 速干面料</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-tee"/></svg></i><b>Lululemon</b><span>Energy Bra</span><em>高强度支撑</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-tee"/></svg></i><b>迪卡侬</b><span>运动内衣</span><em>中强度 · 速干</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-tee">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-pants"/></svg></span>
+            <span class="gt"><b>瑜伽裤</b><i>高弹 · 赤足感 · 拉伸</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pants"/></svg></i><b>Lululemon</b><span>Align 25"</span><em>裸感 · 高腰</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pants"/></svg></i><b>迪卡侬</b><span>瑜伽裤</span><em>高弹 · 性价比</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-pants">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-pants"/></svg></span>
+            <span class="gt"><b>工装裤</b><i>多口袋 · 耐磨弹力</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pants"/></svg></i><b>迪卡侬</b><span>Forclaz 500</span><em>徒步 · 耐磨</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pants"/></svg></i><b>伯希和</b><span>软壳工装裤</span><em>弹力 · 防泼水</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-pants">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-pants"/></svg></span>
+            <span class="gt"><b>冲锋裤</b><i>防水透气 · 侧拉链</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pants"/></svg></i><b>凯乐石</b><span>KG210152</span><em>防水 · 透气</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pants"/></svg></i><b>探路者</b><span>冲锋裤</span><em>防泼水 · 保暖</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-pants">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-pants"/></svg></span>
+            <span class="gt"><b>运动短裤</b><i>夏季徒步 · 轻量速干</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pants"/></svg></i><b>迪卡侬</b><span>KIPSTA 短裤</span><em>速干 · 轻量</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-pants"/></svg></i><b>Nike</b><span>Dri-FIT</span><em>排汗 · 弹力</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-pants">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-jacket"/></svg></span>
+            <span class="gt"><b>骑行服</b><i>骑行代步进山 · 反光条</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>Castelli</b><span>骑行上衣</span><em>气动 · 排汗</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-jacket"/></svg></i><b>捷安特</b><span>骑行套装</span><em>反光 · 透气</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-jacket">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 电子数码 -->
+      <section class="gear-cat" data-cat="elec">
+        <div class="gear-cat-head"><h4>🔋 电子数码</h4><span></span></div>
+
+        <div class="gear-item sel">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-lamp"/></svg></span>
+            <span class="gt"><b>头灯</b><i>流明 · 续航 · 充电方式</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model sel"><i class="thumb"><svg class="icon"><use href="#ic-lamp"/></svg></i><b>Petzl</b><span>Actik Core</span><em>600lm · USB-C</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-lamp"/></svg></i><b>Black Diamond</b><span>Spot 400</span><em>400lm · 防水</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-lamp"/></svg></i><b>奈特科尔</b><span>NU25</span><em>超轻 · 360lm</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-lamp">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-watch"/></svg></span>
+            <span class="gt"><b>GPS 手表</b><i>双频定位 · 轨迹导航 · 续航</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-watch"/></svg></i><b>Garmin</b><span>Fenix 7</span><em>双频GPS · 太阳能</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-watch"/></svg></i><b>COROS</b><span>APEX 2 Pro</span><em>长续航 · 越野</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-watch"/></svg></i><b>Garmin</b><span>Instinct 2</span><em>三防 · 性价比</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-watch">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-battery"/></svg></span>
+            <span class="gt"><b>移动电源</b><i>容量 · 快充协议</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-battery"/></svg></i><b>Anker</b><span>20000mAh</span><em>22.5W 快充</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-battery"/></svg></i><b>紫米</b><span>10000mAh</span><em>轻薄 · 自带线</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-battery">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 防晒·护具 -->
+      <section class="gear-cat" data-cat="sun">
+        <div class="gear-cat-head"><h4>🧢 防晒·护具</h4><span></span></div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-cap"/></svg></span>
+            <span class="gt"><b>遮阳帽</b><i>UPF50+ · 大檐 · 可折叠</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-cap"/></svg></i><b>蕉下</b><span>渔夫帽</span><em>UPF50+ · 折叠</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-cap"/></svg></i><b>Columbia</b><span>Bora Bora</span><em>防泼水 · 快干</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-cap">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-buff"/></svg></span>
+            <span class="gt"><b>多功能围脖头巾</b><i>魔术头巾 · 面罩两用</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-buff"/></svg></i><b>Buff</b><span>Original</span><em>多用途 · 速干</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-buff">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-buff"/></svg></span>
+            <span class="gt"><b>防晒面罩</b><i>全脸防护 · 透气孔</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-buff"/></svg></i><b>蕉下</b><span>护颈面罩</span><em>UPF50+ · 透气</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-buff">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-buff"/></svg></span>
+            <span class="gt"><b>防晒袖套</b><i>冰感面料 · 开指设计</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-buff"/></svg></i><b>蕉下</b><span>冰袖</span><em>冰感 · UPF50+</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-buff">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-helmet"/></svg></span>
+            <span class="gt"><b>安全帽 / 头盔</b><i>攀岩 / 骑行 · 认证防护</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-helmet"/></svg></i><b>Petzl</b><span>Boreo</span><em>攀岩 · 侧向防护</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-helmet"/></svg></i><b>迪卡侬</b><span>登山头盔</span><em>轻量 · 性价比</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-helmet">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-glove"/></svg></span>
+            <span class="gt"><b>战术防滑手套</b><i>触屏指尖 · 耐磨掌垫</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-glove"/></svg></i><b>Mechanix</b><span>Original</span><em>耐磨 · 触屏</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-glove"/></svg></i><b>黑冰</b><span>防滑手套</span><em>轻薄 · 透气</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-glove">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-knee"/></svg></span>
+            <span class="gt"><b>护膝 / 髌骨带</b><i>下山减压 · 运动防护</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-knee"/></svg></i><b>LP</b><span>运动护膝</span><em>支撑 · 透气</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-knee"/></svg></i><b>LP</b><span>髌骨带</span><em>下山减压</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-knee">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-spray"/></svg></span>
+            <span class="gt"><b>防晒霜</b><i>SPF50+ · 户外持久</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-spray"/></svg></i><b>安热沙</b><span>金瓶 SPF50+</span><em>持久的汗</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-spray"/></svg></i><b>薇诺娜</b><span>清透防晒乳</span><em>温和 · 敏感肌</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-spray">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-spray"/></svg></span>
+            <span class="gt"><b>驱蚊喷雾</b><i>避蚊胺 / 派卡瑞丁</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-spray"/></svg></i><b>OFF!</b><span>欧护家驱蚊液</span><em>长效 · 户外</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-spray">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 露营·过夜 -->
+      <section class="gear-cat" data-cat="camp">
+        <div class="gear-cat-head"><h4>⛺ 露营·过夜</h4><span></span></div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-tent"/></svg></span>
+            <span class="gt"><b>帐篷</b><i>铝杆 / 玻纤 · 双人 · 轻量化</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-tent"/></svg></i><b>牧高笛</b><span>冷山 2</span><em>铝杆 · 双人</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-tent"/></svg></i><b>NH挪客</b><span>云尚 2</span><em>轻量化 · 露营</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-tent">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-sleep"/></svg></span>
+            <span class="gt"><b>睡袋</b><i>舒适温标 · 鸭绒 / 棉</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-sleep"/></svg></i><b>黑冰</b><span>G700</span><em>鸭绒 · 木乃伊式</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-sleep"/></svg></i><b>天石</b><span>信封式睡袋</span><em>四季 · 棉</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-sleep">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-mat"/></svg></span>
+            <span class="gt"><b>防潮垫</b><i>蛋槽 / 充气 · R值</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-mat"/></svg></i><b>Therm-a-Rest</b><span>蛋槽垫</span><em>折叠 · 耐用</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-mat"/></svg></i><b>NH挪客</b><span>充气垫</span><em>厚实 · 轻量</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-mat">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-stove"/></svg></span>
+            <span class="gt"><b>炊具</b><i>套锅 · 气炉 · 餐具</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-stove"/></svg></i><b>火枫</b><span>盛宴 3 套锅</span><em>2-3人 · 收纳</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-stove"/></svg></i><b>火枫</b><span>mini 气炉</span><em>超轻 · 3000W</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-stove">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-rain"/></svg></span>
+            <span class="gt"><b>雨具</b><i>雨衣 / 雨披 · 分体式</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-rain"/></svg></i><b>探路者</b><span>分体雨衣</span><em>防水 · 透气</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-rain"/></svg></i><b>NH挪客</b><span>背包雨披</span><em>含背包仓</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-rain">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-radio"/></svg></span>
+            <span class="gt"><b>对讲机</b><i>手台 · 队伍通讯</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-radio"/></svg></i><b>北峰</b><span>BF-5111</span><em>民用 · 长续航</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-radio"/></svg></i><b>摩托罗拉</b><span>T50</span><em>免执照 · 轻巧</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-radio">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 水具·应急 -->
+      <section class="gear-cat" data-cat="water">
+        <div class="gear-cat-head"><h4>💧 水具·应急</h4><span></span></div>
+
+        <div class="gear-item sel">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-bottle"/></svg></span>
+            <span class="gt"><b>水袋</b><i>1-3L · 吸管阀 · 抗压</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model sel"><i class="thumb"><svg class="icon"><use href="#ic-bottle"/></svg></i><b>Platypus</b><span>2L 水袋</span><em>轻量 · 无异味</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-bottle"/></svg></i><b>CamelBak</b><span>Crux 2L</span><em>大流量吸管</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-bottle">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-bottle"/></svg></span>
+            <span class="gt"><b>水壶</b><i>Tritan / 保温 · 广口</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-bottle"/></svg></i><b>Nalgene</b><span>1L Tritan</span><em>耐摔 · 广口</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-bottle"/></svg></i><b>膳魔师</b><span>保温壶 500ml</span><em>保温 12h</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-bottle">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-filter"/></svg></span>
+            <span class="gt"><b>过滤器</b><i>滤芯 0.1μm · 直饮</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-filter"/></svg></i><b>Katadyn</b><span>BeFree</span><em>快流 · 可反洗</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-filter"/></svg></i><b>Sawyer</b><span>Squeeze</span><em>挤压式 · 长寿命</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-filter">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item sel">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-kit"/></svg></span>
+            <span class="gt"><b>急救包</b><i>登山标准 · 敷料/药品</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model sel"><i class="thumb"><svg class="icon"><use href="#ic-kit"/></svg></i><b>登山标准版</b><span>含敷料/绷带/药品</span><em>1-2 日线配置</em><span class="tick">✓</span></span>
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-kit"/></svg></i><b>轻量便携版</b><span>基础敷料+碘伏</span><em>半日线配置</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-kit">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+
+        <div class="gear-item">
+          <div class="gear-row">
+            <span class="gic"><svg class="icon"><use href="#ic-blanket"/></svg></span>
+            <span class="gt"><b>保温毯</b><i>应急反光 · 防失温</i></span>
+            <span class="gn"></span>
+            <span class="gck"></span>
+          </div>
+          <div class="gsub"><div class="gsub-in">
+            <div class="mgrid">
+              <span class="model"><i class="thumb"><svg class="icon"><use href="#ic-blanket"/></svg></i><b>应急保温毯</b><span>银色双面反光</span><em>防失温 · 210×160</em><span class="tick">✓</span></span>
+            </div>
+            <button class="addc" data-g="ic-blanket">＋ 添加我的型号</button>
+          </div></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="cta-wrap">
+      <a class="btn btn-primary" href="05-home.html">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        完成，进入赶路咯 · 已带 <b>&nbsp;<span id="total">8</span>&nbsp;</b> 件
+      </a>
+    </div>
+    <div class="home-bar"></div>
+  </div>
+</div>
+<script>
+  /* 分类筛选 */
+  var cats=document.querySelectorAll('.gear-cats .chip');
+  cats.forEach(function(c){c.addEventListener('click',function(){
+    cats.forEach(function(o){o.classList.remove('on')});c.classList.add('on');
+    var cat=c.dataset.cat;
+    document.querySelectorAll('.gear-cat').forEach(function(s){
+      s.style.display=(cat==='all'||s.dataset.cat===cat)?'':'none';
+    });
+  });});
+  /* 细分维度 chips */
+  document.querySelectorAll('.dims .chip').forEach(function(d){
+    d.addEventListener('click',function(){d.classList.toggle('on')});
+  });
+  /* 行点击=展开面板；复选圈=拥有该装备 */
+  document.querySelectorAll('.gear-row').forEach(function(r){
+    r.addEventListener('click',function(e){
+      var item=r.parentElement;
+      if(e.target.closest('.gck')){item.classList.toggle('sel');updateCounts();return;}
+      item.classList.toggle('open');
+    });
+  });
+  /* 型号勾选 */
+  document.querySelectorAll('.model').forEach(function(m){
+    m.addEventListener('click',function(e){
+      if(e.target.tagName==='INPUT')return;
+      m.classList.toggle('sel');
+      if(m.classList.contains('sel'))m.closest('.gear-item').classList.add('sel');
+      updateCounts();
+    });
+  });
+  /* 添加自定义型号 */
+  document.querySelectorAll('.addc').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var grid=btn.parentElement.querySelector('.mgrid');
+      var g=btn.dataset.g||'ic-pack';
+      var el=document.createElement('span');
+      el.className='model';
+      el.innerHTML='<i class="thumb"><svg class="icon"><use href="#'+g+'"/></svg></i><input class="cname" placeholder="品牌 / 型号，回车确认"><span class="tick">✓</span>';
+      grid.appendChild(el);
+      var inp=el.querySelector('input');inp.focus();
+      function done(){
+        var v=(inp.value||'').trim();
+        if(!v){el.remove();return;}
+        var parts=v.split(/\s+/);
+        var b=parts[0],s=parts.slice(1).join(' ')||'自定义';
+        el.innerHTML='<i class="thumb"><svg class="icon"><use href="#'+g+'"/></svg></i><b></b><span></span><em>自定义</em><span class="tick">✓</span>';
+        el.querySelector('b').textContent=b;
+        el.querySelector('span:not(.tick)').textContent=s;
+        el.classList.add('sel');
+        el.addEventListener('click',function(){el.classList.toggle('sel');updateCounts();});
+        updateCounts();
+      }
+      inp.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();inp.blur();}});
+      inp.addEventListener('blur',done);
+    });
+  });
+  /* 计数：装备数 / 分类进度 / 总数 */
+  function updateCounts(){
+    var total=0;
+    document.querySelectorAll('.gear-cat').forEach(function(sec){
+      var n=0,items=sec.querySelectorAll('.gear-item');
+      items.forEach(function(it){
+        var c=it.querySelectorAll('.model.sel').length;
+        it.querySelector('.gn').textContent=c?c+' 型号':'';
+        if(it.classList.contains('sel'))n++;
+      });
+      sec.querySelector('.gear-cat-head span').textContent=n+' / '+items.length+' 项';
+      total+=n;
+    });
+    var t=document.getElementById('total');if(t)t.textContent=total;
+  }
+  updateCounts();
+</script>
+</body>
+</html>

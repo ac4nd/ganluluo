@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>赶路咯 · 三平台 UI 适配对照</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  body.board{
+    display:block;padding:0;font-family:var(--font);
+    background:radial-gradient(1600px 1000px at 15% -5%,var(--bg-outer-1),var(--bg-outer-2));
+    color:#20301a;
+  }
+  .board .watermark{color:rgba(96,132,48,.12);font-size:12vw}
+  .board-head{position:relative;z-index:2;max-width:1420px;margin:0 auto;padding:56px 40px 6px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand .logo{width:54px;height:54px;border-radius:17px;background:var(--grad);color:#0d1506;display:flex;align-items:center;justify-content:center;box-shadow:var(--glow)}
+  .brand h1{font-size:27px;font-weight:800}
+  .brand p{font-size:13px;color:#5a6b48;margin-top:4px}
+  .pts{position:relative;z-index:2;max-width:1420px;margin:0 auto;padding:26px 40px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .pt{background:rgba(255,255,255,.55);border:1px solid rgba(96,132,48,.22);border-radius:18px;padding:16px 18px;backdrop-filter:blur(6px)}
+  .pt b{font-size:14px;color:#26401c;display:flex;align-items:center;gap:8px}
+  .pt p{font-size:12px;color:#5a6b48;line-height:1.7;margin-top:6px}
+  .pt .os-ic{width:24px;height:24px;border-radius:8px;background:#20301a;color:#dff5b8;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+  .cols{position:relative;z-index:2;max-width:1420px;margin:0 auto;padding:30px 40px 60px;display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+  .col .ct{font-size:15px;font-weight:800;color:#26401c;text-align:center;margin-bottom:4px}
+  .col .cs{font-size:11.5px;color:#6a7c54;text-align:center;margin-bottom:18px}
+  .cells{display:grid;gap:30px}
+  .frame{position:relative;width:300px;margin:0 auto}
+  .frame .ph{width:300px;height:626px;overflow:hidden;border-radius:42px;box-shadow:0 26px 52px rgba(44,64,22,.3),0 0 0 8px #0b0e07,0 0 0 10px rgba(255,255,255,.4)}
+  .frame iframe{width:390px;height:844px;transform:scale(.75);transform-origin:top left;border:0;display:block}
+  .frame .cap{margin-top:12px;text-align:center;font-size:12.5px;color:#6a7c54}
+  @media (max-width:1120px){.cols{grid-template-columns:1fr}.frame{margin:0 auto}}
+</style>
+</head>
+<body class="board">
+<div class="watermark">赶路咯 · 多平台</div>
+
+<header class="board-head">
+  <div class="brand">
+    <div class="logo">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M2.5 20l6-11 3.6 6.6L14.5 11l7 9z"/><circle cx="18.5" cy="5" r="2"/></svg>
+    </div>
+    <div>
+      <h1>三平台 UI 适配对照 — 同一品牌，三种系统语言</h1>
+      <p>环保绿品牌色不变 · 信息架构不变 · 按 iOS / HarmonyOS NEXT / Android Material 3 的交互惯例分别表达</p>
+    </div>
+  </div>
+</header>
+
+<section class="pts">
+  <div class="pt">
+    <b><span class="os-ic"></span>iOS 26 Liquid Glass</b>
+    <p>灵动岛 · 悬浮胶囊底部导航 · 玻璃拟态浮层（blur+saturate+内高光）· 连续大圆角卡片 · 荧光渐变主按钮</p>
+  </div>
+  <div class="pt">
+    <b><span class="os-ic">鸿</span>HarmonyOS NEXT</b>
+    <p><b>实况窗</b>胶囊（顶部，含实时呼吸点）· <b>万能卡片</b>（天气/计划服务卡）· 底部页签用<b>呼吸点指示器</b> · HarmonyOS Sans 字体 · 大圆角 24 连续曲面卡片 · 侧滑返回</p>
+  </div>
+  <div class="pt">
+    <b><span class="os-ic">M3</span>Android Material 3</b>
+    <p><b>打孔摄像头</b> · Material 3 底部导航（<b>药丸指示器</b>托底激活图标）· <b>FAB</b> 悬浮操作（AI 规划）· Roboto 字体 · 16dp 卡片圆角 · Filled + Tonal 双按钮组合</p>
+  </div>
+</section>
+
+<div class="cols">
+  <div class="col">
+    <div class="ct">iOS 版</div>
+    <div class="cs">Liquid Glass · 悬浮胶囊导航</div>
+    <div class="cells">
+      <div class="frame">
+        <div class="ph"><iframe src="05-home.html" loading="lazy" title="iOS 首页"></iframe></div>
+        <div class="cap">首页</div>
+      </div>
+      <div class="frame">
+        <div class="ph"><iframe src="08-route-detail.html" loading="lazy" title="iOS 路线详情"></iframe></div>
+        <div class="cap">路线详情</div>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="ct">鸿蒙版</div>
+    <div class="cs">实况窗 · 万能卡片 · 呼吸点页签</div>
+    <div class="cells">
+      <div class="frame">
+        <div class="ph"><iframe src="h-home.html" loading="lazy" title="鸿蒙首页"></iframe></div>
+        <div class="cap">首页</div>
+      </div>
+      <div class="frame">
+        <div class="ph"><iframe src="h-detail.html" loading="lazy" title="鸿蒙路线详情"></iframe></div>
+        <div class="cap">路线详情</div>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="ct">安卓版</div>
+    <div class="cs">M3 药丸导航 · FAB · 打孔屏</div>
+    <div class="cells">
+      <div class="frame">
+        <div class="ph"><iframe src="a-home.html" loading="lazy" title="安卓首页"></iframe></div>
+        <div class="cap">首页</div>
+      </div>
+      <div class="frame">
+        <div class="ph"><iframe src="a-detail.html" loading="lazy" title="安卓路线详情"></iframe></div>
+        <div class="cap">路线详情</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

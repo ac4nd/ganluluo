@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>01 登录 · 赶路咯原型</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .globe-wrap{position:relative;width:332px;height:332px;margin:0 auto}
+  .globe-wrap::before{content:"";position:absolute;inset:-150px;border-radius:50%;z-index:0;
+    background:radial-gradient(circle,rgba(164,241,80,.09) 0%,rgba(164,241,80,.03) 45%,transparent 66%)}
+  .globe-wrap canvas{position:absolute;inset:0;display:block;width:100%;height:100%;z-index:1}
+  .globe-halo{position:absolute;inset:-60px;border-radius:50%;z-index:0;
+    background:radial-gradient(circle,rgba(164,241,80,.10) 0%,rgba(164,241,80,.04) 40%,transparent 68%)}
+  /* 上次登录用户头像框（有登录记录时替代球体） */
+  #state-avatar{display:none}
+  .avatar-hi{position:relative;width:176px;height:176px;margin:0 auto}
+  .avatar-hi::before{content:"";position:absolute;inset:-52px;border-radius:50%;
+    background:radial-gradient(circle,rgba(164,241,80,.18) 0%,rgba(164,241,80,.06) 42%,transparent 68%)}
+  .avatar-ring{position:absolute;inset:0;border-radius:50%;padding:6px;
+    background:conic-gradient(from 210deg,rgba(224,255,168,.95),rgba(164,241,80,.18) 22%,rgba(255,255,255,.10) 45%,rgba(164,241,80,.35) 68%,rgba(224,255,168,.95));
+    box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 44px rgba(140,235,80,.3),inset 0 1px 0 rgba(255,255,255,.45)}
+  .avatar-face{position:absolute;inset:6px;border-radius:50%;overflow:hidden;
+    background:radial-gradient(circle at 34% 26%,#8fe14b 0%,#3f7a26 46%,#17311c 100%);
+    display:flex;align-items:center;justify-content:center;
+    font-size:58px;font-weight:800;color:#0d1506;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 12px 26px rgba(0,0,0,.35)}
+  .avatar-face::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+    background:linear-gradient(148deg,rgba(255,255,255,.24) 0%,rgba(255,255,255,.05) 28%,transparent 48%)}
+  .hi-name{margin-top:14px;text-align:center;font-size:12.5px;color:var(--muted)}
+  .hi-name b{color:var(--text);font-weight:700}
+  .demo-toggle{text-align:center;font-size:11px;color:var(--dim);margin-top:10px}
+  .demo-toggle a{color:var(--dim);text-decoration:underline}
+</style>
+</head>
+<body class="page">
+<div class="watermark">赶路咯 · GANLULUO</div>
+<div class="phone">
+  <div class="island"></div>
+  <div class="screen">
+    <div class="status">
+      <span>9:41</span>
+      <span class="sicons">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 9.4a1.3 1.3 0 100 2.2 1.3 1.3 0 000-2.2z"/><path d="M8 5.7c1.6 0 3.1.6 4.1 1.7L10.9 8.6A3.8 3.8 0 008 7.4c-1.1 0-2.1.4-2.9 1.2L3.9 7.4c1-1.1 2.5-1.7 4.1-1.7z"/><path d="M8 2c2.6 0 5 1 6.8 2.8l-1.2 1.2A8 8 0 008 3.7c-2.2 0-4.2.9-5.6 2.3L1.2 4.8A9.6 9.6 0 018 2z"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23 4v4a2.2 2.2 0 000-4z" fill="currentColor" opacity=".4"/></svg>
+      </span>
+    </div>
+
+    <!-- Hero Cinema：运动场景动态背景（随机轮播；球体 / 头像框浮于其上） -->
+    <div class="cinema-layer full">
+      <canvas id="cinema"></canvas>
+      <div class="cinema-shade ambient"></div>
+    </div>
+
+    <div class="content" style="padding-top:26px">
+      <div class="orb-stage" style="padding-top:16px;gap:18px">
+        <!-- 状态 A：未登录过 → 液态玻璃能量球 -->
+        <div id="state-globe">
+          <div class="globe-wrap">
+            <div class="globe-halo"></div>
+            <canvas id="globe" width="664" height="664" aria-label="环保绿地球轮廓 · 探险航线"></canvas>
+          </div>
+        </div>
+        <!-- 状态 B：上次登录用户 → 头像展示框（边框 + 背景光效） -->
+        <div id="state-avatar">
+          <div class="avatar-hi">
+            <span class="avatar-ring"></span>
+            <span class="avatar-face">晨</span>
+          </div>
+          <div class="hi-name" id="hiName"><b>晨风</b> · 上次登录</div>
+        </div>
+        <div style="text-align:center">
+          <div class="title-lg" style="font-size:27px">欢迎回来！</div>
+          <div class="sub" style="margin-top:9px;max-width:250px;margin-left:auto;margin-right:auto">登录赶路咯，让 AI 为你规划<br>安全、合适的下一场山野徒步。</div>
+        </div>
+      </div>
+
+      <div style="margin-top:30px">
+        <div class="field">
+          <label>邮箱 / 手机号 *</label>
+          <div class="box">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M4 7l8 6 8-6"/></svg>
+            <input type="text" placeholder="hiker@example.com">
+          </div>
+        </div>
+        <div class="field">
+          <label>密码 *</label>
+          <div class="box">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="10" width="16" height="10" rx="3"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+            <input type="password" value="shan1234" >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/></svg>
+          </div>
+        </div>
+        <div class="check-row">
+          <span class="remember"><span class="checkbox"></span>记住我</span>
+          <a class="link" href="#" style="font-weight:500">忘记密码？</a>
+        </div>
+
+        <a class="btn btn-primary" href="05-home.html" onclick="glRemember()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          <span id="ctaText">登 录</span>
+        </a>
+
+        <div style="display:flex;align-items:center;gap:12px;margin:22px 0 16px;color:var(--dim);font-size:11.5px">
+          <span class="divider" style="flex:1;margin:0"></span>或使用以下方式继续<span class="divider" style="flex:1;margin:0"></span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <a class="btn btn-ghost" href="05-home.html" onclick="glRemember()">
+            <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.4c-.5 2.5-2.6 3.9-5.4 3.9a6 6 0 110-12c1.5 0 2.9.5 4 1.5l2.9-2.9A10 10 0 1012 22c5 0 9.6-3.4 9.6-10 0-.7-.1-1.3-.2-1.8H12z"/></svg>
+            Google
+          </a>
+          <a class="btn btn-ghost" href="05-home.html" onclick="glRemember()">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.8c0-2.5 2-3.7 2.1-3.8-1.2-1.7-3-1.9-3.6-1.9-1.5-.2-3 .9-3.7.9-.8 0-2-.9-3.3-.9-1.7 0-3.2 1-4.1 2.5-1.7 3-.4 7.5 1.3 10 .8 1.2 1.8 2.6 3.1 2.5 1.2-.1 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.5-1-2.5-4.1zM14 5.6c.7-.8 1.1-1.9 1-3.1-1 .1-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg>
+            Apple
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;font-size:12px;color:var(--dim);padding:14px 0 0">
+      还没有账号？<a class="link" href="02-onboard-sport.html">马上注册</a>
+    </div>
+    <div class="demo-toggle" style="padding-bottom:20px">
+      原型演示 · <a href="#" onclick="glToggleDemo();return false;">切换「首次登录 / 上次登录」状态</a>
+    </div>
+    <div class="home-bar"></div>
+  </div>
+</div>
+
+<script>
+/* 登录状态：有上次登录记录 → 头像展示框；未登录过 → 液态玻璃能量球 */
+(function(){
+  var KEY='gl_last_user';
+  /* URL 参数 ?state=avatar|globe 用于原型演示与评审截图 */
+  try{
+    var q=new URLSearchParams(location.search).get('state');
+    if(q==='avatar')localStorage.setItem(KEY,JSON.stringify({name:'晨风',mail:'hiker@example.com'}));
+    else if(q==='globe')localStorage.removeItem(KEY);
+  }catch(e){}
+
+  var user=null;
+  try{user=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
+  var has=!!(user&&user.name);
+  window.__GL_SHOW_GLOBE=!has;
+
+  var g=document.getElementById('state-globe'),a=document.getElementById('state-avatar');
+  if(has){
+    g.style.display='none';a.style.display='block';
+    var n=document.getElementById('hiName');
+    n.innerHTML='<b></b> · 上次登录';
+    n.querySelector('b').textContent=user.name;
+    var t=document.getElementById('ctaText');
+    if(t)t.textContent='继续，以「'+user.name+'」登录';
+  }
+})();
+function glRemember(){
+  try{localStorage.setItem('gl_last_user',JSON.stringify({name:'晨风',mail:'hiker@example.com'}))}catch(e){}
+}
+function glToggleDemo(){
+  try{
+    var k='gl_last_user';
+    if(localStorage.getItem(k))localStorage.removeItem(k);
+    else localStorage.setItem(k,JSON.stringify({name:'晨风',mail:'hiker@example.com'}));
+  }catch(e){}
+  location.reload();
+}
+</script>
+<script src="assets/cinema.js"></script>
+<script>
+(function(){
+  /* 登录页背景：运动场景轮播；偏好运动前置 */
+  var prefs=[];
+  try{
+    var s=JSON.parse(localStorage.getItem('gl_sports')||'[]');
+    if(Array.isArray(s))prefs=s;
+  }catch(e){}
+  var fixed=null;
+  try{
+    var q=new URLSearchParams(location.search).get('sport');
+    if(q&&window.Cinema.scenes[q])fixed=q;
+  }catch(e){}
+  window.Cinema.mount(document.getElementById('cinema'),{
+    library:'sports',
+    ambient:true,
+    preferred:prefs,
+    fixed:fixed,
+    videos:{
+      hiking:['assets/videos/hiking1_s.mp4','assets/videos/hiking2_s.mp4','assets/videos/hiking3_s.mp4','assets/videos/hiking4_s.mp4'],
+      'trail-running':['assets/videos/trailrun1_s.mp4','assets/videos/trailrun2_s.mp4'],
+      climbing:['assets/videos/climbing1_s.mp4','assets/videos/climbing2_s.mp4'],
+      stream:['assets/videos/stream1_s.mp4','assets/videos/stream2_s.mp4'],
+      cycling:['assets/videos/ride1_s.mp4','assets/videos/ride2_s.mp4','assets/videos/ride3_s.mp4','assets/videos/ride4_s.mp4'],
+      camping:['assets/videos/camp1_s.mp4','assets/videos/camp2_s.mp4','assets/videos/camp3_s.mp4'],
+      orienteering:['assets/videos/orienteer1_s.mp4'],
+      skiing:['assets/videos/skiing1_s.mp4','assets/videos/skiing2_s.mp4']
+    }
+  });
+})();
+</script>
+<script>
+/* 环保绿 · 地球轮廓 + 探险航线
+   思路学习自掘金 geoJson 线框地球（three.js），此处以 Canvas2D 零依赖重写：
+   经纬网格 + 简化大陆轮廓线稿（正/背面分层）+ 世界著名景点脉冲 + 大圆航线流光。
+   支持拖拽旋转（松手惯性衰减，自动自转恢复）；prefers-reduced-motion 输出静帧。 */
+(function () {
+  if (!window.__GL_SHOW_GLOBE) return;
+  var cv = document.getElementById('globe');
+  if (!cv || !cv.getContext) return;
+  var x = cv.getContext('2d');
+  var S = cv.width, CX = S / 2, CY = S / 2, R = S * 0.435;
+  var DR = Math.PI / 180, TAU = Math.PI * 2;
+  var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var ACC = '164,241,80', GLOW = '224,255,168', DIM = '150,200,110';
+
+  /* —— 简化大陆/岛屿轮廓（lon,lat 序列，低精度识别用） —— */
+  var CONT = [
+    /* 亚欧主大陆 */
+    [-9,38,-9,43,-2,47,0,49,4,52,7,54,9,57,12,56,18,55,21,57,24,60,28,60,26,65,20,69,30,70,45,68,60,69,73,73,86,74,105,77,113,74,130,71,150,70,170,67,178,65,172,61,163,58,157,52,142,54,136,45,129,40,126,35,121,31,117,24,109,18,105,9,103,2,101,6,98,12,95,16,91,22,87,21,80,13,77,8,73,16,70,21,66,25,60,25,57,27,52,25,56,22,59,20,54,13,45,12,43,13,39,17,35,28,34,33,36,36,30,37,26,39,22,41,16,42,13,45,8,44,3,43,0,40,-6,36],
+    /* 非洲 */
+    [32,31,34,28,37,22,43,12,48,11,51,12,45,2,40,-3,39,-11,36,-18,33,-26,26,-34,19,-35,15,-28,12,-18,13,-11,9,-1,9,4,3,6,-4,5,-8,4,-13,9,-17,15,-16,20,-13,27,-9,32,-6,35,-2,35,0,36,10,37,20,32,25,32],
+    /* 北美 */
+    [-168,66,-162,70,-156,71,-140,70,-128,70,-115,69,-105,69,-95,72,-85,70,-82,66,-75,62,-70,60,-65,60,-60,56,-64,50,-70,47,-74,45,-76,40,-75,35,-81,31,-80,26,-84,30,-89,30,-94,29,-97,26,-97,22,-94,18,-91,16,-87,15,-83,10,-79,9,-83,8,-86,12,-92,15,-96,16,-105,20,-110,24,-114,28,-117,33,-122,37,-124,42,-124,48,-128,52,-132,56,-140,60,-148,61,-154,59,-162,58,-166,62],
+    /* 南美 */
+    [-77,8,-75,10,-71,12,-64,11,-60,8,-52,5,-50,0,-44,-3,-38,-5,-35,-8,-39,-14,-40,-20,-48,-26,-53,-33,-58,-38,-62,-41,-65,-45,-68,-52,-72,-54,-74,-50,-73,-44,-73,-37,-71,-30,-70,-22,-70,-18,-76,-14,-81,-6,-81,-1,-77,4],
+    /* 澳洲 */
+    [113,-22,114,-26,116,-32,119,-34,124,-33,129,-32,132,-32,136,-35,138,-35,141,-38,146,-39,150,-37,153,-31,153,-26,151,-24,147,-19,143,-15,142,-11,137,-12,136,-14,132,-11,128,-15,124,-16,122,-18,118,-20,114,-22],
+    /* 格陵兰 */
+    [-45,60,-42,62,-40,65,-38,66,-32,68,-25,70,-22,70,-25,73,-33,76,-40,77,-50,79,-58,76,-62,74,-58,72,-54,70,-52,66,-48,61],
+    /* 英伦 */
+    [-5,50,-3,53,-5,56,-3,58,-1,57,1,53,0,51],
+    /* 日本 */
+    [130,31,132,34,136,35,140,36,141,40,142,44,145,44,143,42,140,38,137,36,133,34],
+    /* 苏门答腊-爪哇 */
+    [95,5,99,2,103,-2,106,-6,110,-7,114,-8,112,-5,105,0,97,3],
+    /* 马达加斯加 */
+    [49,-12,50,-16,48,-22,45,-25,44,-20,46,-15],
+    /* 新西兰（两岛简化） */
+    [173,-35,176,-38,174,-41,171,-44,167,-46,170,-44,173,-41,174,-38]
+  ];
+  /* —— 世界著名景点（世界探险航线节点） —— */
+  var SPOTS = [
+    { n: '长城 · 中国', lon: 116, lat: 40 },
+    { n: '富士山 · 日本', lon: 138, lat: 35 },
+    { n: '大堡礁 · 澳洲', lon: 147, lat: -18 },
+    { n: '悉尼歌剧院', lon: 151, lat: -34 },
+    { n: '乌鲁鲁', lon: 131, lat: -25 },
+    { n: '泰姬陵 · 印度', lon: 78, lat: 27 },
+    { n: '珠穆朗玛峰', lon: 87, lat: 28 },
+    { n: '贝加尔湖', lon: 108, lat: 53 },
+    { n: '撒哈拉沙漠', lon: 10, lat: 23 },
+    { n: '金字塔 · 埃及', lon: 31, lat: 30 },
+    { n: '圣托里尼', lon: 25, lat: 36 },
+    { n: '埃菲尔铁塔 · 巴黎', lon: 2, lat: 49 },
+    { n: '冰岛极光', lon: -19, lat: 65 },
+    { n: '尼亚加拉瀑布', lon: -79, lat: 43 },
+    { n: '大峡谷 · 美国', lon: -112, lat: 36 },
+    { n: '马丘比丘 · 秘鲁', lon: -72, lat: -13 },
+    { n: '巴塔哥尼亚', lon: -71, lat: -46 },
+    { n: '乞力马扎罗', lon: 37, lat: -3 }
+  ];
+  /* 航线：按上表顺序串联成环球环线 */
+  var ROUTE = SPOTS.map(function (_, i) { return i; });
+
+  function v3(lon, lat, lift) {
+    var p = lat * DR, l = lon * DR;
+    var k = 1 + (lift || 0);
+    return [Math.cos(p) * Math.sin(l) * k, Math.sin(p) * k, Math.cos(p) * Math.cos(l) * k];
+  }
+  /* 预计算：轮廓点列 / 景点 / 航线弧采样（大圆插值 + 抬升） */
+  var LAND = CONT.map(function (poly) {
+    var pts = [];
+    for (var i = 0; i < poly.length; i += 2) pts.push(v3(poly[i], poly[i + 1]));
+    pts.push(pts[0]);
+    return pts;
+  });
+  var SPV = SPOTS.map(function (s) { return v3(s.lon, s.lat, 0.012); });
+  var ARCS = [];
+  for (var i = 0; i < ROUTE.length; i++) {
+    var A = SPV[ROUTE[i]], B = SPV[ROUTE[(i + 1) % ROUTE.length]];
+    var w = Math.acos(Math.max(-1, Math.min(1, A[0] * B[0] + A[1] * B[1] + A[2] * B[2]))) || .001;
+    var pts = [];
+    for (var k = 0; k <= 30; k++) {
+      var u = k / 30, lift = 0.16 * Math.sin(Math.PI * u);
+      var sa = Math.sin((1 - u) * w) / Math.sin(w), sb = Math.sin(u * w) / Math.sin(w);
+      pts.push([A[0] * sa + B[0] * sb, A[1] * sa + B[1] * sb, A[2] * sa + B[2] * sb, 1 + lift]);
+    }
+    ARCS.push(pts);
+  }
+  /* 预计算经纬网格几何 */
+  var MERID = [], PARAL = [];
+  for (var lon = 0; lon < 360; lon += 20) {
+    var m = [];
+    for (var lat = -80; lat <= 80; lat += 5) m.push(v3(lon, lat));
+    MERID.push(m);
+  }
+  for (lat = -60; lat <= 75; lat += 15) {
+    var pa = [];
+    for (lon = 0; lon <= 360; lon += 6) pa.push(v3(lon, lat));
+    PARAL.push(pa);
+  }
+
+  function project(p, rot, tilt) {
+    var cr = Math.cos(rot), sr = Math.sin(rot);
+    var xx = p[0] * cr + p[2] * sr, z1 = -p[0] * sr + p[2] * cr;
+    var ct = Math.cos(tilt), st = Math.sin(tilt);
+    var yy = p[1] * ct - z1 * st, zz = p[1] * st + z1 * ct;
+    return [CX + xx * R, CY - yy * R, zz];
+  }
+  function strokePoly(pts, rot, tilt, frontCol, backCol, width, glow) {
+    for (var pass = 0; pass < 2; pass++) {
+      x.beginPath();
+      var started = false, pz = 0;
+      for (var i = 0; i < pts.length; i++) {
+        var v = project(pts[i], rot, tilt);
+        var front = v[2] > 0;
+        if ((pass === 0) === front) { // pass0=背面 pass1=正面
+          if (!started) { x.moveTo(v[0], v[1]); started = true; } else x.lineTo(v[0], v[1]);
+          pz = v[2];
+        } else { started = false; }
+      }
+      x.strokeStyle = pass === 0 ? backCol : frontCol;
+      x.lineWidth = width * (pass === 0 ? .8 : 1);
+      x.shadowBlur = pass === 1 && glow ? 6 : 0;
+      x.shadowColor = pass === 1 && glow ? 'rgba(' + ACC + ',.6)' : 'transparent';
+      x.stroke(); x.shadowBlur = 0;
+    }
+  }
+
+  /* 交互：拖拽旋转 + 惯性 + 自转恢复 */
+  var rot = 0.9, tilt = -0.42, vel = 0, dragging = false, lastX = 0, lastY = 0, idle = 0;
+  cv.style.touchAction = 'none';
+  cv.addEventListener('pointerdown', function (e) { dragging = true; lastX = e.clientX; lastY = e.clientY; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    var dx = e.clientX - lastX, dy = e.clientY - lastY;
+    rot += dx * 0.006; vel = dx * 0.006;
+    tilt = Math.max(-1.1, Math.min(1.1, tilt + dy * 0.004));
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  cv.addEventListener('pointerup', function () { dragging = false; });
+  cv.addEventListener('pointercancel', function () { dragging = false; });
+
+  function draw(now) {
+    var t = REDUCED ? 4 : now / 1000;
+    if (!dragging) { rot += 0.0016 + vel; vel *= 0.94; }
+    x.clearRect(0, 0, S, S);
+    /* 球内底：暗色玻璃圆底，保证线稿在任意视频背景上清晰 */
+    var bg = x.createRadialGradient(CX - R * .25, CY - R * .3, 0, CX, CY, R);
+    bg.addColorStop(0, 'rgba(8,14,6,.78)'); bg.addColorStop(.72, 'rgba(7,12,5,.66)'); bg.addColorStop(1, 'rgba(6,10,5,.55)');
+    x.fillStyle = bg; x.beginPath(); x.arc(CX, CY, R, 0, TAU); x.fill();
+    /* 外圈轮廓 */
+    x.strokeStyle = 'rgba(' + ACC + ',.6)'; x.lineWidth = 1.6;
+    x.shadowBlur = 14; x.shadowColor = 'rgba(' + ACC + ',.55)';
+    x.beginPath(); x.arc(CX, CY, R, 0, TAU); x.stroke(); x.shadowBlur = 0;
+    /* 经纬网格（正面） */
+    x.strokeStyle = 'rgba(' + ACC + ',.10)'; x.lineWidth = 1;
+    for (var i = 0; i < MERID.length; i++) strokePoly(MERID[i], rot, tilt, 'rgba(' + ACC + ',.12)', 'rgba(' + ACC + ',.035)', 1, false);
+    for (i = 0; i < PARAL.length; i++) strokePoly(PARAL[i], rot, tilt, 'rgba(' + ACC + ',.12)', 'rgba(' + ACC + ',.035)', 1, false);
+    /* 大陆轮廓：背面淡透 → 正面发光 */
+    for (i = 0; i < LAND.length; i++) strokePoly(LAND[i], rot, tilt, 'rgba(210,246,150,.92)', 'rgba(' + ACC + ',.10)', 1.4, true);
+    /* 探险航线弧 + 流光 */
+    for (i = 0; i < ARCS.length; i++) {
+      var pts = ARCS[i], flow = (t * .28 + i * .37) % 1;
+      for (var pass = 0; pass < 2; pass++) {
+        x.beginPath();
+        var started = false;
+        for (var k = 0; k < pts.length; k++) {
+          var v = project(pts[k], rot, tilt);
+          var front = v[2] > 0;
+          if ((pass === 0) === front) {
+            if (!started) { x.moveTo(v[0], v[1]); started = true; } else x.lineTo(v[0], v[1]);
+          } else started = false;
+        }
+        x.strokeStyle = pass === 0 ? 'rgba(' + ACC + ',.10)' : 'rgba(' + GLOW + ',.42)';
+        x.lineWidth = pass === 0 ? 1 : 1.5;
+        x.stroke();
+      }
+      /* 流光点 */
+      var fi = Math.floor(flow * 30), fr = flow * 30 - fi;
+      var A = pts[fi], B = pts[Math.min(fi + 1, 30)];
+      var fp = [lerp(A[0], B[0], fr), lerp(A[1], B[1], fr), lerp(A[2], B[2], fr), lerp(A[3], B[3], fr)];
+      var v = project(fp, rot, tilt);
+      if (v[2] > 0) {
+        x.fillStyle = 'rgba(' + GLOW + ',.95)';
+        x.shadowBlur = 8; x.shadowColor = 'rgba(' + ACC + ',.8)';
+        x.beginPath(); x.arc(v[0], v[1], 2, 0, TAU); x.fill(); x.shadowBlur = 0;
+      }
+    }
+    /* 景点：脉冲 + 标名 */
+    for (i = 0; i < SPV.length; i++) {
+      var sv = SPV[i];
+      var v = project(sv, rot, tilt);
+      if (v[2] <= 0.05) continue;
+      var al = clamp((v[2] - .05) / .5, 0, 1);
+      var pr = 3 + Math.sin(t * 2.4 + i * 1.3) * 1.4;
+      x.strokeStyle = 'rgba(' + ACC + ',' + (.7 * al).toFixed(2) + ')'; x.lineWidth = 1.2;
+      x.beginPath(); x.arc(v[0], v[1], pr, 0, TAU); x.stroke();
+      x.fillStyle = 'rgba(' + GLOW + ',' + al.toFixed(2) + ')';
+      x.beginPath(); x.arc(v[0], v[1], 2, 0, TAU); x.fill();
+      if (v[2] > .3) {
+        x.fillStyle = 'rgba(' + GLOW + ',' + (al * .85).toFixed(2) + ')';
+        x.font = '600 9px sans-serif'; x.textAlign = 'center';
+        x.fillText(SPOTS[i].n, v[0], v[1] - 8);
+      }
+    }
+  }
+  function lerp(a, b, k) { return a + (b - a) * k; }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  if (REDUCED) { draw(4000); return; }
+  (function loop(now) { draw(now); requestAnimationFrame(loop); })(performance.now());
+})();
+</script>
+</body>
+</html>

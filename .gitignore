@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.mp4
+.mimosa/
+.tmp*
+.env
+*.db
+.superpowers/
+node_modules/
+.DS_Store

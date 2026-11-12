@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>09 我的画像 · 赶路咯原型</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="page">
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <!-- 徒步 Hiking：背包 + 登山杖 -->
+  <symbol id="icon-hiking" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="13" cy="4.2" r="1.7"/>
+      <rect x="9" y="7.4" width="3.2" height="6" rx="1.5"/>
+      <path d="M12.6 7.4v5.8"/>
+      <path d="M12.5 8.6l2.6 2 .6 1.3"/>
+      <path d="M14.8 11.8h2"/>
+      <path d="M15.8 11.8V20"/>
+      <path d="M12.6 13.2l2.1 3.3 1 3.5"/>
+      <path d="M12.6 13.2l-2 3.5-.5 3.3"/>
+    </g>
+  </symbol>
+  <!-- 攀岩 Climbing：🧗 攀爬姿态（岩壁 + 岩点 + 攀爬者） -->
+  <symbol id="icon-climbing" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="3.6" r="1.7"/>
+      <path d="M6.5 2.5V21.5"/>
+      <circle cx="6.5" cy="5" r=".9"/>
+      <circle cx="6.5" cy="10" r=".9"/>
+      <circle cx="6.5" cy="15.4" r=".9"/>
+      <circle cx="6.5" cy="19.4" r=".9"/>
+      <path d="M7.5 5.1l2.6 1.4"/>
+      <path d="M11.9 5.4c.4 2.2.5 4.5.2 6.9"/>
+      <path d="M11.6 8.4 7.5 9.9"/>
+      <path d="M12 12.4l1.5 2.6-6 .5"/>
+      <path d="M12 12.4l-.6 3.9-4.2 2.8"/>
+    </g>
+  </symbol>
+  <!-- 溯溪 Stream Trekking：溪流涉水/游泳姿态（上身出水 + 划水臂 + 水花 + 波浪） -->
+  <symbol id="icon-stream" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="10.2" cy="5" r="1.7"/>
+      <path d="M10.9 7.2c1.1 2.3 1.9 4.6 2.3 7.1"/>
+      <path d="M11 7.8l3.5 2 2.7 4.4"/>
+      <path d="M10.7 7.5 8 8.8l-.8 3"/>
+      <path d="M18.6 11.2l1.3-1.3"/>
+      <path d="M3 16.8c2-1.6 3.6-1.6 5.5 0s3.5 1.6 5.5 0 3.5-1.6 5.5 0"/>
+      <path d="M3 20.4c2-1.6 3.6-1.6 5.5 0s3.5 1.6 5.5 0 3.5-1.6 5.5 0"/>
+    </g>
+  </symbol>
+  <!-- 越野跑 Trail Running：小径下坡奔跑（下坡径线 + 前倾加速姿态） -->
+  <symbol id="icon-trail-running" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="13.9" cy="3.5" r="1.6"/>
+      <path d="M13.3 5.7c-1 1.5-1.7 3.1-2.1 4.7"/>
+      <path d="M13.4 6.2l2.7.9 1.5 2.3"/>
+      <path d="M13 6.7l-2.5 1.3-1.6 1.9"/>
+      <path d="M11.2 10.4l3.4 2 2.2 2.5"/>
+      <path d="M11.2 10.4l-2.4 1.6-2.4-2.4"/>
+      <path d="M2.5 8.5 21.5 17"/>
+    </g>
+  </symbol>
+  <!-- 骑行 Cycling：单车骑行姿势（整车 + 俯身骑手 + 双脚踏板） -->
+  <symbol id="icon-cycling" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="5.5" cy="17.2" r="3.1"/>
+      <circle cx="18.5" cy="17.2" r="3.1"/>
+      <circle cx="12.5" cy="17.2" r="1"/>
+      <path d="M5.5 17.2 9.1 11.1l3.4 6.1"/>
+      <path d="M8.1 11.1h2"/>
+      <path d="M12.5 17.2 15.3 10.2l3.2 7"/>
+      <path d="M14.3 9.3h2.4"/>
+      <circle cx="15.6" cy="4" r="1.6"/>
+      <path d="M15.2 6c-2.1 1.4-4 2.9-5.6 4.6"/>
+      <path d="M15.1 6.2l1.3 1.7.2 1.6"/>
+      <path d="M9.7 10.7l3 2.2v4.3"/>
+      <path d="M9.7 10.7l1 3.9 2.6 1"/>
+    </g>
+  </symbol>
+  <!-- 露营 Camping：帐篷（大 A 帐 + 内帐门） -->
+  <symbol id="icon-camping" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3.5 20h17"/>
+      <path d="M12 4.5 2.5 20h19L12 4.5z"/>
+      <path d="M12 10.5 7.8 20h8.4L12 10.5z"/>
+    </g>
+  </symbol>
+  <!-- 滑雪 Skiing -->
+  <symbol id="icon-skiing" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="14.5" cy="4.2" r="1.5"/>
+      <path d="M13.6 6.4 11 10.2l2.7 1.8 2-2.3 2.3 2.5"/>
+      <path d="M11 10.2 8.7 14.2l1.8 2"/>
+      <path d="M13.7 12 16 14.6 15 18"/>
+      <path d="M8.2 18.5 7.5 20"/>
+      <path d="M5 20.5 19 16"/>
+      <path d="M6.5 22 20 17.5"/>
+    </g>
+  </symbol>
+  <!-- 定向越野 Orienteering：指南针（表盘刻度 + 磁针） -->
+  <symbol id="icon-orienteering" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8.2"/>
+      <path d="M12 5.2v1.9M12 16.9v1.9M5.2 12h1.9M16.9 12h1.9"/>
+      <path d="M15.3 8.7 12.6 12.6 8.7 15.3 11.4 11.4z"/>
+      <circle cx="12" cy="12" r="1"/>
+    </g>
+  </symbol>
+</svg>
+<div class="watermark">赶路咯 · GANLULUO</div>
+<div class="phone">
+  <div class="island"></div>
+  <div class="screen">
+    <div class="status" style="position:absolute;left:0;right:0;top:0;z-index:60">
+      <span>9:41</span>
+      <span class="sicons">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 9.4a1.3 1.3 0 100 2.2 1.3 1.3 0 000-2.2z"/><path d="M8 5.7c1.6 0 3.1.6 4.1 1.7L10.9 8.6A3.8 3.8 0 008 7.4c-1.1 0-2.1.4-2.9 1.2L3.9 7.4c1-1.1 2.5-1.7 4.1-1.7z"/><path d="M8 2c2.6 0 5 1 6.8 2.8l-1.2 1.2A8 8 0 008 3.7c-2.2 0-4.2.9-5.6 2.3L1.2 4.8A9.6 9.6 0 018 2z"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23 4v4a2.2 2.2 0 000-4z" fill="currentColor" opacity=".4"/></svg>
+      </span>
+    </div>
+
+    <div class="content" style="padding:0;padding-bottom:118px">
+      <div class="cover">
+        <svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMid slice">
+          <defs><linearGradient id="pc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3c5a30"/><stop offset=".6" stop-color="#1e3018"/><stop offset="1" stop-color="#0c110a"/></linearGradient></defs>
+          <rect width="400" height="160" fill="url(#pc)"/>
+          <circle cx="316" cy="44" r="20" fill="#f2dd7d" opacity=".85"/>
+          <path d="M0 106l70-42 52 26 66-40 62 34 58-24 52 22v78H0z" fill="#152712"/>
+          <path d="M0 132l62-26 56 16 70-28 62 20 56-16 60 18v44H0z" fill="#0a1408"/>
+        </svg>
+        <div class="shade"></div>
+      </div>
+
+      <div style="padding:0 20px">
+        <div class="profile-top">
+          <div class="avatar-lg">晨</div>
+          <div style="padding-bottom:4px">
+            <div class="title-lg" style="font-size:21px">晨风 <span style="font-size:12px;color:var(--dim)"># 0427</span></div>
+            <div style="display:flex;gap:6px;margin-top:7px">
+              <span class="tag">进阶徒步玩家</span>
+              <span class="tag amber">体能 · 良好</span>
+              <span class="tag blue">徒步 5 年</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats3">
+          <div class="stat"><div class="v">28</div><div class="k">完成徒步</div></div>
+          <div class="stat"><div class="v">342</div><div class="k">累计里程 km</div></div>
+          <div class="stat"><div class="v">15.6k</div><div class="k">累计爬升 m</div></div>
+        </div>
+
+        <div class="sec"><h3>我的运动偏好</h3><a href="02-onboard-sport.html">编辑</a></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px">
+          <div class="icon-tile sel" style="flex-direction:column;padding:12px 6px;gap:8px;text-align:center">
+            <span class="ic" style="width:40px;height:40px"><svg class="icon icon-md"><use href="#icon-hiking"/></svg></span>
+            <span style="font-size:11px;font-weight:700">徒步</span>
+          </div>
+          <div class="icon-tile sel" style="flex-direction:column;padding:12px 6px;gap:8px;text-align:center">
+            <span class="ic" style="width:40px;height:40px"><svg class="icon icon-md"><use href="#icon-trail-running"/></svg></span>
+            <span style="font-size:11px;font-weight:700">越野跑</span>
+          </div>
+          <div class="icon-tile sel" style="flex-direction:column;padding:12px 6px;gap:8px;text-align:center">
+            <span class="ic" style="width:40px;height:40px"><svg class="icon icon-md"><use href="#icon-stream"/></svg></span>
+            <span style="font-size:11px;font-weight:700">溯溪</span>
+          </div>
+          <div class="icon-tile sel" style="flex-direction:column;padding:12px 6px;gap:8px;text-align:center">
+            <span class="ic" style="width:40px;height:40px"><svg class="icon icon-md"><use href="#icon-camping"/></svg></span>
+            <span style="font-size:11px;font-weight:700">露营</span>
+          </div>
+        </div>
+
+        <div class="sec"><h3>常用装备</h3><a href="04-onboard-gear.html">编辑</a></div>
+        <div class="row-item">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M7 3v7l-3.5 4.5V20h14v-4l-5-3.5L11 3z"/><path d="M4.5 16.5h13"/></svg></span>
+          <span class="t">登山鞋 · 中帮防水</span><span class="s">已核对</span>
+        </div>
+        <div class="row-item">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 3l3 18M16 3l-3 18"/></svg></span>
+          <span class="t">登山杖 · 碳素双杖</span><span class="s">已核对</span>
+        </div>
+        <div class="row-item">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="6" y="7" width="12" height="13" rx="4"/><path d="M9 7V5a3 3 0 016 0v2"/></svg></span>
+          <span class="t">28L 户外背包</span><span class="s">已核对</span>
+        </div>
+
+        <a class="btn btn-ghost" href="02-onboard-sport.html" style="margin-top:8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 00-3-3L5 17z"/><path d="M14.5 6.5l3 3"/></svg>
+          重新完成户外画像
+        </a>
+      </div>
+    </div>
+
+    <div class="nav">
+      <a href="05-home.html">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3.5 10.5L12 4l8.5 6.5V20a1.5 1.5 0 01-1.5 1.5h-4.5v-6h-5v6H5A1.5 1.5 0 013.5 20z"/></svg>
+        首页
+      </a>
+      <a href="06-ai-plan-chat.html">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 4l1.8 4.7L18.5 10.5l-4.7 1.8L12 17l-1.8-4.7L5.5 10.5l4.7-1.8z"/><path d="M18.8 15.6l.7 1.7 1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7z"/></svg>
+        AI 规划
+      </a>
+      <a href="10-routes.html">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="6" r="2.4"/><path d="M8.2 16.4C13 13.5 9.8 8.6 15.8 7.6"/></svg>
+        路线
+      </a>
+      <a class="on" href="09-profile.html">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0114 0"/></svg>
+        我的
+      </a>
+    </div>
+    <div class="home-bar"></div>
+  </div>
+</div>
+</body>
+</html>

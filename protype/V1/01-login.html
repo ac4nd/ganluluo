@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>01 登录 · 赶路咯原型</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .globe-wrap{position:relative;width:332px;height:332px;margin:0 auto}
+  .globe-wrap canvas{position:relative;display:block;width:100%;height:100%;z-index:2}
+  .globe-halo{position:absolute;inset:-30px;border-radius:50%;z-index:1;
+    background:radial-gradient(circle,rgba(164,241,80,.08) 0%,rgba(164,241,80,.03) 45%,transparent 70%)}
+</style>
+</head>
+<body class="page">
+<div class="watermark">赶路咯 · GANLULUO</div>
+<div class="phone">
+  <div class="island"></div>
+  <div class="screen">
+    <div class="status">
+      <span>9:41</span>
+      <span class="sicons">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 9.4a1.3 1.3 0 100 2.2 1.3 1.3 0 000-2.2z"/><path d="M8 5.7c1.6 0 3.1.6 4.1 1.7L10.9 8.6A3.8 3.8 0 008 7.4c-1.1 0-2.1.4-2.9 1.2L3.9 7.4c1-1.1 2.5-1.7 4.1-1.7z"/><path d="M8 2c2.6 0 5 1 6.8 2.8l-1.2 1.2A8 8 0 008 3.7c-2.2 0-4.2.9-5.6 2.3L1.2 4.8A9.6 9.6 0 018 2z"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23 4v4a2.2 2.2 0 000-4z" fill="currentColor" opacity=".4"/></svg>
+      </span>
+    </div>
+
+    <div class="content" style="padding-top:26px">
+      <div class="orb-stage" style="padding-top:16px;gap:18px">
+        <div class="globe-wrap">
+          <div class="globe-halo"></div>
+          <canvas id="globe" width="664" height="664" aria-label="环保绿液态玻璃能量球"></canvas>
+        </div>
+        <div style="text-align:center">
+          <div class="title-lg" style="font-size:27px">欢迎回来！</div>
+          <div class="sub" style="margin-top:9px;max-width:250px;margin-left:auto;margin-right:auto">登录赶路咯，让 AI 为你规划<br>安全、合适的下一场山野徒步。</div>
+        </div>
+      </div>
+
+      <div style="margin-top:30px">
+        <div class="field">
+          <label>邮箱 / 手机号 *</label>
+          <div class="box">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M4 7l8 6 8-6"/></svg>
+            <input type="text" placeholder="hiker@example.com">
+          </div>
+        </div>
+        <div class="field">
+          <label>密码 *</label>
+          <div class="box">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="10" width="16" height="10" rx="3"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+            <input type="password" value="shan1234" >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/></svg>
+          </div>
+        </div>
+        <div class="check-row">
+          <span class="remember"><span class="checkbox"></span>记住我</span>
+          <a class="link" href="#" style="font-weight:500">忘记密码？</a>
+        </div>
+
+        <a class="btn btn-primary" href="05-home.html">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          登 录
+        </a>
+
+        <div style="display:flex;align-items:center;gap:12px;margin:22px 0 16px;color:var(--dim);font-size:11.5px">
+          <span class="divider" style="flex:1;margin:0"></span>或使用以下方式继续<span class="divider" style="flex:1;margin:0"></span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <a class="btn btn-ghost" href="05-home.html">
+            <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.4c-.5 2.5-2.6 3.9-5.4 3.9a6 6 0 110-12c1.5 0 2.9.5 4 1.5l2.9-2.9A10 10 0 1012 22c5 0 9.6-3.4 9.6-10 0-.7-.1-1.3-.2-1.8H12z"/></svg>
+            Google
+          </a>
+          <a class="btn btn-ghost" href="05-home.html">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.8c0-2.5 2-3.7 2.1-3.8-1.2-1.7-3-1.9-3.6-1.9-1.5-.2-3 .9-3.7.9-.8 0-2-.9-3.3-.9-1.7 0-3.2 1-4.1 2.5-1.7 3-.4 7.5 1.3 10 .8 1.2 1.8 2.6 3.1 2.5 1.2-.1 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.5-1-2.5-4.1zM14 5.6c.7-.8 1.1-1.9 1-3.1-1 .1-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg>
+            Apple
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;font-size:12px;color:var(--dim);padding:14px 0 34px">
+      还没有账号？<a class="link" href="02-onboard-sport.html">马上注册</a>
+    </div>
+    <div class="home-bar"></div>
+  </div>
+</div>
+
+<script>
+/* 环保绿 · 液态玻璃流体能量球
+   菲涅尔边缘折射高光 + FBM 噪声域扭曲流体 + 玻璃折射采样，暗色通透融合 */
+(function(){
+  var cv=document.getElementById('globe');
+  if(!cv)return;
+  var REDUCED=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var gl=cv.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:true})
+      ||cv.getContext('experimental-webgl',{alpha:true,premultipliedAlpha:true});
+
+  /* ---------- WebGL 着色器方案 ---------- */
+  var FRAG=[
+    'precision highp float;',
+    'uniform vec2 uRes;uniform float uTime;',
+    'float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
+    'float noise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);',
+    ' return mix(mix(hash(i),hash(i+vec2(1.,0.)),u.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),u.x),u.y);}',
+    'float fbm(vec2 p){float v=0.,a=.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);',
+    ' for(int i=0;i<5;i++){v+=a*noise(p);p=m*p;a*=.55;}return v;}',
+    'void main(){',
+    ' vec2 uv=(gl_FragCoord.xy*2.-uRes)/min(uRes.x,uRes.y);',
+    ' float r=length(uv),R=0.70;',
+    ' vec3 col=vec3(0.);float alpha=0.;',
+    /* 主光（左上）与底部反光方向 */
+    ' vec3 L =normalize(vec3(-0.5,0.62,0.42));',
+    ' vec3 Lb=normalize(vec3(0.35,-0.52,0.55));',
+    ' vec3 deep=vec3(0.030,0.075,0.024);',
+    ' vec3 mid =vec3(0.20,0.40,0.125);',
+    ' vec3 glow=vec3(0.84,0.98,0.63);',
+    /* 绕缘受光系数：受光侧 1.0 → 背光侧 0.45 */
+    ' float dir=0.45+0.55*clamp(dot(normalize(vec3(uv,0.42)),L),0.,1.);',
+    ' if(r<R){',
+    '  float z=sqrt(R*R-r*r);',
+    '  vec3 n=vec3(uv,z)/R;',
+    '  float limb=r/R;',
+    '  float t=uTime*0.12;',
+    /* 三层域扭曲 FBM —— 液态流体纹路 */
+    '  vec2 p=uv*2.6;',
+    '  float q=fbm(p+vec2(t*0.7,-t*0.5));',
+    '  float w=fbm(p+2.4*vec2(q+t*0.3,q-t*0.4)+vec2(0.,t));',
+    /* 玻璃折射：按折射光线弯曲采样坐标 */
+    '  vec3 rd=refract(vec3(0.,0.,-1.),n,0.90);',
+    '  vec2 rp=uv+z*rd.xy*0.6;',
+    '  float g=fbm(rp*2.3+2.0*vec2(w)+vec2(-t*0.6,t*0.35)+1.3);',
+    '  float swirl=clamp(g*1.3-0.22,0.,1.);',
+    '  float marble=smoothstep(0.55,0.95,fbm(p*1.4+vec2(t*0.4,0.)+3.1*w));',
+    '  col=mix(deep,mid,swirl);',
+    '  col=mix(col,glow,marble*0.22);',
+    /* 体积感①：径向明暗（中心深、边缘透） */
+    '  col*=0.36+0.64*smoothstep(0.,R*0.92,r);',
+    /* 体积感②：受光面亮、背光面暗 */
+    '  float diff=clamp(dot(n,L),0.,1.);',
+    '  col*=0.70+0.40*diff;',
+    '  col+=mid*0.16*pow(diff,1.6);',
+    /* 体积感③：临边压暗——球面转折处的回旋暗带，把边缘与内部拉开层次 */
+    '  col*=1.0-0.42*smoothstep(0.60,0.92,limb);',
+    /* 底部环境反光（球底微亮） */
+    '  float diffB=clamp(dot(n,Lb),0.,1.);',
+    '  col+=mid*0.30*pow(diffB,2.0)*smoothstep(0.45,0.95,limb);',
+    /* 菲涅尔边缘辉光：受光侧强、背光侧收敛；颜色掺入中绿以贴合背景 */
+    '  float fres=pow(1.-clamp(n.z,0.,1.),3.0);',
+    '  col+=mix(glow,mid,0.35)*pow(fres,1.6)*smoothstep(0.4,1.,fres)*dir*0.55;',
+    /* 锐利玻璃亮边（细环，强度随受光方向变化） */
+    '  float edgeBand=smoothstep(0.956,0.988,limb)*(1.-smoothstep(0.994,1.,limb));',
+    '  col+=mix(glow,mid,0.3)*edgeBand*(0.25+0.55*dir);',
+    /* 左上镜面高光斑 */
+    '  vec3 H=normalize(L+vec3(0.,0.,1.));',
+    '  col+=mix(glow,mid,0.25)*pow(clamp(dot(n,H),0.,1.),70.)*0.55;',
+    '  alpha=1.-smoothstep(R-0.022,R,r);',
+    '  col*=alpha;',
+    ' } else {',
+    /* 球外贴边溢光：更远更淡，颜色压向暗绿，与背景衔接 */
+    '  float o=1.-smoothstep(R*1.004,R*1.28,r);',
+    '  col=mix(glow,deep,0.35)*o*o*0.20*(0.30+0.70*dir);',
+    '  alpha=o*o*0.38;',
+    ' }',
+    ' gl_FragColor=vec4(col,alpha);',
+    '}'].join('\n');
+
+  var VSRC='attribute vec2 aP;void main(){gl_Position=vec4(aP,0.,1.);}';
+  /* 兜底着色器：纯渐变玻璃球（主着色器编译失败时自动启用） */
+  var SIMPLE_FRAG=[
+    'precision mediump float;',
+    'uniform vec2 uRes;',
+    'void main(){',
+    ' vec2 uv=(gl_FragCoord.xy*2.-uRes)/min(uRes.x,uRes.y);',
+    ' float r=length(uv),R=0.70;',
+    ' vec3 col=vec3(0.);float alpha=0.;',
+    ' if(r<R){',
+    '  float z=sqrt(R*R-r*r);',
+    '  vec3 n=vec3(uv,z)/R;',
+    '  float fres=pow(1.-clamp(n.z,0.,1.),3.);',
+    '  col=mix(vec3(0.04,0.10,0.03),vec3(0.20,0.40,0.125),r/R);',
+    '  col+=vec3(0.84,0.98,0.63)*smoothstep(0.6,1.,fres)*0.9;',
+    '  alpha=1.-smoothstep(R-0.009,R,r);',
+    '  col*=alpha;',
+    ' }',
+    ' gl_FragColor=vec4(col,alpha);',
+    '}'].join('\n');
+  function shader(type,src){
+    var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.warn(gl.getShaderInfoLog(s));return null;}
+    return s;
+  }
+  function makeProgram(fragSrc){
+    var vs=shader(gl.VERTEX_SHADER,VSRC);
+    var fs=shader(gl.FRAGMENT_SHADER,fragSrc);
+    if(!vs||!fs)return null;
+    var pr=gl.createProgram();
+    gl.attachShader(pr,vs);gl.attachShader(pr,fs);gl.linkProgram(pr);
+    return gl.getProgramParameter(pr,gl.LINK_STATUS)?pr:null;
+  }
+  function useProgram(pr){
+    gl.useProgram(pr);
+    var buf=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+    var loc=gl.getAttribLocation(pr,'aP');
+    gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+    gl.viewport(0,0,cv.width,cv.height);
+    gl.uniform2f(gl.getUniformLocation(pr,'uRes'),cv.width,cv.height);
+    gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+    return gl.getUniformLocation(pr,'uTime');
+  }
+  /* ---------- Canvas 2D 降级（仅在从未取得 WebGL 上下文时可用） ---------- */
+  function fallbackCanvas(){
+    var ctx=cv.getContext('2d');
+    if(!ctx)return;
+    function frame(now){
+      var t=REDUCED?8:now*0.001,S=cv.width,C=S/2,R=C*0.70;
+      ctx.clearRect(0,0,S,S);
+      var g=ctx.createRadialGradient(C,C,0,C,C,R);
+      g.addColorStop(0,'#07130a');g.addColorStop(.55,'#12240c');
+      g.addColorStop(.85,'#2c5218');g.addColorStop(1,'#9ed45e');
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(C,C,R,0,6.283);ctx.fill();
+      ctx.save();ctx.beginPath();ctx.arc(C,C,R*0.985,0,6.283);ctx.clip();ctx.globalAlpha=.16;
+      for(var i=0;i<4;i++){
+        var a=t*0.25+i*1.7,rx=R*(0.34+0.3*((i*37)%50)/50);
+        var x=C+Math.cos(a)*R*0.32,y=C+Math.sin(a*0.8)*R*0.32;
+        ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.scale(1,0.55);
+        var sg=ctx.createRadialGradient(0,0,0,0,0,rx);
+        sg.addColorStop(0,'rgba(190,235,120,0.95)');sg.addColorStop(1,'rgba(190,235,120,0)');
+        ctx.fillStyle=sg;ctx.beginPath();ctx.arc(0,0,rx,0,6.283);ctx.fill();ctx.restore();
+      }
+      ctx.restore();
+      var ring=ctx.createRadialGradient(C,C,R*0.84,C,C,R);
+      ring.addColorStop(0,'rgba(163,241,80,0)');ring.addColorStop(.85,'rgba(163,241,80,.5)');
+      ring.addColorStop(1,'rgba(224,255,168,.95)');
+      ctx.fillStyle=ring;ctx.beginPath();ctx.arc(C,C,R,0,6.283);ctx.fill();
+      if(!REDUCED)requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  var uTimeLoc=null;
+  if(!gl){fallbackCanvas();return;}
+  var pr=makeProgram(FRAG)||makeProgram(SIMPLE_FRAG);
+  if(!pr)return;
+  uTimeLoc=useProgram(pr);
+  function draw(now){
+    gl.uniform1f(uTimeLoc,REDUCED?8.0:now*0.001);
+    gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    if(!REDUCED)requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

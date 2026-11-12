@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>赶路咯 · AI 徒步助手 · 交互原型总览</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  body.board{
+    display:block;padding:0;font-family:var(--font);
+    background:radial-gradient(1600px 1000px at 15% -5%,var(--bg-outer-1),var(--bg-outer-2));
+    color:#20301a;
+  }
+  .board .watermark{color:rgba(96,132,48,.12);font-size:13vw}
+  .board-head{
+    position:relative;z-index:2;max-width:1560px;margin:0 auto;padding:64px 40px 10px;
+    display:flex;align-items:flex-end;justify-content:space-between;gap:30px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand .logo{
+    width:58px;height:58px;border-radius:18px;background:var(--grad);color:#0d1506;
+    display:flex;align-items:center;justify-content:center;box-shadow:var(--glow);
+  }
+  .brand h1{font-size:30px;font-weight:800;letter-spacing:.02em}
+  .brand p{font-size:13px;color:#5a6b48;margin-top:4px}
+  .meta-cards{display:flex;gap:12px;flex-wrap:wrap}
+  .meta-card{
+    background:rgba(255,255,255,.55);border:1px solid rgba(96,132,48,.22);border-radius:16px;
+    padding:12px 18px;backdrop-filter:blur(6px);
+  }
+  .meta-card .k{font-size:11px;color:#5a6b48;letter-spacing:.1em}
+  .meta-card .v{font-size:15px;font-weight:800;margin-top:3px}
+  .swatches{display:flex;gap:8px;margin-top:6px}
+  .swatches i{width:22px;height:22px;border-radius:8px;border:1px solid rgba(0,0,0,.12)}
+  .group{position:relative;z-index:2;max-width:1560px;margin:0 auto;padding:36px 40px 8px}
+  .group>h2{font-size:19px;font-weight:800;display:flex;align-items:center;gap:12px;color:#26401c}
+  .group>h2::after{content:"";flex:1;height:1px;background:rgba(96,132,48,.25)}
+  .group>h2 .no{
+    width:30px;height:30px;border-radius:10px;background:#20301a;color:#dff5b8;
+    display:inline-flex;align-items:center;justify-content:center;font-size:13px;
+  }
+  .frames{display:flex;flex-wrap:wrap;gap:44px;padding:26px 0 8px}
+  .frame{position:relative;width:340px}
+  .frame .ph{width:340px;height:700px;overflow:hidden;position:relative;border-radius:47px;
+    box-shadow:0 30px 60px rgba(44,64,22,.3),0 0 0 9px #0b0e07,0 0 0 11px rgba(255,255,255,.4);}
+  .frame iframe{width:390px;height:844px;transform:scale(.855);transform-origin:top left;border:0;display:block}
+  .frame .num{
+    position:absolute;top:-14px;left:-14px;width:36px;height:36px;border-radius:12px;z-index:5;
+    background:var(--grad);color:#0d1506;font-weight:800;font-size:15px;
+    display:flex;align-items:center;justify-content:center;box-shadow:var(--glow);
+  }
+  .frame .cap{margin-top:16px;text-align:center}
+  .frame .cap b{font-size:14px;color:#26401c}
+  .frame .cap span{display:block;font-size:11.5px;color:#6a7c54;margin-top:3px}
+  .board-foot{position:relative;z-index:2;max-width:1560px;margin:0 auto;padding:26px 40px 70px;
+    font-size:12px;color:#5a6b48;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+</style>
+</head>
+<body class="board">
+<div class="watermark">赶路咯 · GANLULUO</div>
+
+<header class="board-head">
+  <div class="brand">
+    <div class="logo">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M2.5 20l6-11 3.6 6.6L14.5 11l7 9z"/><circle cx="18.5" cy="5" r="2"/></svg>
+    </div>
+    <div>
+      <h1>赶路咯 · AI 徒步助手 — 交互原型 V1</h1>
+      <p>环保绿 Dark 主题 · 贴合 design 文件夹视觉语言（暗底 / 荧光绿 / 玻璃卡片 / 3D 地图 / 悬浮导航）</p>
+    </div>
+  </div>
+  <div class="meta-cards">
+    <div class="meta-card">
+      <div class="k">SCREENS</div>
+      <div class="v">10 个核心页面</div>
+    </div>
+    <div class="meta-card">
+      <div class="k">配色</div>
+      <div class="swatches">
+        <i style="background:#a4f150"></i><i style="background:#5fd23c"></i><i style="background:#0c110a"></i><i style="background:#161e0f"></i><i style="background:#ffc857"></i>
+      </div>
+    </div>
+    <div class="meta-card">
+      <div class="k">交互</div>
+      <div class="v">卡片可点击 · 3D 可播放</div>
+    </div>
+  </div>
+</header>
+
+<section class="group">
+  <h2><span class="no">A</span>登录与用户画像预设（户外偏好 → 经验体能 → 装备）</h2>
+  <div class="frames">
+    <div class="frame"><span class="num">01</span>
+      <div class="ph"><iframe src="01-login.html" loading="lazy" title="登录"></iframe></div>
+      <div class="cap"><b>欢迎 / 登录</b><span>发光星球 · 账号密码 · 第三方登录 · 画像注册入口</span></div>
+    </div>
+    <div class="frame"><span class="num">02</span>
+      <div class="ph"><iframe src="02-onboard-sport.html" loading="lazy" title="运动偏好"></iframe></div>
+      <div class="cap"><b>画像 1/3 · 运动偏好</b><span>图标 + 文字区分运动类型，可点选</span></div>
+    </div>
+    <div class="frame"><span class="num">03</span>
+      <div class="ph"><iframe src="03-onboard-exp.html" loading="lazy" title="经验与体能"></iframe></div>
+      <div class="cap"><b>画像 2/3 · 经验与体能</b><span>徒步经验四档 + 体能五级自评</span></div>
+    </div>
+    <div class="frame"><span class="num">04</span>
+      <div class="ph"><iframe src="04-onboard-gear.html" loading="lazy" title="装备清单"></iframe></div>
+      <div class="cap"><b>画像 3/3 · 装备清单</b><span>装备参与路线安全匹配</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="group">
+  <h2><span class="no">B</span>首页与成熟路线库（难度 / 地形 / 轨迹清晰度）</h2>
+  <div class="frames">
+    <div class="frame"><span class="num">05</span>
+      <div class="ph"><iframe src="05-home.html" loading="lazy" title="首页"></iframe></div>
+      <div class="cap"><b>首页</b><span>AI 为你挑选 · 附近热门 · 最近足迹 · 缩略卡片</span></div>
+    </div>
+    <div class="frame"><span class="num">10</span>
+      <div class="ph"><iframe src="10-routes.html" loading="lazy" title="路线库"></iframe></div>
+      <div class="cap"><b>成熟路线库</b><span>筛选：运动类型 / 难度 / 轨迹清晰 / 当天往返</span></div>
+    </div>
+    <div class="frame"><span class="num">09</span>
+      <div class="ph"><iframe src="09-profile.html" loading="lazy" title="我的"></iframe></div>
+      <div class="cap"><b>我的画像</b><span>画像摘要 · 足迹统计 · 偏好与装备维护</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="group">
+  <h2><span class="no">C</span>AI 问答筛选与计划安排（天气 / 灾害预警 / 画像匹配）</h2>
+  <div class="frames">
+    <div class="frame"><span class="num">06</span>
+      <div class="ph"><iframe src="06-ai-plan-chat.html" loading="lazy" title="AI 规划对话"></iframe></div>
+      <div class="cap"><b>AI 规划对话</b><span>核查天气与预警 → 按画像筛选 → 缩略卡片推荐</span></div>
+    </div>
+    <div class="frame"><span class="num">07</span>
+      <div class="ph"><iframe src="07-plan-trip.html" loading="lazy" title="行程计划"></iframe></div>
+      <div class="cap"><b>行程计划</b><span>日期轴 · 3D 倾斜地图路线 · 计划卡片 · 装备提醒</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="group">
+  <h2><span class="no">D</span>路线详情（高程 / 配速 / 地形 / 3D 影像演示）</h2>
+  <div class="frames">
+    <div class="frame"><span class="num">08</span>
+      <div class="ph"><iframe src="08-route-detail.html" loading="lazy" title="路线详情"></iframe></div>
+      <div class="cap"><b>路线详情</b><span>高程折线 · 建议配速折线 · 地形分析 · 3D 影像轨迹飞行（可播放）</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="group">
+  <h2><span class="no">E</span>多平台适配（鸿蒙 HarmonyOS NEXT / 安卓 Material 3）</h2>
+  <div class="frames">
+    <div class="frame"><span class="num">鸿</span>
+      <div class="ph"><iframe src="h-home.html" loading="lazy" title="鸿蒙首页"></iframe></div>
+      <div class="cap"><b>鸿蒙 · 首页</b><span>实况窗胶囊 · 万能卡片 · 页签呼吸点指示</span></div>
+    </div>
+    <div class="frame"><span class="num">鸿</span>
+      <div class="ph"><iframe src="h-detail.html" loading="lazy" title="鸿蒙路线详情"></iframe></div>
+      <div class="cap"><b>鸿蒙 · 路线详情</b><span>HarmonyOS Sans · 24 连续圆角卡片 · 胶囊主按钮</span></div>
+    </div>
+    <div class="frame"><span class="num">安</span>
+      <div class="ph"><iframe src="a-home.html" loading="lazy" title="安卓首页"></iframe></div>
+      <div class="cap"><b>安卓 · 首页</b><span>打孔摄像头 · M3 顶栏 · FAB 悬浮操作</span></div>
+    </div>
+    <div class="frame"><span class="num">安</span>
+      <div class="ph"><iframe src="a-detail.html" loading="lazy" title="安卓路线详情"></iframe></div>
+      <div class="cap"><b>安卓 · 路线详情</b><span>M3 药丸指示器导航 · 16dp 卡片 · Filled+Tonal 按钮</span></div>
+    </div>
+    <div class="frame"><span class="num">⇄</span>
+      <div class="ph"><iframe src="platforms.html" loading="lazy" title="三平台对照"></iframe></div>
+      <div class="cap"><b>三平台对照画板</b><span>iOS / 鸿蒙 / 安卓 并排对比（建议单独打开）</span></div>
+    </div>
+  </div>
+</section>
+
+<footer class="board-foot">
+  <span>© 2026 赶路咯 · 交互原型 V1 · 仅用于设计评审，数据均为演示样例</span>
+  <span>建议使用浏览器直接打开 index.html · 页面间可点击跳转</span>
+</footer>
+</body>
+</html>

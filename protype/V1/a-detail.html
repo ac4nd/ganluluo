@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>安卓 · 路线详情 · 赶路咯原型</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="page">
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <!-- 徒步 Hiking：背包 + 登山杖 -->
+  <symbol id="icon-hiking" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="13" cy="4.2" r="1.7"/>
+      <rect x="9" y="7.4" width="3.2" height="6" rx="1.5"/>
+      <path d="M12.6 7.4v5.8"/>
+      <path d="M12.5 8.6l2.6 2 .6 1.3"/>
+      <path d="M14.8 11.8h2"/>
+      <path d="M15.8 11.8V20"/>
+      <path d="M12.6 13.2l2.1 3.3 1 3.5"/>
+      <path d="M12.6 13.2l-2 3.5-.5 3.3"/>
+    </g>
+  </symbol>
+  <!-- 攀岩 Climbing：🧗 攀爬姿态（岩壁 + 岩点 + 攀爬者） -->
+  <symbol id="icon-climbing" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="3.6" r="1.7"/>
+      <path d="M6.5 2.5V21.5"/>
+      <circle cx="6.5" cy="5" r=".9"/>
+      <circle cx="6.5" cy="10" r=".9"/>
+      <circle cx="6.5" cy="15.4" r=".9"/>
+      <circle cx="6.5" cy="19.4" r=".9"/>
+      <path d="M7.5 5.1l2.6 1.4"/>
+      <path d="M11.9 5.4c.4 2.2.5 4.5.2 6.9"/>
+      <path d="M11.6 8.4 7.5 9.9"/>
+      <path d="M12 12.4l1.5 2.6-6 .5"/>
+      <path d="M12 12.4l-.6 3.9-4.2 2.8"/>
+    </g>
+  </symbol>
+  <!-- 溯溪 Stream Trekking：溪流涉水/游泳姿态（上身出水 + 划水臂 + 水花 + 波浪） -->
+  <symbol id="icon-stream" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="10.2" cy="5" r="1.7"/>
+      <path d="M10.9 7.2c1.1 2.3 1.9 4.6 2.3 7.1"/>
+      <path d="M11 7.8l3.5 2 2.7 4.4"/>
+      <path d="M10.7 7.5 8 8.8l-.8 3"/>
+      <path d="M18.6 11.2l1.3-1.3"/>
+      <path d="M3 16.8c2-1.6 3.6-1.6 5.5 0s3.5 1.6 5.5 0 3.5-1.6 5.5 0"/>
+      <path d="M3 20.4c2-1.6 3.6-1.6 5.5 0s3.5 1.6 5.5 0 3.5-1.6 5.5 0"/>
+    </g>
+  </symbol>
+  <!-- 越野跑 Trail Running：小径下坡奔跑（下坡径线 + 前倾加速姿态） -->
+  <symbol id="icon-trail-running" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="13.9" cy="3.5" r="1.6"/>
+      <path d="M13.3 5.7c-1 1.5-1.7 3.1-2.1 4.7"/>
+      <path d="M13.4 6.2l2.7.9 1.5 2.3"/>
+      <path d="M13 6.7l-2.5 1.3-1.6 1.9"/>
+      <path d="M11.2 10.4l3.4 2 2.2 2.5"/>
+      <path d="M11.2 10.4l-2.4 1.6-2.4-2.4"/>
+      <path d="M2.5 8.5 21.5 17"/>
+    </g>
+  </symbol>
+  <!-- 骑行 Cycling：单车骑行姿势（整车 + 俯身骑手 + 双脚踏板） -->
+  <symbol id="icon-cycling" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="5.5" cy="17.2" r="3.1"/>
+      <circle cx="18.5" cy="17.2" r="3.1"/>
+      <circle cx="12.5" cy="17.2" r="1"/>
+      <path d="M5.5 17.2 9.1 11.1l3.4 6.1"/>
+      <path d="M8.1 11.1h2"/>
+      <path d="M12.5 17.2 15.3 10.2l3.2 7"/>
+      <path d="M14.3 9.3h2.4"/>
+      <circle cx="15.6" cy="4" r="1.6"/>
+      <path d="M15.2 6c-2.1 1.4-4 2.9-5.6 4.6"/>
+      <path d="M15.1 6.2l1.3 1.7.2 1.6"/>
+      <path d="M9.7 10.7l3 2.2v4.3"/>
+      <path d="M9.7 10.7l1 3.9 2.6 1"/>
+    </g>
+  </symbol>
+  <!-- 露营 Camping：帐篷（大 A 帐 + 内帐门） -->
+  <symbol id="icon-camping" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3.5 20h17"/>
+      <path d="M12 4.5 2.5 20h19L12 4.5z"/>
+      <path d="M12 10.5 7.8 20h8.4L12 10.5z"/>
+    </g>
+  </symbol>
+  <!-- 滑雪 Skiing -->
+  <symbol id="icon-skiing" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="14.5" cy="4.2" r="1.5"/>
+      <path d="M13.6 6.4 11 10.2l2.7 1.8 2-2.3 2.3 2.5"/>
+      <path d="M11 10.2 8.7 14.2l1.8 2"/>
+      <path d="M13.7 12 16 14.6 15 18"/>
+      <path d="M8.2 18.5 7.5 20"/>
+      <path d="M5 20.5 19 16"/>
+      <path d="M6.5 22 20 17.5"/>
+    </g>
+  </symbol>
+  <!-- 定向越野 Orienteering：指南针（表盘刻度 + 磁针） -->
+  <symbol id="icon-orienteering" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8.2"/>
+      <path d="M12 5.2v1.9M12 16.9v1.9M5.2 12h1.9M16.9 12h1.9"/>
+      <path d="M15.3 8.7 12.6 12.6 8.7 15.3 11.4 11.4z"/>
+      <circle cx="12" cy="12" r="1"/>
+    </g>
+  </symbol>
+  <!-- ===== 装备产品图形（04 装备细分库用） ===== -->
+  <symbol id="ic-boot" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.2h4.6l1.2 3.6 8.6 2.1c1.7.4 2.8 1.5 2.8 3.2V19H4z"/><path d="M5.6 10.8h2.4M6 13.2h2.4"/></g></symbol>
+  <symbol id="ic-axe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.8 21.5 14.2 6.8"/><path d="M12.7 7.7c1.9-1.9 4.4-2.5 7.1-1.7"/><path d="M19.8 6c-.3 1.9-1.1 3.5-2.4 4.9"/><path d="M10.9 17.6l2.6.8"/></g></symbol>
+  <symbol id="ic-pole" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.6 3.4 11.2 20.6"/><path d="M15.4 3.4 12.8 20.6"/><path d="M7 4.2h3.2M13.8 4.2H17"/><path d="M10.4 18.8l1.4.3M12.2 19.1l1.4-.3"/></g></symbol>
+  <symbol id="ic-pack" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5.8" y="5.2" width="12.4" height="14.6" rx="4"/><path d="M9.4 5.2V4a2.6 2.6 0 015.2 0v1.2"/><path d="M5.8 10.6h12.4"/><rect x="9" y="13.4" width="6" height="4" rx="1.6"/></g></symbol>
+  <symbol id="ic-jacket" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 3.2 12 5l2.8-1.8 3.8 2.4-1.7 2.7-1.5-.9V20H8.6V7.4l-1.5.9-1.7-2.7z"/><path d="M12 5v15"/></g></symbol>
+  <symbol id="ic-tee" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.6 3.8 12 5.2 15.4 3.8l3.9 2.4-2 3.1-1.5-.9V20H8.2v-8.6l-1.5.9-2-3.1z"/><path d="M9.5 7.4c1.6.9 3.4.9 5 0"/></g></symbol>
+  <symbol id="ic-pants" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.4h8l1.2 16.8h-4.2l-1-8.8-1 8.8H6.8z"/><path d="M8.4 7.6h7.2"/></g></symbol>
+  <symbol id="ic-lamp" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 12.2a7.4 7.4 0 0114.8 0"/><rect x="8.6" y="9.8" width="6.8" height="5.4" rx="2"/><path d="M8.6 12.5H4.6M15.4 12.5h4"/></g></symbol>
+  <symbol id="ic-watch" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5.4"/><path d="M12 9.6V12l1.9 1.3"/><path d="M9.6 7.4l.5-3.8h3.8l.5 3.8M9.6 16.6l.5 3.8h3.8l.5-3.8"/></g></symbol>
+  <symbol id="ic-battery" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.6" y="8.2" width="14.6" height="7.6" rx="2"/><path d="M18.2 10.4h2.2v3.2h-2.2"/><path d="M6.8 10.6v2.8M9.6 10.6v2.8M12.4 10.6v2.8"/></g></symbol>
+  <symbol id="ic-cap" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 13.6a6.4 6.4 0 0112.8 0"/><path d="M3 13.6c3 1.4 15 1.4 18 0"/><path d="M12 7.2V5.6"/></g></symbol>
+  <symbol id="ic-buff" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="10.8" rx="6.6" ry="5"/><ellipse cx="12" cy="10.8" rx="3.6" ry="2.6"/><path d="M5.4 10.8v3.4c0 2.8 3 5 6.6 5s6.6-2.2 6.6-5v-3.4"/></g></symbol>
+  <symbol id="ic-helmet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 14.4a7.2 7.2 0 0114.4 0v1.8H4.8z"/><path d="M9.2 10.6v3.4M12 9.9v4.1M14.8 10.6v3.4"/><path d="M9 16.2 7.6 19.4M15 16.2l1.4 3.2"/></g></symbol>
+  <symbol id="ic-glove" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 12.6V7.2a3.6 3.6 0 017.2 0v5.4c0 3.4-1.6 5.8-3.6 5.8s-3.6-2.4-3.6-5.8z"/><path d="M8.4 10.8c-1.9.1-3.2 1.3-3.2 2.9 0 1.3 1 2.3 2.3 2.3"/><path d="M9 18.6h6"/></g></symbol>
+  <symbol id="ic-knee" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 4.8h8.8l-.5 8.2a3.9 3.9 0 01-7.8 0z"/><path d="M7.8 7.2H4.6M16.2 7.2h3.2M7.4 11.6H4.2M16.6 11.6h3.2"/></g></symbol>
+  <symbol id="ic-rain" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4a8.8 8.8 0 018.8 8.8H3.2A8.8 8.8 0 0112 3.4z"/><path d="M12 12.2v6.4a2.1 2.1 0 01-4.2 0"/></g></symbol>
+  <symbol id="ic-radio" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.2" y="7.4" width="7.6" height="12.8" rx="2"/><path d="M10.4 7.4V4.2h3.2v3.2"/><path d="M10.3 11h3.4M10.3 13.4h3.4"/><circle cx="12" cy="16.6" r="1.1"/></g></symbol>
+  <symbol id="ic-tent" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2 2.8 19.8h18.4L12 4.2z"/><path d="M12 10.8 8.8 19.8h6.4L12 10.8z"/></g></symbol>
+  <symbol id="ic-sleep" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 3.6h7.2c1.8 0 3.2 1.4 3.2 3.2v9.6a3.6 3.6 0 01-3.6 3.6H8.8a3.6 3.6 0 01-3.6-3.6V6.8c0-1.8 1.4-3.2 3.2-3.2z"/><path d="M5.2 9.4h13.6M5.2 14h13.6"/></g></symbol>
+  <symbol id="ic-mat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="9" width="17.2" height="6" rx="3"/><circle cx="6.8" cy="12" r="1.7"/><path d="M12.6 9v6M16.4 9v6"/></g></symbol>
+  <symbol id="ic-stove" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 10.2h11.6v4.6a3.8 3.8 0 01-3.8 3.8h-4a3.8 3.8 0 01-3.8-3.8z"/><path d="M6.2 11.6H3.4M17.8 11.6h2.8"/><path d="M12 10.2V8"/><path d="M9.8 5.8c0-.9.8-1.1.8-2M12.8 5.8c0-.9.8-1.1.8-2"/></g></symbol>
+  <symbol id="ic-bottle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.8h4v2.8l1.8 2.6V19a2 2 0 01-2 2h-3.6a2 2 0 01-2-2V8.2L10 5.6z"/><path d="M8.2 13.2h7.6"/></g></symbol>
+  <symbol id="ic-filter" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.8 2.8h4.4v4l2.9 8.2a3.2 3.2 0 01-3 4.2h-4.2a3.2 3.2 0 01-3-4.2l2.9-8.2z"/><path d="M12 11.4c1.2 1.5 1.9 2.4 1.9 3.3a1.9 1.9 0 11-3.8 0c0-.9.7-1.8 1.9-3.3z"/></g></symbol>
+  <symbol id="ic-kit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.2" y="7.2" width="15.6" height="12.6" rx="3"/><path d="M12 10.4v5.8M9.1 13.3h5.8"/><path d="M9.6 7.2V5.4h4.8v1.8"/></g></symbol>
+  <symbol id="ic-blanket" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.8" y="5.6" width="14.4" height="12.8" rx="2"/><path d="M4.8 9.8h14.4M4.8 14h14.4"/></g></symbol>
+  <symbol id="ic-spray" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.8" y="9" width="6.4" height="11.2" rx="1.8"/><path d="M10.6 9V6.6h2.8V9"/><path d="M13.4 7.8h2.2"/><path d="M18 5.4l1.3-.7M18.6 7.2h1.5M18 9l1.3.7"/></g></symbol>
+</svg>
+<div class="watermark">安卓版 · ANDROID</div>
+<div class="phone ph-android">
+  <div class="screen">
+    <div class="status" style="position:absolute;left:0;right:0;top:0;z-index:60">
+      <span>9:41</span>
+      <span class="sicons">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 9.4a1.3 1.3 0 100 2.2 1.3 1.3 0 000-2.2z"/><path d="M8 5.7c1.6 0 3.1.6 4.1 1.7L10.9 8.6A3.8 3.8 0 008 7.4c-1.1 0-2.1.4-2.9 1.2L3.9 7.4c1-1.1 2.5-1.7 4.1-1.7z"/><path d="M8 2c2.6 0 5 1 6.8 2.8l-1.2 1.2A8 8 0 008 3.7c-2.2 0-4.2.9-5.6 2.3L1.2 4.8A9.6 9.6 0 018 2z"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23 4v4a2.2 2.2 0 000-4z" fill="currentColor" opacity=".4"/></svg>
+      </span>
+    </div>
+    <div class="cam-dot"></div>
+
+    <div class="content" style="padding:0;padding-bottom:120px">
+      <!-- M3 顶栏 -->
+      <div style="padding:10px 20px 4px;display:flex;align-items:center;justify-content:space-between">
+        <a class="icon-btn" href="a-home.html" style="width:38px;height:38px">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l-7 7 7 7"/></svg>
+        </a>
+        <span style="font-size:15px;font-weight:700">路线详情</span>
+        <a class="icon-btn" href="#" style="width:38px;height:38px">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20.5s-7.5-4.9-7.5-10.2A4.3 4.3 0 0112 7.6a4.3 4.3 0 017.5 2.7c0 5.3-7.5 10.2-7.5 10.2z"/></svg>
+        </a>
+      </div>
+
+      <!-- 封面 -->
+      <div style="position:relative;height:252px;flex:none;margin:8px 20px 0;border-radius:16px;overflow:hidden;border:1px solid var(--line)">
+        <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block">
+          <defs>
+            <linearGradient id="dsky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#4a6a3c"/><stop offset=".45" stop-color="#2a452c"/><stop offset="1" stop-color="#0b140b"/>
+            </linearGradient>
+            <linearGradient id="river" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#6ec8ff" stop-opacity=".35"/><stop offset="1" stop-color="#6ec8ff" stop-opacity=".08"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="300" fill="url(#dsky)"/>
+          <circle cx="88" cy="70" r="26" fill="#f2dd7d" opacity=".92"/>
+          <circle cx="88" cy="70" r="48" fill="#f2dd7d" opacity=".13"/>
+          <path d="M0 170l86-64 58 40 76-58 70 52 58-34 52 30v162H0z" fill="#1a3120"/>
+          <path d="M0 214l70-40 62 32 82-44 72 40 58-26 56 26v98H0z" fill="#0e2013"/>
+          <path d="M210 300 C 230 258 208 232 236 206 S 300 180 400 196 L400 300 Z" fill="url(#river)"/>
+          <path d="M0 258l64-26 58 20 78-32 70 26 60-20 70 22v52H0z" fill="#081108"/>
+          <ellipse cx="200" cy="286" rx="240" ry="40" fill="#a4f150" opacity=".06"/>
+        </svg>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,17,10,0) 40%,rgba(12,17,10,.9) 100%)"></div>
+        <div style="position:absolute;left:16px;right:16px;bottom:12px">
+          <div style="display:flex;gap:7px;margin-bottom:7px">
+            <span class="tag"><svg class="icon"><use href="#icon-hiking"/></svg>徒步</span>
+            <span class="tag"><svg class="icon"><use href="#icon-trail-running"/></svg>越野跑</span>
+            <span class="tag blue">成熟路线 · 2.3w 人走过</span>
+          </div>
+          <div class="title-lg" style="font-size:22px">徽杭古道 <em>经典穿越</em></div>
+        </div>
+      </div>
+
+      <div style="padding:0 20px;margin-top:14px">
+        <div class="sub" style="margin-bottom:12px">安徽绩溪 ⇄ 浙江永来 · 环线否 · 最高海拔 1180 m</div>
+
+        <div class="metrics">
+          <div class="metric m3-card" style="border-radius:14px"><div class="v stars">★★★</div><div class="k">难度 / 5</div></div>
+          <div class="metric hl" style="border-radius:14px"><div class="v">16.8</div><div class="k">里程 km</div></div>
+          <div class="metric m3-card" style="border-radius:14px"><div class="v">950</div><div class="k">爬升 m</div></div>
+          <div class="metric m3-card" style="border-radius:14px"><div class="v">≈6h</div><div class="k">建议用时</div></div>
+        </div>
+        <div class="info-chips" style="margin-top:10px">
+          <span class="chip on">📍 轨迹清晰度：高</span>
+          <span class="chip">📶 沿途信号：弱</span>
+          <span class="chip">🏪 补给点 3 处</span>
+          <span class="chip">🚻 下撤点 2 处</span>
+        </div>
+
+        <div class="chart-card m3-card" style="margin-top:16px">
+          <div class="chart-head">
+            <span class="t">⛰️ 高程变化</span>
+            <span class="badge-val">最高 1180 m</span>
+          </div>
+          <svg viewBox="0 0 320 152" style="width:100%">
+            <defs>
+              <linearGradient id="elevFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#a4f150" stop-opacity=".34"/>
+                <stop offset="1" stop-color="#a4f150" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <g stroke="rgba(255,255,255,.08)" stroke-width="1">
+              <line x1="10" y1="120" x2="310" y2="120"/><line x1="10" y1="67" x2="310" y2="67"/><line x1="10" y1="14" x2="310" y2="14"/>
+            </g>
+            <g font-size="8.5" fill="#74825f">
+              <text x="10" y="132">0 km</text><text x="76" y="132">4</text><text x="148" y="132">8</text><text x="220" y="132">12</text><text x="296" y="132">16.8</text>
+              <text x="12" y="115">400m</text><text x="12" y="62">800m</text><text x="12" y="11">1200m</text>
+            </g>
+            <path d="M10 117 L46 104 L81 83 L117 59 L153 34 L180 17 L206 33 L233 54 L260 72 L310 91 L310 130 L10 130 Z" fill="url(#elevFill)"/>
+            <path d="M10 117 L46 104 L81 83 L117 59 L153 34 L180 17 L206 33 L233 54 L260 72 L310 91" fill="none" stroke="#a4f150" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+            <g>
+              <circle cx="10" cy="117" r="3.4" fill="#a4f150"/><text x="16" y="112" font-size="8.5" fill="#a7b494">起点 420m</text>
+              <circle cx="117" cy="59" r="3" fill="#0d1506" stroke="#a4f150" stroke-width="1.6"/><text x="112" y="52" font-size="8.5" fill="#a7b494">黄茅培 680m</text>
+              <circle cx="180" cy="17" r="3.8" fill="#a4f150"/><text x="156" y="8" font-size="8.5" fill="#a4f150" font-weight="bold">蓝天凹 1180m</text>
+              <circle cx="206" cy="33" r="3" fill="#0d1506" stroke="#a4f150" stroke-width="1.6"/><text x="213" y="30" font-size="8.5" fill="#a7b494">垭口</text>
+              <circle cx="310" cy="91" r="3.4" fill="#a4f150"/><text x="262" y="106" font-size="8.5" fill="#a7b494">终点 620m</text>
+            </g>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#a4f150"></i>实测轨迹高程</span>
+            <span><i style="background:rgba(255,255,255,.25)"></i>缓行节点</span>
+          </div>
+        </div>
+
+        <div class="chart-card m3-card">
+          <div class="chart-head">
+            <span class="t">⏱️ 建议配速</span>
+            <span class="badge-val">按你的体能生成</span>
+          </div>
+          <svg viewBox="0 0 320 132" style="width:100%">
+            <g stroke="rgba(255,255,255,.08)" stroke-width="1">
+              <line x1="10" y1="40" x2="310" y2="40"/><line x1="10" y1="88" x2="310" y2="88"/>
+            </g>
+            <rect x="10" y="24.5" width="300" height="68" fill="#a4f150" opacity=".07"/>
+            <line x1="10" y1="24.5" x2="310" y2="24.5" stroke="#a4f150" stroke-width="1" stroke-dasharray="4 4" opacity=".45"/>
+            <line x1="10" y1="92.5" x2="310" y2="92.5" stroke="#a4f150" stroke-width="1" stroke-dasharray="4 4" opacity=".45"/>
+            <g font-size="8.5" fill="#74825f">
+              <text x="12" y="36">16′/km</text><text x="12" y="86">8′/km</text>
+              <text x="10" y="122">0</text><text x="76" y="122">4</text><text x="148" y="122">8</text><text x="220" y="122">12</text><text x="296" y="122">16.8 km</text>
+            </g>
+            <path d="M10 59 L46 36 L117 36 L153 24.5 L180 24.5 L198 95 L233 95 L259 84 L310 84" fill="none" stroke="#ffc857" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+            <g fill="#0d1506" stroke="#ffc857" stroke-width="1.8">
+              <circle cx="46" cy="36" r="3"/><circle cx="117" cy="36" r="3"/><circle cx="180" cy="24.5" r="3.4" fill="#ffc857"/>
+              <circle cx="198" cy="95" r="3.4" fill="#ffc857"/><circle cx="233" cy="95" r="3"/><circle cx="259" cy="84" r="3"/>
+            </g>
+            <text x="120" y="18" font-size="8.5" fill="#ffc857">上坡保持 14–15′/km</text>
+            <text x="228" y="108" font-size="8.5" fill="#6ec8ff">下坡可提至 9–10′/km</text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#ffc857"></i>建议配速曲线</span>
+            <span><i style="background:rgba(164,241,80,.5)"></i>安全区间 9–15′/km</span>
+          </div>
+        </div>
+
+        <div class="chart-card m3-card">
+          <div class="chart-head">
+            <span class="t">🗺️ 地形变化分析</span>
+            <span class="badge-val">AI 路段判读</span>
+          </div>
+          <div class="terr">
+            <i style="width:45%;background:#a4f150"></i>
+            <i style="width:30%;background:#62b946"></i>
+            <i style="width:15%;background:#e5c26b"></i>
+            <i style="width:10%;background:#6ec8ff"></i>
+          </div>
+          <div class="terr-legend">
+            <span class="li"><span class="sw" style="background:#a4f150"></span>青石阶 / 石板路<b>45%</b></span>
+            <span class="li"><span class="sw" style="background:#62b946"></span>山林土路<b>30%</b></span>
+            <span class="li"><span class="sw" style="background:#e5c26b"></span>碎石坡<b>15%</b></span>
+            <span class="li"><span class="sw" style="background:#6ec8ff"></span>木栈道<b>10%</b></span>
+          </div>
+          <div class="divider" style="margin:12px 0 10px"></div>
+          <div class="sub" style="font-size:12px">
+            0–6km 沿溪青石阶缓升；6–9.5km 连续土路爬升至<b style="color:var(--accent)">蓝天凹</b>，是全程体能关键段；垭口后为 4km 下坡，碎石段注意防滑；全程遮蔽较少，垭口风大。
+          </div>
+        </div>
+
+        <div class="demo3d m3-card" style="height:280px">
+          <div class="d3-scene">
+            <div class="d3-terrain" id="d3Terrain">
+              <svg viewBox="0 0 520 360" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <radialGradient id="hill" cx=".5" cy=".42" r=".75">
+                    <stop offset="0" stop-color="#2c451d"/><stop offset=".6" stop-color="#1a2c12"/><stop offset="1" stop-color="#0b1209"/>
+                  </radialGradient>
+                  <filter id="rglow" x="-40%" y="-40%" width="180%" height="180%">
+                    <feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                </defs>
+                <rect width="520" height="360" fill="#0a1006"/>
+                <g stroke="#1c2613" stroke-width="1">
+                  <path d="M0 90h520M0 180h520M0 270h520M130 0v360M260 0v360M390 0v360"/>
+                </g>
+                <path d="M0 210 C90 150 180 200 260 150 S420 90 520 120 L520 360 L0 360Z" fill="url(#hill)"/>
+                <path d="M0 300 C110 250 220 280 320 230 S460 180 520 210 L520 360 L0 360Z" fill="#0d1509"/>
+                <g fill="none" stroke="#2c3d1c" stroke-width="1.3">
+                  <ellipse cx="260" cy="160" rx="120" ry="52" transform="rotate(-10 260 160)"/>
+                  <ellipse cx="260" cy="160" rx="78" ry="30" transform="rotate(-10 260 160)"/>
+                  <ellipse cx="260" cy="160" rx="38" ry="13" transform="rotate(-10 260 160)"/>
+                  <ellipse cx="120" cy="270" rx="86" ry="34" transform="rotate(6 120 270)"/>
+                  <ellipse cx="410" cy="240" rx="80" ry="30" transform="rotate(-6 410 240)"/>
+                </g>
+                <path id="d3Route" d="M46 306 C 120 268 170 240 236 204 S 350 140 468 96" fill="none" stroke="#a4f150" stroke-width="4.5" stroke-linecap="round" filter="url(#rglow)" stroke-dasharray="480" stroke-dashoffset="480"/>
+                <circle cx="46" cy="306" r="8" fill="#a4f150"/><circle cx="46" cy="306" r="3.4" fill="#0d1506"/>
+                <circle cx="468" cy="96" r="8" fill="#a4f150"/><circle cx="468" cy="96" r="3.4" fill="#0d1506"/>
+                <circle cx="236" cy="204" r="5.6" fill="#0d1506" stroke="#a4f150" stroke-width="2"/>
+              </svg>
+            </div>
+          </div>
+          <div class="view-chips">
+            <span class="chip on">环绕视角</span>
+            <span class="chip">俯瞰</span>
+            <span class="chip">跟随</span>
+          </div>
+          <button class="d3-play" id="d3Play" title="播放 3D 影像">
+            <svg id="d3PlayIco" width="22" height="22" viewBox="0 0 24 24" fill="#0d1506"><path d="M8 5.5v13l11-6.5z"/></svg>
+          </button>
+          <div class="d3-bar">
+            <div class="d3-track"><i id="d3Prog"></i></div>
+            <div class="d3-ctrls">
+              <span>影像轨迹飞行 · <b id="d3Km">0.0</b> / 16.8 km</span>
+              <span>1.0x · 00:08</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="notice">
+          <span class="n-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.2v.4"/></svg></span>
+          <span>安全提醒：垭口午后风力较大注意防风保暖；15:30 后不建议继续登顶蓝天凹；沿线信号弱，建议下载离线轨迹并结伴同行。</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- M3 操作区：Filled + Tonal -->
+    <div class="action-bar">
+      <a class="btn-tonal" href="07-plan-trip.html" style="flex:1;height:56px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M8 3v4M16 3v4"/></svg>
+        加入计划
+      </a>
+      <a class="btn btn-primary" href="07-plan-trip.html" style="flex:1.2">
+        <svg class="icon" style="width:18px;height:18px"><use href="#icon-hiking"/></svg>
+        开始徒步
+      </a>
+    </div>
+    <div class="home-bar"></div>
+  </div>
+</div>
+<script>
+  var playing=false,raf=null;
+  var route=document.getElementById('d3Route'),bar=document.getElementById('d3Prog'),
+      kmEl=document.getElementById('d3Km'),btn=document.getElementById('d3Play'),
+      ico=document.getElementById('d3PlayIco'),terrain=document.getElementById('d3Terrain');
+  var DUR=8000;
+  function tick(ts){
+    if(!tick.t0)tick.t0=ts;
+    var p=Math.min((ts-tick.t0)/DUR,1);
+    route.setAttribute('stroke-dashoffset',480-480*p);
+    bar.style.width=(p*100)+'%';
+    kmEl.textContent=(16.8*p).toFixed(1);
+    if(p>=1){stop(true);return;}
+    raf=requestAnimationFrame(tick);
+  }
+  function stop(done){
+    playing=false;cancelAnimationFrame(raf);tick.t0=null;
+    terrain.classList.remove('playing');
+    if(!done){route.setAttribute('stroke-dashoffset',480);bar.style.width='0%';kmEl.textContent='0.0';}
+    ico.innerHTML='<path d="M8 5.5v13l11-6.5z"/>';
+  }
+  btn.addEventListener('click',function(){
+    if(playing){stop(false);return;}
+    if(bar.style.width==='100%'||parseFloat(bar.style.width)>=100){route.setAttribute('stroke-dashoffset',480);bar.style.width='0%';}
+    playing=true;tick.t0=null;
+    terrain.classList.add('playing');
+    ico.innerHTML='<rect x="7" y="6" width="3.4" height="12" rx="1"/><rect x="13.6" y="6" width="3.4" height="12" rx="1"/>';
+    raf=requestAnimationFrame(tick);
+  });
+</script>
+</body>
+</html>

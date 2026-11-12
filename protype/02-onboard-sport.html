@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>02 画像 · 运动偏好 · 赶路咯原型</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .js .icon-tile{transition:border-color .15s,background .15s}
+</style>
+</head>
+<body class="page js">
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <!-- 徒步 Hiking：背包 + 登山杖 -->
+  <symbol id="icon-hiking" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="13" cy="4.2" r="1.7"/>
+      <rect x="9" y="7.4" width="3.2" height="6" rx="1.5"/>
+      <path d="M12.6 7.4v5.8"/>
+      <path d="M12.5 8.6l2.6 2 .6 1.3"/>
+      <path d="M14.8 11.8h2"/>
+      <path d="M15.8 11.8V20"/>
+      <path d="M12.6 13.2l2.1 3.3 1 3.5"/>
+      <path d="M12.6 13.2l-2 3.5-.5 3.3"/>
+    </g>
+  </symbol>
+  <!-- 攀岩 Climbing：🧗 攀爬姿态（岩壁 + 岩点 + 攀爬者） -->
+  <symbol id="icon-climbing" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="3.6" r="1.7"/>
+      <path d="M6.5 2.5V21.5"/>
+      <circle cx="6.5" cy="5" r=".9"/>
+      <circle cx="6.5" cy="10" r=".9"/>
+      <circle cx="6.5" cy="15.4" r=".9"/>
+      <circle cx="6.5" cy="19.4" r=".9"/>
+      <path d="M7.5 5.1l2.6 1.4"/>
+      <path d="M11.9 5.4c.4 2.2.5 4.5.2 6.9"/>
+      <path d="M11.6 8.4 7.5 9.9"/>
+      <path d="M12 12.4l1.5 2.6-6 .5"/>
+      <path d="M12 12.4l-.6 3.9-4.2 2.8"/>
+    </g>
+  </symbol>
+  <!-- 溯溪 Stream Trekking：溪流涉水/游泳姿态（上身出水 + 划水臂 + 水花 + 波浪） -->
+  <symbol id="icon-stream" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="10.2" cy="5" r="1.7"/>
+      <path d="M10.9 7.2c1.1 2.3 1.9 4.6 2.3 7.1"/>
+      <path d="M11 7.8l3.5 2 2.7 4.4"/>
+      <path d="M10.7 7.5 8 8.8l-.8 3"/>
+      <path d="M18.6 11.2l1.3-1.3"/>
+      <path d="M3 16.8c2-1.6 3.6-1.6 5.5 0s3.5 1.6 5.5 0 3.5-1.6 5.5 0"/>
+      <path d="M3 20.4c2-1.6 3.6-1.6 5.5 0s3.5 1.6 5.5 0 3.5-1.6 5.5 0"/>
+    </g>
+  </symbol>
+  <!-- 越野跑 Trail Running：小径下坡奔跑（下坡径线 + 前倾加速姿态） -->
+  <symbol id="icon-trail-running" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="13.9" cy="3.5" r="1.6"/>
+      <path d="M13.3 5.7c-1 1.5-1.7 3.1-2.1 4.7"/>
+      <path d="M13.4 6.2l2.7.9 1.5 2.3"/>
+      <path d="M13 6.7l-2.5 1.3-1.6 1.9"/>
+      <path d="M11.2 10.4l3.4 2 2.2 2.5"/>
+      <path d="M11.2 10.4l-2.4 1.6-2.4-2.4"/>
+      <path d="M2.5 8.5 21.5 17"/>
+    </g>
+  </symbol>
+  <!-- 骑行 Cycling：单车骑行姿势（整车 + 俯身骑手 + 双脚踏板） -->
+  <symbol id="icon-cycling" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="5.5" cy="17.2" r="3.1"/>
+      <circle cx="18.5" cy="17.2" r="3.1"/>
+      <circle cx="12.5" cy="17.2" r="1"/>
+      <path d="M5.5 17.2 9.1 11.1l3.4 6.1"/>
+      <path d="M8.1 11.1h2"/>
+      <path d="M12.5 17.2 15.3 10.2l3.2 7"/>
+      <path d="M14.3 9.3h2.4"/>
+      <circle cx="15.6" cy="4" r="1.6"/>
+      <path d="M15.2 6c-2.1 1.4-4 2.9-5.6 4.6"/>
+      <path d="M15.1 6.2l1.3 1.7.2 1.6"/>
+      <path d="M9.7 10.7l3 2.2v4.3"/>
+      <path d="M9.7 10.7l1 3.9 2.6 1"/>
+    </g>
+  </symbol>
+  <!-- 露营 Camping：帐篷（大 A 帐 + 内帐门） -->
+  <symbol id="icon-camping" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3.5 20h17"/>
+      <path d="M12 4.5 2.5 20h19L12 4.5z"/>
+      <path d="M12 10.5 7.8 20h8.4L12 10.5z"/>
+    </g>
+  </symbol>
+  <!-- 滑雪 Skiing -->
+  <symbol id="icon-skiing" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="14.5" cy="4.2" r="1.5"/>
+      <path d="M13.6 6.4 11 10.2l2.7 1.8 2-2.3 2.3 2.5"/>
+      <path d="M11 10.2 8.7 14.2l1.8 2"/>
+      <path d="M13.7 12 16 14.6 15 18"/>
+      <path d="M8.2 18.5 7.5 20"/>
+      <path d="M5 20.5 19 16"/>
+      <path d="M6.5 22 20 17.5"/>
+    </g>
+  </symbol>
+  <!-- 定向越野 Orienteering：指南针（表盘刻度 + 磁针） -->
+  <symbol id="icon-orienteering" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8.2"/>
+      <path d="M12 5.2v1.9M12 16.9v1.9M5.2 12h1.9M16.9 12h1.9"/>
+      <path d="M15.3 8.7 12.6 12.6 8.7 15.3 11.4 11.4z"/>
+      <circle cx="12" cy="12" r="1"/>
+    </g>
+  </symbol>
+</svg>
+<div class="watermark">赶路咯 · GANLULUO</div>
+<div class="phone">
+  <div class="island"></div>
+  <div class="screen">
+    <div class="status">
+      <span>9:41</span>
+      <span class="sicons">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 9.4a1.3 1.3 0 100 2.2 1.3 1.3 0 000-2.2z"/><path d="M8 5.7c1.6 0 3.1.6 4.1 1.7L10.9 8.6A3.8 3.8 0 008 7.4c-1.1 0-2.1.4-2.9 1.2L3.9 7.4c1-1.1 2.5-1.7 4.1-1.7z"/><path d="M8 2c2.6 0 5 1 6.8 2.8l-1.2 1.2A8 8 0 008 3.7c-2.2 0-4.2.9-5.6 2.3L1.2 4.8A9.6 9.6 0 018 2z"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23 4v4a2.2 2.2 0 000-4z" fill="currentColor" opacity=".4"/></svg>
+      </span>
+    </div>
+
+    <!-- 引导页动态背景：点击运动 tile 即切换对应场景 -->
+    <div class="cinema-layer full">
+      <canvas id="cinema"></canvas>
+      <div class="cinema-shade ambient"></div>
+    </div>
+
+    <div class="content" style="padding-top:14px;padding-bottom:150px">
+      <div class="step-head">
+        <a class="icon-btn" href="01-login.html" style="width:38px;height:38px">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l-7 7 7 7"/></svg>
+        </a>
+        <span class="step-label">用户画像 · 1/3 运动偏好</span>
+        <span style="width:38px"></span>
+      </div>
+      <div class="stepper"><i class="done"></i><i class="done"></i><i></i></div>
+
+      <div class="title-lg">你喜欢哪些<em>户外运动</em>？</div>
+      <div class="sub" style="margin:10px 0 22px">选择 1–4 项，赶路咯 AI 将据此为你匹配路线类型与运动强度。<b style="color:var(--accent)">已选 2 项</b></div>
+
+      <div class="sport-grid" id="sportGrid">
+        <div class="icon-tile sel" data-sport="hiking">
+          <span class="ic"><svg class="icon icon-lg"><use href="#icon-hiking"/></svg></span>
+          <span class="tt"><span class="t">徒步</span><span class="s">山野长距离行走</span></span>
+          <span class="check">✓</span>
+        </div>
+        <div class="icon-tile sel" data-sport="trail-running">
+          <span class="ic"><svg class="icon icon-lg"><use href="#icon-trail-running"/></svg></span>
+          <span class="tt"><span class="t">越野跑</span><span class="s">山地越野奔跑</span></span>
+          <span class="check">✓</span>
+        </div>
+        <div class="icon-tile" data-sport="climbing">
+          <span class="ic"><svg class="icon icon-lg"><use href="#icon-climbing"/></svg></span>
+          <span class="tt"><span class="t">攀岩</span><span class="s">岩壁与抱石</span></span>
+          <span class="check">✓</span>
+        </div>
+        <div class="icon-tile" data-sport="stream">
+          <span class="ic"><svg class="icon icon-lg"><use href="#icon-stream"/></svg></span>
+          <span class="tt"><span class="t">溯溪</span><span class="s">溪谷逆流而上</span></span>
+          <span class="check">✓</span>
+        </div>
+        <div class="icon-tile" data-sport="cycling">
+          <span class="ic"><svg class="icon icon-lg"><use href="#icon-cycling"/></svg></span>
+          <span class="tt"><span class="t">骑行</span><span class="s">山地 / 公路</span></span>
+          <span class="check">✓</span>
+        </div>
+        <div class="icon-tile" data-sport="camping">
+          <span class="ic"><svg class="icon icon-lg"><use href="#icon-camping"/></svg></span>
+          <span class="tt"><span class="t">露营</span><span class="s">过夜扎营体验</span></span>
+          <span class="check">✓</span>
+        </div>
+        <div class="icon-tile" data-sport="skiing">
+          <span class="ic"><svg class="icon icon-lg"><use href="#icon-skiing"/></svg></span>
+          <span class="tt"><span class="t">滑雪</span><span class="s">雪道与野雪</span></span>
+          <span class="check">✓</span>
+        </div>
+        <div class="icon-tile" data-sport="orienteering">
+          <span class="ic"><svg class="icon icon-lg"><use href="#icon-orienteering"/></svg></span>
+          <span class="tt"><span class="t">定向越野</span><span class="s">持图打卡寻点</span></span>
+          <span class="check">✓</span>
+        </div>
+      </div>
+
+      <div class="notice green" style="margin-top:18px">
+        <span class="n-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></span>
+        <span>运动偏好只是第一步，接下来还会请你填写<b style="color:var(--accent)">徒步经验、体能与装备</b>，让路线推荐更安全。</span>
+      </div>
+    </div>
+
+    <div class="cta-wrap">
+      <a class="btn btn-primary" href="03-onboard-exp.html">
+        继 续
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <div class="cta-skip">暂时跳过，<a href="05-home.html">先随便逛逛</a></div>
+    </div>
+    <div class="home-bar"></div>
+  </div>
+</div>
+<script src="assets/cinema.js"></script>
+<script>
+  var tiles=document.querySelectorAll('[data-sport]');
+  var count=function(){var n=document.querySelectorAll('[data-sport].sel').length;
+    document.querySelector('.sub b').textContent='已选 '+n+' 项';};
+  /* 初始场景：上次选择 > URL 参数 > 默认徒步 */
+  var eng=null, init='hiking';
+  try{
+    var q=new URLSearchParams(location.search).get('sport');
+    var saved=JSON.parse(localStorage.getItem('gl_sports')||'null');
+    if(q)init=q;
+    else if(Array.isArray(saved)&&saved.length)init=saved[saved.length-1];
+  }catch(e){}
+  eng=Cinema.mount(document.getElementById('cinema'),{ambient:true,fixed:init,videos:{
+    hiking:['assets/videos/hiking1_s.mp4','assets/videos/hiking2_s.mp4','assets/videos/hiking3_s.mp4','assets/videos/hiking4_s.mp4'],
+    'trail-running':['assets/videos/trailrun1_s.mp4','assets/videos/trailrun2_s.mp4'],
+    climbing:['assets/videos/climbing1_s.mp4','assets/videos/climbing2_s.mp4'],
+    stream:['assets/videos/stream1_s.mp4','assets/videos/stream2_s.mp4'],
+    cycling:['assets/videos/ride1_s.mp4','assets/videos/ride2_s.mp4','assets/videos/ride3_s.mp4','assets/videos/ride4_s.mp4'],
+    camping:['assets/videos/camp1_s.mp4','assets/videos/camp2_s.mp4','assets/videos/camp3_s.mp4'],
+    orienteering:['assets/videos/orienteer1_s.mp4'],
+    skiing:['assets/videos/skiing1_s.mp4','assets/videos/skiing2_s.mp4']
+  }});
+  function saveAndSync(){
+    var sel=[];
+    tiles.forEach(function(t){if(t.classList.contains('sel'))sel.push(t.dataset.sport);});
+    try{localStorage.setItem('gl_sports',JSON.stringify(sel))}catch(e){}
+    /* 选了运动 → 背景切对应场景；全取消 → 恢复随机轮播 */
+    eng.set(sel.length?sel[sel.length-1]:null);
+  }
+  tiles.forEach(function(t){t.addEventListener('click',function(){
+    t.classList.toggle('sel');count();saveAndSync();
+  });});
+</script>
+</body>
+</html>
