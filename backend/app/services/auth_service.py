@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import jwt
 from sqlalchemy import select, update
@@ -65,7 +65,7 @@ async def revoke(session: AsyncSession, refresh_token: str) -> None:
 
 
 def now_utc() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def new_jti() -> str:

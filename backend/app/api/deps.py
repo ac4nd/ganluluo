@@ -1,3 +1,4 @@
+import jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
@@ -18,7 +19,7 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="未登录")
     try:
         payload = decode_token(credentials.credentials)
-    except Exception:
+    except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="令牌无效") from None
     if payload.get("type") != "access":
         raise HTTPException(status_code=401, detail="令牌类型错误")

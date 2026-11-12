@@ -21,7 +21,7 @@ class RegisterIn(BaseModel):
     nickname: str = Field(min_length=1, max_length=32)
 
     @model_validator(mode="after")
-    def require_identity(self):
+    def require_identity(self) -> "RegisterIn":
         if not self.email and not self.phone:
             raise ValueError("email 或 phone 必填其一")
         return self

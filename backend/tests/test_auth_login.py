@@ -35,7 +35,7 @@ async def test_logout_revokes(client):
 
 
 async def test_refresh_malformed_401(client):
-    tokens = await register_and_login(client, email="mal@b.com")
+    await register_and_login(client, email="mal@b.com")
     r = await client.post("/auth/refresh", json={"refresh_token": "garbage-string"})
     assert r.status_code == 401
 

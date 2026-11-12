@@ -6,7 +6,7 @@ from app.api.deps import get_current_user
 from app.core.db import get_session
 from app.models.gear import UserGear
 from app.models.user import User
-from app.schemas.gear import GearItemIn, GearItemOut, GearListIn
+from app.schemas.gear import GearItemOut, GearListIn
 from app.services.gear_service import get_catalog
 
 # No router prefix: /gear-list is a top-level per-user resource, so the catalog

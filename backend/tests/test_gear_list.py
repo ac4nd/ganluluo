@@ -1,4 +1,5 @@
 from app.seeds.seed_gear import seed
+
 from .test_auth_login import register_and_login
 
 

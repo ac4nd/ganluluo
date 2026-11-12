@@ -14,6 +14,6 @@ async def test_catalog_after_seed(client, db):
 
 
 async def test_catalog_idempotent_seed(client, db):
-    n1 = await seed(db)
+    await seed(db)
     n2 = await seed(db)
     assert n2 == 0

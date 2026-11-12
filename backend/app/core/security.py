@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 from pwdlib import PasswordHash
@@ -19,7 +19,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 def create_access_token(user_id: int) -> str:
     s = get_settings()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": str(user_id),
         "type": "access",
@@ -32,7 +32,7 @@ def create_access_token(user_id: int) -> str:
 
 def create_refresh_token(user_id: int) -> tuple[str, str, datetime]:
     s = get_settings()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     exp = now + timedelta(days=s.refresh_ttl_days)
     jti = uuid.uuid4().hex
     payload = {"sub": str(user_id), "type": "refresh", "jti": jti, "iat": now, "exp": exp}
