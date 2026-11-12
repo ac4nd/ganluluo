@@ -3,9 +3,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import get_current_user
 from app.core.db import get_session
 from app.core.security import verify_password
 from app.main import limiter
+from app.models.user import User
 from app.schemas.auth import LoginIn, LogoutOut, RefreshIn, RegisterIn, TokenPair, UserOut
 from app.services import auth_service, user_service
 
@@ -57,3 +59,8 @@ async def logout(data: RefreshIn, session: AsyncSession = Depends(get_session)) 
     except (ValueError, jwt.InvalidTokenError, LookupError, PermissionError):
         raise HTTPException(status_code=401, detail="刷新令牌无效") from None
     return LogoutOut(ok=True)
+
+
+@router.get("/me", response_model=UserOut)
+async def me(current: User = Depends(get_current_user)) -> UserOut:
+    return UserOut.model_validate(current)
