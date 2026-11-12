@@ -32,3 +32,20 @@ async def test_logout_revokes(client):
     await client.post("/auth/logout", json={"refresh_token": tokens["refresh_token"]})
     r = await client.post("/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
     assert r.status_code == 401
+
+
+async def test_refresh_malformed_401(client):
+    tokens = await register_and_login(client, email="mal@b.com")
+    r = await client.post("/auth/refresh", json={"refresh_token": "garbage-string"})
+    assert r.status_code == 401
+
+
+async def test_refresh_wrong_type_401(client):
+    tokens = await register_and_login(client, email="wt@b.com")
+    r = await client.post("/auth/refresh", json={"refresh_token": tokens["access_token"]})
+    assert r.status_code == 401
+
+
+async def test_logout_malformed_401(client):
+    r = await client.post("/auth/logout", json={"refresh_token": "garbage-string"})
+    assert r.status_code == 401

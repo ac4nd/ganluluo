@@ -1,12 +1,14 @@
 import uuid
 from datetime import datetime, timezone
 
+import jwt
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token, create_refresh_token, decode_token
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
+from app.schemas.auth import TokenPair
 
 
 async def _insert_refresh(session: AsyncSession, user_id: int, jti: str, exp: datetime) -> None:
@@ -14,11 +16,11 @@ async def _insert_refresh(session: AsyncSession, user_id: int, jti: str, exp: da
     await session.commit()
 
 
-async def issue_pair(session: AsyncSession, user: User) -> dict[str, str]:
+async def issue_pair(session: AsyncSession, user: User) -> TokenPair:
     access = create_access_token(user.id)
     refresh, jti, exp = create_refresh_token(user.id)
     await _insert_refresh(session, user.id, jti, exp)
-    return {"access_token": access, "refresh_token": refresh, "token_type": "bearer"}
+    return TokenPair(access_token=access, refresh_token=refresh)
 
 
 async def _get_by_jti(session: AsyncSession, jti: str) -> RefreshToken | None:
@@ -30,25 +32,35 @@ async def _revoke_all(session: AsyncSession, user_id: int) -> None:
     await session.commit()
 
 
-async def rotate(session: AsyncSession, refresh_token: str) -> dict[str, str]:
-    payload = decode_token(refresh_token)
-    if payload.get("type") != "refresh":
-        raise ValueError("wrong token type")
-    row = await _get_by_jti(session, payload["jti"])
+async def rotate(session: AsyncSession, refresh_token: str) -> TokenPair:
+    try:
+        payload = decode_token(refresh_token)
+        if payload.get("type") != "refresh":
+            raise ValueError("wrong token type")
+        jti = payload["jti"]
+    except (jwt.InvalidTokenError, ValueError, KeyError):
+        raise PermissionError("invalid refresh token") from None
+    row = await _get_by_jti(session, jti)
     if row is None:
         raise LookupError("unknown refresh token")
     if row.revoked:
         await _revoke_all(session, row.user_id)
         raise PermissionError("refresh token reuse detected")
-    await session.execute(update(RefreshToken).where(RefreshToken.jti == payload["jti"]).values(revoked=True))
-    user = (await session.execute(select(User).where(User.id == row.user_id))).scalar_one()
+    await session.execute(update(RefreshToken).where(RefreshToken.jti == jti).values(revoked=True))
+    user = (await session.execute(select(User).where(User.id == row.user_id))).scalar_one_or_none()
+    if user is None or user.deleted_at is not None:
+        raise PermissionError("invalid refresh token")
     await session.commit()
     return await issue_pair(session, user)
 
 
 async def revoke(session: AsyncSession, refresh_token: str) -> None:
-    payload = decode_token(refresh_token)
-    await session.execute(update(RefreshToken).where(RefreshToken.jti == payload["jti"]).values(revoked=True))
+    try:
+        payload = decode_token(refresh_token)
+        jti = payload["jti"]
+    except (jwt.InvalidTokenError, ValueError, KeyError):
+        raise PermissionError("invalid refresh token") from None
+    await session.execute(update(RefreshToken).where(RefreshToken.jti == jti).values(revoked=True))
     await session.commit()
 
 
