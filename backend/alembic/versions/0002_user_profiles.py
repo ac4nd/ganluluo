@@ -5,13 +5,14 @@ down_revision = "0001"
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 
 def upgrade() -> None:
     op.create_table(
         "user_profiles",
         sa.Column("user_id", sa.BigInteger(), sa.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
-        sa.Column("sports", sa.JSON(), nullable=False, server_default=sa.text("'[]'")),
+        sa.Column("sports", sa.JSON().with_variant(postgresql.JSONB(), "postgresql"), nullable=False, server_default=sa.text("'[]'")),
         sa.Column("exp_level", sa.SmallInteger(), nullable=False, server_default=sa.text("1")),
         sa.Column("fitness", sa.SmallInteger(), nullable=False, server_default=sa.text("2")),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),

@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.profile import UserProfile
@@ -12,7 +13,13 @@ async def get_or_create(session: AsyncSession, user_id: int) -> UserProfile:
     if row is None:
         row = UserProfile(user_id=user_id)
         session.add(row)
-        await session.commit()
+        try:
+            await session.commit()
+        except IntegrityError:
+            await session.rollback()
+            row = (await session.execute(
+                select(UserProfile).where(UserProfile.user_id == user_id)
+            )).scalar_one()
     return row
 
 
