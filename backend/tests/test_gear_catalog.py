@@ -7,7 +7,7 @@ async def test_catalog_after_seed(client, db):
     assert r.status_code == 200
     body = r.json()
     keys = {i["key"] for i in body["items"]}
-    assert {"boots", "snowboard", "l-snow"[:0] or "ski"} <= keys or "boots" in keys
+    assert {"boots", "snowboard", "ski"} <= keys
     assert len(body["categories"]) == 8
     boots = next(i for i in body["items"] if i["key"] == "boots")
     assert any(m["brand"] == "Salomon" for m in boots["models"])
