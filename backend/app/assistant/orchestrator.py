@@ -7,14 +7,14 @@ from collections.abc import AsyncIterator
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.agent import knowledge
-from app.agent import session_store as session_service
-from app.agent import tools as tool_registry
-from app.agent.clarify import detect_intent, extract_slots, next_clarification
-from app.agent.clarify_schemas import ClarifyState
-from app.agent.llm import Provider
+from app.assistant import knowledge
+from app.assistant import session_store as session_service
+from app.assistant import tools as tool_registry
+from app.assistant.clarify import detect_intent, extract_slots, next_clarification
+from app.assistant.clarify_schemas import ClarifyState
+from app.assistant.llm import Provider
 from app.domains.sports import profile_service
-from app.models.agent import AgentSession
+from app.models.assistant import AssistantSession
 from app.models.user import User
 
 PERSONA = "你是「甘露罗」户外助手，一位严谨、友善的户外路线顾问。"
@@ -22,7 +22,7 @@ MAX_TOOL_ROUNDS = 3
 RECENT_LIMIT = 20
 
 
-async def run_chat(session: AsyncSession, user: User, sess: AgentSession,
+async def run_chat(session: AsyncSession, user: User, sess: AssistantSession,
                    message: str, provider: Provider) -> AsyncIterator[dict]:
     """编排一轮对话：落库用户消息 → 澄清判定 → 检索 → 组装上下文 → 流式生成。"""
     await session_service.append_message(session, sess, "user", message)

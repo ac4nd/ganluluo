@@ -2,7 +2,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.agent.embedder import Embedder, get_embedder
+from app.assistant.embedder import Embedder, get_embedder
 from app.models.kb import KbChunk, KbDoc
 
 RRF_K = 60

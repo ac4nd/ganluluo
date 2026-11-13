@@ -6,7 +6,7 @@ from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.agent.kb_service import ingest_document
+from app.assistant.kb_service import ingest_document
 from app.core.db import SessionLocal
 
 # GL_KB_CSV 可覆盖 CSV 路径（远程集成容器内为 /app/route_guides.csv）；默认仓库原路径

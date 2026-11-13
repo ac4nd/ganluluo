@@ -1,7 +1,7 @@
 """记忆抽取启发式、存取 roundtrip 与 memory API 归属校验。"""
 from sqlalchemy import select
 
-from app.agent.memory_service import extract_memories, list_memories, save_memories
+from app.assistant.memory_service import extract_memories, list_memories, save_memories
 from app.models.user import User
 
 from .test_auth_login import register_and_login
@@ -49,16 +49,16 @@ async def test_memory_api_list_and_delete_own(client, db):
     uid = await _user_id(db, "m@b.com")
     await save_memories(db, uid, extract_memories(["我喜欢轻装徒步", "我的鞋码是43"]))
 
-    r = await client.get("/agent/memory", headers=h)
+    r = await client.get("/assistant/memory", headers=h)
     assert r.status_code == 200
     items = r.json()
     assert len(items) == 2
     assert set(items[0]) == {"id", "kind", "content", "confidence", "created_at"}
 
     mid = items[0]["id"]
-    r = await client.delete(f"/agent/memory/{mid}", headers=h)
+    r = await client.delete(f"/assistant/memory/{mid}", headers=h)
     assert r.status_code == 200 and r.json() == {"ok": True}
-    assert len((await client.get("/agent/memory", headers=h)).json()) == 1
+    assert len((await client.get("/assistant/memory", headers=h)).json()) == 1
 
 
 async def test_delete_other_users_memory_404(client, db):
@@ -69,7 +69,7 @@ async def test_delete_other_users_memory_404(client, db):
     uid_a = await _user_id(db, "ma@b.com")
     await save_memories(db, uid_a, extract_memories(["我爱骑行"]))
 
-    mid = (await client.get("/agent/memory", headers=ha)).json()[0]["id"]
+    mid = (await client.get("/assistant/memory", headers=ha)).json()[0]["id"]
     # B 删 A 的记忆 → 404，且 A 的记忆仍在
-    assert (await client.delete(f"/agent/memory/{mid}", headers=hb)).status_code == 404
-    assert len((await client.get("/agent/memory", headers=ha)).json()) == 1
+    assert (await client.delete(f"/assistant/memory/{mid}", headers=hb)).status_code == 404
+    assert len((await client.get("/assistant/memory", headers=ha)).json()) == 1

@@ -2,8 +2,8 @@
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.agent.chunker import chunk_text
-from app.agent.embedder import Embedder, get_embedder
+from app.assistant.chunker import chunk_text
+from app.assistant.embedder import Embedder, get_embedder
 from app.models.kb import KbChunk, KbDoc
 
 

@@ -30,13 +30,13 @@
         }
       }
     },
-    "/agent/chat": {
+    "/assistant/chat": {
       "post": {
         "tags": [
-          "agent"
+          "assistant"
         ],
         "summary": "Chat",
-        "operationId": "chat_agent_chat_post",
+        "operationId": "chat_assistant_chat_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -74,13 +74,13 @@
         ]
       }
     },
-    "/agent/sessions": {
+    "/assistant/sessions": {
       "get": {
         "tags": [
-          "agent"
+          "assistant"
         ],
         "summary": "List Sessions",
-        "operationId": "list_sessions_agent_sessions_get",
+        "operationId": "list_sessions_assistant_sessions_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -92,7 +92,7 @@
                     "type": "object"
                   },
                   "type": "array",
-                  "title": "Response List Sessions Agent Sessions Get"
+                  "title": "Response List Sessions Assistant Sessions Get"
                 }
               }
             }
@@ -105,13 +105,13 @@
         ]
       }
     },
-    "/agent/memory": {
+    "/assistant/memory": {
       "get": {
         "tags": [
-          "agent"
+          "assistant"
         ],
         "summary": "List Memory",
-        "operationId": "list_memory_agent_memory_get",
+        "operationId": "list_memory_assistant_memory_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -123,7 +123,7 @@
                     "type": "object"
                   },
                   "type": "array",
-                  "title": "Response List Memory Agent Memory Get"
+                  "title": "Response List Memory Assistant Memory Get"
                 }
               }
             }
@@ -136,13 +136,13 @@
         ]
       }
     },
-    "/agent/memory/{memory_id}": {
+    "/assistant/memory/{memory_id}": {
       "delete": {
         "tags": [
-          "agent"
+          "assistant"
         ],
         "summary": "Delete Memory",
-        "operationId": "delete_memory_agent_memory__memory_id__delete",
+        "operationId": "delete_memory_assistant_memory__memory_id__delete",
         "security": [
           {
             "HTTPBearer": []
@@ -167,7 +167,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Delete Memory Agent Memory  Memory Id  Delete"
+                  "title": "Response Delete Memory Assistant Memory  Memory Id  Delete"
                 }
               }
             }

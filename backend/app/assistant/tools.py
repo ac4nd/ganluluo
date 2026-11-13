@@ -9,7 +9,7 @@ from collections.abc import Awaitable, Callable
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.agent.llm import ToolSpec
+from app.assistant.llm import ToolSpec
 from app.domains.sports import match_service, profile_service, route_service
 from app.models.gear import UserGear
 from app.models.route import Route

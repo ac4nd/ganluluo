@@ -1,6 +1,6 @@
 """地理/轨迹纯函数库：距离、抽稀、爬升、难度与清晰度评分。
 
-全部为无状态纯函数，便于单测与跨模块复用（agent/route/worker 共用）。
+全部为无状态纯函数，便于单测与跨模块复用（assistant/route/worker 共用）。
 """
 import math
 
