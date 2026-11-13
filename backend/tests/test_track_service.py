@@ -34,3 +34,14 @@ async def test_process_track_updates_route(db):
     assert route.distance_km > 0 and route.climb_m >= 90
     assert route.elevation and route.elevation[0]["m"] == 420
     assert len(route.track_points) <= 500
+
+
+async def test_process_track_insufficient_points(db):
+    route = Route(name="x", region="r", sport="hiking", difficulty=1, distance_km=0.0, climb_m=0, clarity="low")
+    db.add(route)
+    await db.commit()
+    try:
+        await process_track(db, route, '<?xml version="1.0"?><gpx version="1.1"><trk><trkseg><trkpt lat="30.12" lon="118.82"/></trkseg></trk></gpx>')
+        assert False, "should raise"
+    except ValueError:
+        pass

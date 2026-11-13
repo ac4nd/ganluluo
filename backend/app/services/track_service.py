@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import gpxpy
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.route import Route
 from app.services.geo import (
@@ -34,7 +35,7 @@ def parse_gpx_points(gpx_text: str) -> list[tuple[float, float, float | None]]:
     return pts
 
 
-async def process_track(session, route: Route, gpx_text: str) -> TrackSummary:
+async def process_track(session: AsyncSession, route: Route, gpx_text: str) -> TrackSummary:
     raw = parse_gpx_points(gpx_text)
     if len(raw) < 2:
         raise ValueError("轨迹点不足")
@@ -49,14 +50,12 @@ async def process_track(session, route: Route, gpx_text: str) -> TrackSummary:
     climb = total_climb_m(eles, threshold_m=10)
     difficulty = difficulty_from_stats(distance_km, climb)
     clarity = clarity_from_stats(len(raw), distance_km)
-    # 简化点对齐高程（最近邻原始点高程），上限 500 点
+    # 简化点对齐高程（最近邻原始点高程），上限 500 点。douglas_peucker 返回的是
+    # 输入点集的真子集，故可用 (lat, lon) -> ele 哈希表 O(1) 查表，替代全量线性扫描。
+    ele_by_coord: dict[tuple[float, float], float | None] = {(la, lo): e for la, lo, e in raw}
+
     def nearest_ele(lat: float, lon: float) -> float | None:
-        best, be = None, None
-        for lat0, lon0, e0 in raw:
-            d = haversine_m(lat0, lon0, lat, lon)
-            if be is None or d < be:
-                best, be = e0, d
-        return best
+        return ele_by_coord.get((lat, lon))
     kept: list[tuple[float, float, float | None]] = []
     if len(simple) <= MAX_TRACK_POINTS:
         kept = [(la, lo, nearest_ele(la, lo)) for la, lo in simple]

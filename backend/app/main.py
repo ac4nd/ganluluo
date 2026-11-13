@@ -20,6 +20,7 @@ from app.api.routes.auth import router as auth_router
 from app.api.routes.gear import router as gear_router
 from app.api.routes.ops import router as ops_router
 from app.api.routes.profile import router as profile_router
+from app.api.routes.routes import router as routes_router
 
 
 def create_app() -> FastAPI:
@@ -30,6 +31,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router, tags=["auth"])
     app.include_router(profile_router, tags=["profile"])
     app.include_router(gear_router)
+    app.include_router(routes_router, tags=["routes"])
     return app
 
 
