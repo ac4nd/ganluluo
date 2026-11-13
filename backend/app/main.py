@@ -23,6 +23,7 @@ from app.domains.auth.router import router as auth_router
 from app.domains.sports.gear_router import router as gear_router
 from app.domains.sports.profile_router import router as profile_router
 from app.domains.sports.route_router import router as routes_router
+from app.domains.sports.trip_router import router as trips_router
 
 
 def create_app() -> FastAPI:
@@ -32,6 +33,7 @@ def create_app() -> FastAPI:
     app.include_router(ops_router, prefix="/ops", tags=["ops"])
     app.include_router(assistant_router, prefix="/assistant", tags=["assistant"])
     app.include_router(memory_router, prefix="/assistant", tags=["assistant"])
+    app.include_router(trips_router, prefix="/trips", tags=["trips"])
     app.include_router(auth_router, tags=["auth"])
     app.include_router(profile_router, tags=["profile"])
     app.include_router(gear_router)
