@@ -24,9 +24,22 @@ async def test_search_routes_returns_cards_with_match(db):
     cards = result["cards"]
     assert cards
     for c in cards:
-        assert set(c) == {"id", "name", "region", "sport", "difficulty", "distance_km", "climb_m", "match"}
+        assert set(c) == {
+            "id",
+            "name",
+            "region",
+            "sport",
+            "difficulty",
+            "distance_km",
+            "climb_m",
+            "duration_h",
+            "clarity",
+            "match",
+        }
         assert isinstance(c["match"], int) and 0 <= c["match"] <= 100
         assert c["difficulty"] <= 3
+        assert c["duration_h"] is None or isinstance(c["duration_h"], float)
+        assert isinstance(c["clarity"], str)
     matches = [c["match"] for c in cards]
     assert matches == sorted(matches, reverse=True)
 
@@ -34,8 +47,13 @@ async def test_search_routes_returns_cards_with_match(db):
 async def test_unknown_tool_raises(db):
     await seed_routes(db)
     user = await _make_user(db)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="未知工具"):
         await tools.execute_tool(db, user, "nope", {})
+
+
+def test_registry_and_handlers_are_in_sync():
+    assert set(tools.TOOL_REGISTRY) == set(tools._HANDLERS)
+    assert set(tools.TOOL_REGISTRY) == {spec.name for spec in tools.TOOL_SPECS}
 
 
 async def test_weather_and_alerts_shape(db):

@@ -4,6 +4,8 @@
 接入真实天气/预警源时替换对应实现，保持 TOOL_SPECS 与返回结构不变。
 """
 
+from collections.abc import Awaitable, Callable
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -47,15 +49,7 @@ TOOL_SPECS: list[ToolSpec] = [
     ),
 ]
 
-
-async def execute_tool(session: AsyncSession, user: User, name: str, arguments: dict) -> dict:
-    if name == "search_routes":
-        return await _search_routes(session, user, arguments)
-    if name == "check_weather":
-        return {"loc": arguments["loc"], "temp_c": [12, 19], "cond": "多云", "rain_prob": 0.2}
-    if name == "check_alerts":
-        return {"loc": arguments["loc"], "alerts": []}
-    raise ValueError("未知工具")
+TOOL_REGISTRY: dict[str, ToolSpec] = {spec.name: spec for spec in TOOL_SPECS}
 
 
 async def _search_routes(session: AsyncSession, user: User, arguments: dict) -> dict:
@@ -86,9 +80,38 @@ async def _search_routes(session: AsyncSession, user: User, arguments: dict) -> 
                     "difficulty": r.difficulty,
                     "distance_km": r.distance_km,
                     "climb_m": r.climb_m,
+                    "duration_h": r.duration_h,
+                    "clarity": r.clarity,
                     "match": match,
                 },
             )
         )
     scored.sort(key=lambda t: t[0], reverse=True)
     return {"cards": [card for _, card in scored]}
+
+
+async def _check_weather(session: AsyncSession, user: User, arguments: dict) -> dict:
+    loc = arguments.get("loc")
+    if not loc:
+        raise ValueError("缺少参数 loc")
+    return {"loc": loc, "temp_c": [12, 19], "cond": "多云", "rain_prob": 0.2}
+
+
+async def _check_alerts(session: AsyncSession, user: User, arguments: dict) -> dict:
+    loc = arguments.get("loc")
+    if not loc:
+        raise ValueError("缺少参数 loc")
+    return {"loc": loc, "alerts": []}
+
+
+_HANDLERS: dict[str, Callable[..., Awaitable[dict]]] = {
+    "search_routes": _search_routes,
+    "check_weather": _check_weather,
+    "check_alerts": _check_alerts,
+}
+
+
+async def execute_tool(session: AsyncSession, user: User, name: str, arguments: dict) -> dict:
+    if name not in TOOL_REGISTRY:
+        raise ValueError("未知工具")
+    return await _HANDLERS[name](session, user, arguments)
