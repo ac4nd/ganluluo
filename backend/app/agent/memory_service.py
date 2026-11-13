@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agent.memory_schemas import MemoryFact, MemoryKind
-from app.models.assistant import UserMemory
+from app.models.agent import UserMemory
 
 # 触发词按序匹配；"我不喜欢" 不含 "我喜欢" 子串，与 preference 无冲突
 _PREFERENCE_TRIGGERS = ("我喜欢", "我爱", "偏好")

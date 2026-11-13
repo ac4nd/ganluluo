@@ -1,4 +1,4 @@
-from app.models.assistant import AssistantMessage, AssistantSession, UserMemory
+from app.models.agent import AgentMessage, AgentSession, UserMemory
 from app.models.base import Base
 from app.models.gear import GearModel, UserGear
 from app.models.kb import KbChunk, KbDoc
@@ -8,8 +8,8 @@ from app.models.route import Route
 from app.models.user import User
 
 __all__ = [
-    "AssistantMessage",
-    "AssistantSession",
+    "AgentMessage",
+    "AgentSession",
     "Base",
     "GearModel",
     "KbChunk",

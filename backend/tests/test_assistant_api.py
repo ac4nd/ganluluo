@@ -11,7 +11,7 @@ from app.agent.router import assistant_provider
 from app.agent.session_store import recent_messages, save_summary
 from app.core.db import get_session
 from app.main import create_app
-from app.models.assistant import AssistantMessage, AssistantSession
+from app.models.agent import AgentMessage, AgentSession
 from app.seeds.seed_routes import seed_routes
 
 from .test_auth_login import register_and_login
@@ -56,7 +56,7 @@ async def test_clarify_flow(chat, db):
     assert clarify and clarify[0]["data"]["slot"] == "sport"
     assert clarify[0]["data"]["question"] == "想做哪类运动？"
     assert events[-1]["type"] == "done"
-    row = await db.get(AssistantSession, events[0]["data"])
+    row = await db.get(AgentSession, events[0]["data"])
     assert row.clarify["round_no"] == 1 and row.clarify["asked"] == ["sport"]
     msgs = await recent_messages(db, row.id)
     assert [m.role for m in msgs] == ["user", "assistant"]
@@ -89,7 +89,7 @@ async def test_clarify_chain_survives_bare_answer(chat, db):
     assert clarify2 and clarify2[0]["data"]["slot"] == "region"
     assert clarify2[0]["data"]["question"] == "想去哪个地区？"
     assert events2[-1]["type"] == "done"
-    row = await db.get(AssistantSession, session_id)
+    row = await db.get(AgentSession, session_id)
     assert row.clarify["round_no"] == 2
     assert row.clarify["intent"] == "plan"
     assert row.clarify["slots"]["sport"] == "hiking"
@@ -150,7 +150,7 @@ async def test_tool_call_flow(chat, db):
     assert events[-1]["type"] == "done"
     assert len(provider.calls) == 2  # 工具执行后二次续流
     tool_rows = (await db.execute(
-        select(AssistantMessage).where(AssistantMessage.role == "tool"))).scalars().all()
+        select(AgentMessage).where(AgentMessage.role == "tool"))).scalars().all()
     assert tool_rows and tool_rows[0].tool_name == "search_routes"
     assert json.loads(tool_rows[0].content)["cards"]
 
@@ -210,8 +210,8 @@ async def test_tool_bad_arguments_fallback(chat, db):
     assert any(e["type"] == "cards" and e["data"] for e in events)
     assert events[-1]["type"] == "done"
     tool_rows = (await db.execute(
-        select(AssistantMessage).where(AssistantMessage.role == "tool")
-        .order_by(AssistantMessage.id))).scalars().all()
+        select(AgentMessage).where(AgentMessage.role == "tool")
+        .order_by(AgentMessage.id))).scalars().all()
     assert len(tool_rows) == 3
     assert "error" in json.loads(tool_rows[1].content)  # 未知工具
     assert "error" in json.loads(tool_rows[2].content)  # check_weather 缺 loc
