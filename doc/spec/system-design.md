@@ -14,7 +14,7 @@
 └──────────┬────────────────────────────────────────────┘
 ┌──────────▼────────────────────────────────────────────┐
 │ 后端（FastAPI 模块化单体，按域拆分 Router）                 │
-│  auth · profile · route · trip · agent · media          │
+│  auth · profile · route · trip · assistant · media      │
 └───┬──────────┬──────────┬──────────┬──────────────────┘
     │          │          │          │
  PostgreSQL   Redis     对象存储    Celery worker
@@ -27,7 +27,7 @@
 
 ## 2. 领域划分与职责（DDD）
 
-后端按业务领域（Domain）组织，每个域是独立的业务单元，拥有自己的路由、服务层、数据模型。域之间通过**服务层函数调用**通信（禁止跨域直查对方表）。AI 助手不是业务域，而是独立于 domains 之外的 **agent 层**（`app/agent/`，基础设施性质的中间层）——它编排 LLM 并调用各域的服务获取数据，不持有业务数据。
+后端按业务领域（Domain）组织，每个域是独立的业务单元，拥有自己的路由、服务层、数据模型。域之间通过**服务层函数调用**通信（禁止跨域直查对方表）。AI 助手不是业务域，而是独立于 domains 之外的 **assistant 层**（`app/assistant/`，AI 层/基础设施性质的中间层）——它编排 LLM 并调用各域的服务获取数据，不持有业务数据。
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -39,8 +39,8 @@
 │              API 网关（JWT · 限流 · 路由聚合）              │
 └──────────────────────┬──────────────────────────────────┘
 ┌──────────────────────▼──────────────────────────────────┐
-│         agent 层（app/agent/，domains 之外）              │
-│  ┌─── AI 助手 agent（中间层，非业务域）───────────────┐   │
+│         assistant 层（app/assistant/，domains 之外）      │
+│  ┌─── AI 助手 assistant（中间层，非业务域）────────────┐   │
 │  │ LLM 编排 · RAG 检索 · 记忆 · 澄清 · 工具调用         │   │
 │  │  └── 调用各域服务获取数据，不持有业务数据             │   │
 │  └──────────────────────────────────────────────────┘   │
@@ -64,23 +64,23 @@
 
 | 层/领域 | 路由前缀 | 职责 | 持有数据 | 禁止事项 |
 |---|---|---|---|---|
-| **agent 层**（`app/agent/`） | `/agent` | LLM 编排（SSE）、RAG 检索（攻略知识库）、记忆系统、澄清引导、工具调用 | agent_sessions, agent_messages, user_memories, kb_docs, kb_chunks | **不持有运动/用户业务数据**——只经各域服务函数获取；非业务域，独立于 `app/domains/` |
+| **assistant 层**（`app/assistant/`） | `/assistant` | LLM 编排（SSE）、RAG 检索（攻略知识库）、记忆系统、澄清引导、工具调用 | assistant_sessions, assistant_messages, user_memories, kb_docs, kb_chunks | **不持有运动/用户业务数据**——只经各域服务函数获取；非业务域，独立于 `app/domains/` |
 | **auth** | `/auth` | 注册、登录（密码/Apple/微信/华为）、JWT 签发与刷新、注销 | users, refresh_tokens | 不读业务表 |
 | **sports** | `/profile` `/gear` `/routes` | 运动画像、装备目录与清单、路线库检索、轨迹处理、匹配评分 | user_profiles, gear_models, user_gear, routes | 不调用 LLM |
 | **admin**（预留） | `/admin` | 用户管理、权限管理、额度管理（quota tier 分配/调整） | quota_tiers, llm_usage, sub_tokens | 不做 LLM 编排 |
 | `/ops` | `/ops` | 健康检查、指标 | — | 不对外暴露 |
 
-**跨域规则**：agent 层的 `tools.py` 调用 `sports` 域的服务函数获取路线/画像/装备数据——这是唯一的跨域调用点；admin 域独立。
+**跨域规则**：assistant 层的 `tools.py` 调用 `sports` 域的服务函数获取路线/画像/装备数据——这是唯一的跨域调用点；admin 域独立。
 
 ## 3. 关键时序
 
-**AI 对话规划（SSE 流式）**：客户端 `POST /agent/chat`（SSE）→ 网关校验 → agent 层组装上下文（画像 + 装备摘要 + 最近会话，Redis）→ LLM Provider 流式转发（逐 token SSE）→ 模型触发工具调用（`search_routes` / `check_weather` / `check_alerts`，白名单注册）→ 工具结果回灌 → 生成路线缩略卡结构段 → 会话与消息落库。首 token 目标 < 1.5s。
+**AI 对话规划（SSE 流式）**：客户端 `POST /assistant/chat`（SSE）→ 网关校验 → assistant 组装上下文（画像 + 装备摘要 + 最近会话，Redis）→ LLM Provider 流式转发（逐 token SSE）→ 模型触发工具调用（`search_routes` / `check_weather` / `check_alerts`，白名单注册）→ 工具结果回灌 → 生成路线缩略卡结构段 → 会话与消息落库。首 token 目标 < 1.5s。
 
-**RAG 检索与澄清引导**（agent 层多轮）：用户消息 → 意图判定（plan/info/chat）→ plan 意图进入澄清状态机：缺槽（运动/地区/日期/时长/强度/同行者）时一次追问一项（SSE 事件 `clarify`，附选项），填齐或用户跳过后槽位转结构化过滤 + 查询改写 → 混合检索（pgvector 余弦 + FTS，RRF 融合 top8）→ bge-reranker 重排 top4 → 上下文注入（人设 + 画像摘要 + 长期记忆 topK + rolling summary + 检索块）→ 流式生成（SSE 事件 `token`，路线卡片结构段 `cards`，引用标注 `sources`）→ 会话结束触发异步记忆抽取 worker。
+**RAG 检索与澄清引导**（assistant 多轮）：用户消息 → 意图判定（plan/info/chat）→ plan 意图进入澄清状态机：缺槽（运动/地区/日期/时长/强度/同行者）时一次追问一项（SSE 事件 `clarify`，附选项），填齐或用户跳过后槽位转结构化过滤 + 查询改写 → 混合检索（pgvector 余弦 + FTS，RRF 融合 top8）→ bge-reranker 重排 top4 → 上下文注入（人设 + 画像摘要 + 长期记忆 topK + rolling summary + 检索块）→ 流式生成（SSE 事件 `token`，路线卡片结构段 `cards`，引用标注 `sources`）→ 会话结束触发异步记忆抽取 worker。
 
 **轨迹处理管线**（Celery）：客户端预签名直传 GPX → `POST /tracks` 登记 → worker `process_track(track_id)`：GPX 解析 → Douglas-Peucker 抽稀（ε=8m）→ 高程采样（DEM 30m 格点）→ 累计爬升（阈值 10m 去抖）→ 清晰度评分（点密度 + 重复率）→ 难度评分（爬升率/里程/路面标签加权）→ 写入 `routes` 并生成检索向量。
 
-**路线匹配评分**（agent 层与 route 共用 services 函数，输出 0–100）：
+**路线匹配评分**（assistant 与 route 共用 services 函数，输出 0–100）：
 
 ```
 match = 40*fitness + 25*gear + 20*pref + 15*env
@@ -101,7 +101,7 @@ env     = 1.0 无预警；0.7 有预警；恶劣天气再 -0.3
 **各端仓库结构**（单仓库后端 + 四端各自仓库）：
 
 ```
-backend/            app/(agent|domains|api|models|schemas|core|seeds)  tests/
+backend/            app/(assistant|domains|api|models|schemas|core|seeds)  tests/
 ios/GanLuLuo/       App/ Features/(Login|Home|Plan|Detail|Profile) Core/(DesignSystem|Network|Services)
 android/            app/ core/(designsystem|network|model) feature/(home|plan|detail|profile)
 harmony/            entry/src/main/ets/(pages|components|viewmodel) commons/
@@ -113,7 +113,7 @@ design/             tokens.json(单一来源) → CI 生成四端主题
 
 ### 5.1 ER 概览
 
-`users 1—1 user_profiles`；`users 1—N user_gear N—1 gear_models`；`users 1—N trip_plans 1—N trip_items N—1 routes`；`routes 1—N route_tracks`；`users 1—N agent_sessions 1—N agent_messages`；`routes N—1 spots`（起点/途经地标）。
+`users 1—1 user_profiles`；`users 1—N user_gear N—1 gear_models`；`users 1—N trip_plans 1—N trip_items N—1 routes`；`routes 1—N route_tracks`；`users 1—N assistant_sessions 1—N assistant_messages`；`routes N—1 spots`（起点/途经地标）。
 
 ### 5.2 SQL DDL（核心表，PostGIS）
 
@@ -203,15 +203,15 @@ CREATE TABLE trip_plans (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE agent_sessions (
+CREATE TABLE assistant_sessions (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title      VARCHAR(64),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE TABLE agent_messages (
+CREATE TABLE assistant_messages (
   id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  session_id UUID NOT NULL REFERENCES agent_sessions(id) ON DELETE CASCADE,
+  session_id UUID NOT NULL REFERENCES assistant_sessions(id) ON DELETE CASCADE,
   role       TEXT NOT NULL CHECK (role IN ('user','assistant','tool')),
   content    TEXT NOT NULL,
   tool_name  TEXT,
@@ -265,7 +265,7 @@ class RouteCard(BaseModel):           # 列表/缩略卡
     climb_m: int
     duration_h: float
     clarity: str
-    match: int | None = None          # 0-100，agent 场景回填
+    match: int | None = None          # 0-100，assistant 场景回填
 
 class RouteDetail(RouteCard):
     elevation: list[dict]             # [{km: float, m: int}]
@@ -353,7 +353,7 @@ class RetrievedChunk(BaseModel):
     sport: str | None = None
 ```
 
-SSE 事件类型：`token`（正文流）、`clarify`（引导问题 + 选项）、`cards`（路线缩略卡）、`sources`（引用文档列表）、`plan`（结构化计划）。API 增量：`GET /agent/memory`、`DELETE /agent/memory/{id}`（用户可见可删）；`POST /kb/documents`、`GET /kb/docs`（admin，摄取状态）。
+SSE 事件类型：`token`（正文流）、`clarify`（引导问题 + 选项）、`cards`（路线缩略卡）、`sources`（引用文档列表）、`plan`（结构化计划）。API 增量：`GET /assistant/memory`、`DELETE /assistant/memory/{id}`（用户可见可删）；`POST /kb/documents`、`GET /kb/docs`（admin，摄取状态）。
 
 ### 5.4 Redis 键设计
 
