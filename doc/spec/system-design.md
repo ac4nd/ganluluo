@@ -27,7 +27,7 @@
 
 ## 2. 领域划分与职责（DDD）
 
-后端按业务领域（Domain）组织，每个域是独立的业务单元，拥有自己的路由、服务层、数据模型。域之间通过**服务层函数调用**通信（禁止跨域直查对方表）。AI 助手域是**中间层**——它编排 LLM 并调用其他域的服务获取数据，不持有业务数据。
+后端按业务领域（Domain）组织，每个域是独立的业务单元，拥有自己的路由、服务层、数据模型。域之间通过**服务层函数调用**通信（禁止跨域直查对方表）。AI 助手不是业务域，而是独立于 domains 之外的 **agent 层**（`app/agent/`，基础设施性质的中间层）——它编排 LLM 并调用各域的服务获取数据，不持有业务数据。
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -39,6 +39,12 @@
 │              API 网关（JWT · 限流 · 路由聚合）              │
 └──────────────────────┬──────────────────────────────────┘
 ┌──────────────────────▼──────────────────────────────────┐
+│         agent 层（app/agent/，domains 之外）              │
+│  ┌─── AI 助手 agent（中间层，非业务域）───────────────┐   │
+│  │ LLM 编排 · RAG 检索 · 记忆 · 澄清 · 工具调用         │   │
+│  │  └── 调用各域服务获取数据，不持有业务数据             │   │
+│  └──────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────┤
 │                    领域层（Domain）                       │
 │                                                         │
 │  ┌─── 认证域 auth ──────────────────────────────────┐   │
@@ -46,10 +52,6 @@
 │  └──────────────────────────────────────────────────┘   │
 │  ┌─── 户外运动域 sports ────────────────────────────┐   │
 │  │ 运动画像 · 装备目录与清单 · 路线/轨迹 · 匹配评分      │   │
-│  └──────────────────────────────────────────────────┘   │
-│  ┌─── AI 助手域 assistant（中间层）──────────────────┐   │
-│  │ LLM 编排 · RAG 检索 · 记忆 · 澄清 · 工具调用         │   │
-│  │  └── 调用 sports 域服务获取数据，不持有业务数据       │   │
 │  └──────────────────────────────────────────────────┘   │
 │  ┌─── 系统管理域 admin（预留）───────────────────────┐   │
 │  │ 用户管理 · 权限管理 · 额度管理                        │   │
@@ -60,15 +62,15 @@
 └─────────────────────────────────────────────────────────┘
 ```
 
-| 领域 | 路由前缀 | 职责 | 持有数据 | 禁止事项 |
+| 层/领域 | 路由前缀 | 职责 | 持有数据 | 禁止事项 |
 |---|---|---|---|---|
+| **agent 层**（`app/agent/`） | `/assistant` | LLM 编排（SSE）、RAG 检索（攻略知识库）、记忆系统、澄清引导、工具调用 | assistant_sessions, assistant_messages, user_memories, kb_docs, kb_chunks | **不持有运动/用户业务数据**——只经各域服务函数获取；非业务域，独立于 `app/domains/` |
 | **auth** | `/auth` | 注册、登录（密码/Apple/微信/华为）、JWT 签发与刷新、注销 | users, refresh_tokens | 不读业务表 |
 | **sports** | `/profile` `/gear` `/routes` | 运动画像、装备目录与清单、路线库检索、轨迹处理、匹配评分 | user_profiles, gear_models, user_gear, routes | 不调用 LLM |
-| **assistant** | `/assistant` | LLM 编排（SSE）、RAG 检索（攻略知识库）、记忆系统、澄清引导、工具调用 | assistant_sessions, assistant_messages, user_memories, kb_docs, kb_chunks | **不持有运动/用户业务数据**——只经 sports 域服务函数获取 |
 | **admin**（预留） | `/admin` | 用户管理、权限管理、额度管理（quota tier 分配/调整） | quota_tiers, llm_usage, sub_tokens | 不做 LLM 编排 |
 | `/ops` | `/ops` | 健康检查、指标 | — | 不对外暴露 |
 
-**跨域规则**：assistant 域的 `tools.py` 调用 `sports.domain` 的服务函数获取路线/画像/装备数据——这是唯一的跨域调用点；admin 域独立。
+**跨域规则**：agent 层的 `tools.py` 调用 `sports` 域的服务函数获取路线/画像/装备数据——这是唯一的跨域调用点；admin 域独立。
 
 ## 3. 关键时序
 
@@ -99,7 +101,7 @@ env     = 1.0 无预警；0.7 有预警；恶劣天气再 -0.3
 **各端仓库结构**（单仓库后端 + 四端各自仓库）：
 
 ```
-backend/            app/(api|services|models|schemas|workers|core)  tests/
+backend/            app/(agent|domains|api|models|schemas|core|seeds)  tests/
 ios/GanLuLuo/       App/ Features/(Login|Home|Plan|Detail|Profile) Core/(DesignSystem|Network|Services)
 android/            app/ core/(designsystem|network|model) feature/(home|plan|detail|profile)
 harmony/            entry/src/main/ets/(pages|components|viewmodel) commons/
