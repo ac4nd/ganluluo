@@ -4,8 +4,9 @@ revision = "0005"
 down_revision = "0004"
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 # 与模型 assistant.py 的 JsonVariant 保持一致：PG 上建 JSONB
 JsonVariant = sa.JSON().with_variant(postgresql.JSONB(), "postgresql")
