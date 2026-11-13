@@ -1,10 +1,10 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agent import tools
 from app.models.gear import UserGear
 from app.models.user import User
 from app.seeds.seed_routes import seed_routes
-from app.domains.assistant import tools
 
 
 async def _make_user(db: AsyncSession, gear: list[str] | None = None) -> User:

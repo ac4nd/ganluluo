@@ -1,6 +1,6 @@
-from app.domains.assistant.chunker import chunk_text
-from app.domains.assistant.embedder import FakeEmbedder
-from app.domains.assistant.kb_service import ingest_document
+from app.agent.chunker import chunk_text
+from app.agent.embedder import FakeEmbedder
+from app.agent.kb_service import ingest_document
 
 
 def test_chunker_respects_size_and_overlap():

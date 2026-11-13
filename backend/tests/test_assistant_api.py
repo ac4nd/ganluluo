@@ -5,14 +5,14 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 
-from app.domains.assistant.router import assistant_provider
+from app.agent.kb_service import ingest_document
+from app.agent.llm import Delta, FakeProvider
+from app.agent.router import assistant_provider
+from app.agent.session_store import recent_messages, save_summary
 from app.core.db import get_session
 from app.main import create_app
 from app.models.assistant import AssistantMessage, AssistantSession
 from app.seeds.seed_routes import seed_routes
-from app.domains.assistant.kb_service import ingest_document
-from app.domains.assistant.llm import Delta, FakeProvider
-from app.domains.assistant.session_store import recent_messages, save_summary
 
 from .test_auth_login import register_and_login
 

@@ -1,8 +1,8 @@
 """记忆抽取启发式、存取 roundtrip 与 memory API 归属校验。"""
 from sqlalchemy import select
 
+from app.agent.memory_service import extract_memories, list_memories, save_memories
 from app.models.user import User
-from app.domains.assistant.memory_service import extract_memories, list_memories, save_memories
 
 from .test_auth_login import register_and_login
 

@@ -2,8 +2,8 @@ import textwrap
 
 import pytest
 
-from app.models.route import Route
 from app.domains.sports.track_service import parse_gpx_points, process_track
+from app.models.route import Route
 
 GPX = textwrap.dedent("""\
     <?xml version="1.0" encoding="UTF-8"?>

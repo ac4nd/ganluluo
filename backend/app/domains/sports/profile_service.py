@@ -2,8 +2,8 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.profile import UserProfile
 from app.domains.sports.schemas import ProfileIn
+from app.models.profile import UserProfile
 
 
 async def get_or_create(session: AsyncSession, user_id: int) -> UserProfile:

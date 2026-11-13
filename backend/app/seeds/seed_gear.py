@@ -4,8 +4,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import SessionLocal
-from app.models.gear import GearModel
 from app.domains.sports.gear_catalog import MODELS
+from app.models.gear import GearModel
 
 
 async def seed(session: AsyncSession) -> int:

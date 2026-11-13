@@ -3,7 +3,6 @@ from dataclasses import dataclass
 import gpxpy
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.route import Route
 from app.domains.sports.geo import (
     clarity_from_stats,
     difficulty_from_stats,
@@ -12,6 +11,7 @@ from app.domains.sports.geo import (
     points_to_elevation_profile,
     total_climb_m,
 )
+from app.models.route import Route
 
 MAX_TRACK_POINTS = 500
 

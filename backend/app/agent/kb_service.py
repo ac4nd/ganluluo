@@ -2,9 +2,9 @@
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agent.chunker import chunk_text
+from app.agent.embedder import Embedder, get_embedder
 from app.models.kb import KbChunk, KbDoc
-from app.domains.assistant.chunker import chunk_text
-from app.domains.assistant.embedder import Embedder, get_embedder
 
 
 async def ingest_document(session: AsyncSession, source_name: str, text: str,
