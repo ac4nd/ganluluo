@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     jwt_alg: str = "HS256"
     access_ttl_min: int = 15
     refresh_ttl_days: int = 7
+    llm_base_url: str = ""
+    llm_api_key: str = ""
+    llm_model: str = ""
 
 
 @lru_cache
