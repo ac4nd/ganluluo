@@ -63,6 +63,39 @@ async def test_clarify_flow(chat, db):
     assert msgs[-1].content == "想做哪类运动？"
 
 
+async def test_clarify_chain_survives_bare_answer(chat, db):
+    """澄清进行中同会话裸回答「徒步」→ 不终止追问链：补 sport 槽后继续 clarify region。"""
+    app, client = chat
+    provider = FakeProvider(turns=[[Delta(type="done")]])
+    app.dependency_overrides[assistant_provider] = lambda: provider
+    tokens = await register_and_login(client, email="bc@b.com")
+    token = tokens["access_token"]
+    r1 = await post_chat(client, token, "想去个地方走走")
+    assert r1.status_code == 200
+    events1 = parse_events(r1.text)
+    assert events1[0]["type"] == "session"
+    clarify1 = [e for e in events1 if e["type"] == "clarify"]
+    assert clarify1 and clarify1[0]["data"]["slot"] == "sport"
+
+    session_id = events1[0]["data"]
+    r2 = await post_chat(client, token, "徒步", session_id=session_id)
+    assert r2.status_code == 200
+    events2 = parse_events(r2.text)
+    # 裸回答只补槽位，追问链继续（region），不进入答题分支（无 token、provider 未被调用）
+    assert not any(e["type"] == "session" for e in events2)
+    assert not any(e["type"] == "token" for e in events2)
+    assert not provider.calls
+    clarify2 = [e for e in events2 if e["type"] == "clarify"]
+    assert clarify2 and clarify2[0]["data"]["slot"] == "region"
+    assert clarify2[0]["data"]["question"] == "想去哪个地区？"
+    assert events2[-1]["type"] == "done"
+    row = await db.get(AssistantSession, session_id)
+    assert row.clarify["round_no"] == 2
+    assert row.clarify["intent"] == "plan"
+    assert row.clarify["slots"]["sport"] == "hiking"
+    assert row.clarify["asked"] == ["sport", "region"]
+
+
 async def test_direct_answer_flow(chat, db):
     """② 槽位齐全的明确消息 → sources + token 流 + done，assistant 正文落库。"""
     app, client = chat

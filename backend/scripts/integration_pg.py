@@ -1,6 +1,6 @@
 """远程 PG 集成验证：docker SDK → 上传后端源码 → 迁移 + 种子 + 冒烟检查。
 
-流程（对 tcp://47.107.160.31:2375 上的 docker daemon 执行，本机不直连 PG）：
+流程（对 GL_DOCKER_HOST 指定的远程 docker daemon 执行，本机不直连 PG）：
 1. 打包 backend/ 源码（app/ alembic/ scripts/ tests/ pyproject.toml alembic.ini
    + protype/route_guides.csv → /app/route_guides.csv）tar 上传（put_archive）；
 2. 确保 ganluluo-net 网络存在并接入 ganluluo-pg；
@@ -24,8 +24,8 @@ for _k in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy"
 from docker import DockerClient
 from docker.errors import APIError, NotFound
 
-DOCKER_HOST = "tcp://47.107.160.31:2375"
-PG_URL = "postgresql+asyncpg://postgres:123456@ganluluo-pg:5432/ganluluo"
+DOCKER_HOST = os.environ.get("GL_DOCKER_HOST")
+PG_URL = os.environ.get("GL_PG_URL", "")
 NETWORK = "ganluluo-net"
 PG_CONTAINER = "ganluluo-pg"
 INTEGRATION = "ganluluo-integration"
@@ -122,6 +122,8 @@ def check_host_disk(client: DockerClient) -> None:
 
 
 def main() -> int:
+    if not DOCKER_HOST or not PG_URL:
+        raise SystemExit("需要 GL_DOCKER_HOST 与 GL_PG_URL 环境变量（见 .env.example）")
     client = DockerClient(base_url=DOCKER_HOST)
     print(f"[0] docker ping: {client.ping()} ({DOCKER_HOST})")
     check_host_disk(client)

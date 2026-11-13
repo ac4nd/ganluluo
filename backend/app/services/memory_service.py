@@ -57,3 +57,14 @@ async def list_memories(session: AsyncSession, user_id: int) -> list[UserMemory]
             .where(UserMemory.user_id == user_id)
             .order_by(UserMemory.created_at.desc(), UserMemory.id.desc()))
     return list((await session.execute(stmt)).scalars().all())
+
+
+async def delete_memory(session: AsyncSession, user_id: int, memory_id: int) -> bool:
+    """删除本人记忆；不存在或非本人返回 False，删除成功返回 True。"""
+    stmt = select(UserMemory).where(UserMemory.id == memory_id, UserMemory.user_id == user_id)
+    row = (await session.execute(stmt)).scalar_one_or_none()
+    if row is None:
+        return False
+    await session.delete(row)
+    await session.commit()
+    return True

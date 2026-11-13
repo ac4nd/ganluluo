@@ -27,6 +27,10 @@ async def run_chat(session: AsyncSession, user: User, sess: AssistantSession,
 
     state = ClarifyState(**sess.clarify) if sess.clarify else ClarifyState()
     intent = detect_intent(message)
+    # 澄清链路进行中（上轮已追问且仍是 plan）时，裸回答（如「徒步」）判为 chat
+    # 不应打断追问链：保留 plan 意图继续收槽
+    if state.round_no > 0 and state.intent == "plan" and intent == "chat":
+        intent = "plan"
     state = extract_slots(message, state).model_copy(update={"intent": intent})
 
     clarification = next_clarification(state)
@@ -40,11 +44,17 @@ async def run_chat(session: AsyncSession, user: User, sess: AssistantSession,
         yield {"type": "done"}
         return
 
-    # 无需澄清：plan 意图保留槽位状态（跨轮累积），其余意图清空
-    await session_service.set_clarify(session, sess.id,
-                                      state.model_dump() if intent == "plan" else None)
+    # 无需澄清：plan 意图且已收集槽位时保留状态（清掉 skip 瞬态键）供后续轮消费，
+    # 其余情况清空
+    if intent == "plan" and state.slots:
+        state = state.model_copy(
+            update={"slots": {k: v for k, v in state.slots.items() if k != "skip"}})
+        await session_service.set_clarify(session, sess.id, state.model_dump())
+    else:
+        await session_service.set_clarify(session, sess.id, None)
 
-    sources = await knowledge_service.search(session, message)
+    sources = await knowledge_service.search(session, message,
+                                             sport=state.slots.get("sport") or None)
     if sources:
         yield {"type": "sources",
                "data": [{"source_name": s["source_name"], "chunk_no": s["chunk_no"]}
@@ -55,6 +65,9 @@ async def run_chat(session: AsyncSession, user: User, sess: AssistantSession,
              f"用户画像：运动偏好 {'/'.join(profile.sports) or '未知'}；体能等级 {profile.fitness}。"]
     if sess.summary:
         parts.append(f"会话摘要：{sess.summary}")
+    known = {k: v for k, v in state.slots.items() if k != "skip"}
+    if known:
+        parts.append(f"用户已知偏好: {', '.join(f'{k}={v}' for k, v in known.items())}")
     system = "\n".join(parts)
     messages: list[dict] = [{"role": "system", "content": system}]
     if sources:

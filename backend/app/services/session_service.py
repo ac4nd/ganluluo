@@ -13,6 +13,22 @@ async def create_session(session: AsyncSession, user_id: int, title: str = "") -
     return sess
 
 
+async def own_session(session: AsyncSession, user_id: int,
+                      session_id: str) -> AssistantSession | None:
+    """按 id 查本人会话；不存在或非本人返回 None。"""
+    stmt = select(AssistantSession).where(
+        AssistantSession.id == session_id, AssistantSession.user_id == user_id)
+    return (await session.execute(stmt)).scalar_one_or_none()
+
+
+async def list_sessions(session: AsyncSession, user_id: int) -> list[AssistantSession]:
+    """用户的会话列表，按创建时间倒序（新会话在前）。"""
+    stmt = (select(AssistantSession)
+            .where(AssistantSession.user_id == user_id)
+            .order_by(AssistantSession.created_at.desc(), AssistantSession.id.desc()))
+    return list((await session.execute(stmt)).scalars().all())
+
+
 async def append_message(session: AsyncSession, sess: AssistantSession, role: str,
                          content: str, tool_name: str | None = None) -> AssistantMessage:
     msg = AssistantMessage(session_id=sess.id, role=role, content=content, tool_name=tool_name)
