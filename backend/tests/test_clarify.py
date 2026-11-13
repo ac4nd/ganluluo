@@ -48,3 +48,10 @@ def test_next_clarification_skip_returns_none():
 
 def test_next_clarification_info_intent_returns_none():
     assert next_clarification(ClarifyState(intent="info")) is None
+
+
+def test_extract_slots_recommend_skips():
+    state = ClarifyState(intent="plan")
+    new = extract_slots("推荐一条路线", state)
+    assert new.slots.get("skip") == "1"
+    assert next_clarification(new) is None

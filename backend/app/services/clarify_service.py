@@ -27,7 +27,7 @@ REGION_KEYWORDS = (
 
 DATE_RE = re.compile(r"周六|周日|周末|周[一二三四五]?|明天|后天|\d{1,2}月\d{1,2}[日号]")
 LENGTH_RE = re.compile(r"(\d{1,3})\s*(?:km|公里|千米)")
-SKIP_KEYWORDS = ("随便", "都行", "无所谓", "推荐就好", "你定")
+SKIP_KEYWORDS = ("随便", "都行", "无所谓", "推荐", "推荐就好", "你定")
 
 # 追问顺序：sport > region > date
 SLOT_PRIORITY = ("sport", "region", "date")
