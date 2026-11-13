@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from gpxpy.gpx import GPXException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
@@ -42,7 +43,7 @@ async def upload_track(route_id: int, request: Request,
     body = (await request.body()).decode("utf-8", errors="replace")
     try:
         summary = await track_service.process_track(session, route, body)
-    except ValueError as e:
+    except (ValueError, GPXException) as e:
         raise HTTPException(status_code=422, detail=str(e)) from None
     return TrackSummaryOut(points=summary.points, distance_km=summary.distance_km,
                            climb_m=summary.climb_m, difficulty=summary.difficulty,

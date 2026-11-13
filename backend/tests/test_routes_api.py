@@ -36,3 +36,30 @@ async def test_track_upload_updates_route(client, db):
 async def test_track_upload_404(client, db):
     r = await client.post("/routes/999/track", content=b"<gpx/>", headers={"Content-Type": "text/plain"})
     assert r.status_code == 404
+
+
+async def test_create_requires_auth(client, db):
+    r = await client.post("/routes", json={"name": "n", "region": "r", "sport": "hiking",
+                                           "difficulty": 2, "distance_km": 5.0, "climb_m": 100})
+    assert r.status_code == 401
+
+
+async def test_create_ok_and_detail(client, db):
+    from .test_auth_login import register_and_login
+    tokens = await register_and_login(client, email="cr@b.com")
+    h = {"Authorization": f"Bearer {tokens['access_token']}"}
+    body = {"name": "新测试线", "region": "测试区域", "sport": "hiking",
+            "difficulty": 2, "distance_km": 5.0, "climb_m": 100,
+            "start_lat": 30.0, "start_lon": 119.0}
+    r = await client.post("/routes", json=body, headers=h)
+    assert r.status_code == 201
+    rid = r.json()["id"]
+    r = await client.get(f"/routes/{rid}")
+    assert r.status_code == 200 and r.json()["name"] == "新测试线"
+    assert r.json()["elevation"] == [] and r.json()["warning"] is None
+
+
+async def test_track_malformed_body_422(client, db):
+    await seed_routes(db)
+    r = await client.post("/routes/1/track", content=b"", headers={"Content-Type": "text/plain"})
+    assert r.status_code == 422

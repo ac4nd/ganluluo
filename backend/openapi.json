@@ -397,6 +397,239 @@
           }
         ]
       }
+    },
+    "/routes": {
+      "get": {
+        "tags": [
+          "routes",
+          "routes"
+        ],
+        "summary": "List Routes",
+        "operationId": "list_routes_routes_get",
+        "parameters": [
+          {
+            "name": "sport",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sport"
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region"
+            }
+          },
+          {
+            "name": "difficulty_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Difficulty Max"
+            }
+          },
+          {
+            "name": "clarity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Clarity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RouteOut"
+                  },
+                  "title": "Response List Routes Routes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "routes",
+          "routes"
+        ],
+        "summary": "Create Route",
+        "operationId": "create_route_routes_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/routes/{route_id}": {
+      "get": {
+        "tags": [
+          "routes",
+          "routes"
+        ],
+        "summary": "Get Route",
+        "operationId": "get_route_routes__route_id__get",
+        "parameters": [
+          {
+            "name": "route_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Route Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/routes/{route_id}/track": {
+      "post": {
+        "tags": [
+          "routes",
+          "routes"
+        ],
+        "summary": "Upload Track",
+        "operationId": "upload_track_routes__route_id__track_post",
+        "parameters": [
+          {
+            "name": "route_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Route Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackSummaryOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -669,6 +902,262 @@
         ],
         "title": "RegisterIn"
       },
+      "RouteDetailOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "sport": {
+            "$ref": "#/components/schemas/Sport"
+          },
+          "difficulty": {
+            "type": "integer",
+            "title": "Difficulty"
+          },
+          "distance_km": {
+            "type": "number",
+            "title": "Distance Km"
+          },
+          "climb_m": {
+            "type": "integer",
+            "title": "Climb M"
+          },
+          "duration_h": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration H"
+          },
+          "clarity": {
+            "type": "string",
+            "title": "Clarity"
+          },
+          "elevation": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Elevation"
+          },
+          "pace": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Pace"
+          },
+          "terrain": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Terrain"
+          },
+          "required_gear": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Required Gear"
+          },
+          "warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warning"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "region",
+          "sport",
+          "difficulty",
+          "distance_km",
+          "climb_m",
+          "duration_h",
+          "clarity",
+          "elevation",
+          "pace",
+          "terrain",
+          "required_gear",
+          "warning"
+        ],
+        "title": "RouteDetailOut"
+      },
+      "RouteIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Region"
+          },
+          "sport": {
+            "$ref": "#/components/schemas/Sport"
+          },
+          "difficulty": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Difficulty"
+          },
+          "distance_km": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Distance Km"
+          },
+          "climb_m": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Climb M"
+          },
+          "duration_h": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration H"
+          },
+          "clarity": {
+            "type": "string",
+            "title": "Clarity",
+            "default": "mid"
+          },
+          "start_lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Lat"
+          },
+          "start_lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Lon"
+          },
+          "required_gear": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Required Gear",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "region",
+          "sport",
+          "difficulty",
+          "distance_km",
+          "climb_m"
+        ],
+        "title": "RouteIn"
+      },
+      "RouteOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "sport": {
+            "$ref": "#/components/schemas/Sport"
+          },
+          "difficulty": {
+            "type": "integer",
+            "title": "Difficulty"
+          },
+          "distance_km": {
+            "type": "number",
+            "title": "Distance Km"
+          },
+          "climb_m": {
+            "type": "integer",
+            "title": "Climb M"
+          },
+          "duration_h": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration H"
+          },
+          "clarity": {
+            "type": "string",
+            "title": "Clarity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "region",
+          "sport",
+          "difficulty",
+          "distance_km",
+          "climb_m",
+          "duration_h",
+          "clarity"
+        ],
+        "title": "RouteOut"
+      },
       "Sport": {
         "type": "string",
         "enum": [
@@ -705,6 +1194,39 @@
           "refresh_token"
         ],
         "title": "TokenPair"
+      },
+      "TrackSummaryOut": {
+        "properties": {
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "distance_km": {
+            "type": "number",
+            "title": "Distance Km"
+          },
+          "climb_m": {
+            "type": "integer",
+            "title": "Climb M"
+          },
+          "difficulty": {
+            "type": "integer",
+            "title": "Difficulty"
+          },
+          "clarity": {
+            "type": "string",
+            "title": "Clarity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "points",
+          "distance_km",
+          "climb_m",
+          "difficulty",
+          "clarity"
+        ],
+        "title": "TrackSummaryOut"
       },
       "UserOut": {
         "properties": {

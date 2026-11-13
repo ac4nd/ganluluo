@@ -1,5 +1,7 @@
 import textwrap
 
+import pytest
+
 from app.models.route import Route
 from app.services.track_service import parse_gpx_points, process_track
 
@@ -40,8 +42,5 @@ async def test_process_track_insufficient_points(db):
     route = Route(name="x", region="r", sport="hiking", difficulty=1, distance_km=0.0, climb_m=0, clarity="low")
     db.add(route)
     await db.commit()
-    try:
+    with pytest.raises(ValueError):
         await process_track(db, route, '<?xml version="1.0"?><gpx version="1.1"><trk><trkseg><trkpt lat="30.12" lon="118.82"/></trkseg></trk></gpx>')
-        assert False, "should raise"
-    except ValueError:
-        pass
