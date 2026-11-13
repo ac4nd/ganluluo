@@ -64,7 +64,7 @@
 
 | 层/领域 | 路由前缀 | 职责 | 持有数据 | 禁止事项 |
 |---|---|---|---|---|
-| **agent 层**（`app/agent/`） | `/assistant` | LLM 编排（SSE）、RAG 检索（攻略知识库）、记忆系统、澄清引导、工具调用 | assistant_sessions, assistant_messages, user_memories, kb_docs, kb_chunks | **不持有运动/用户业务数据**——只经各域服务函数获取；非业务域，独立于 `app/domains/` |
+| **agent 层**（`app/agent/`） | `/assistant` | LLM 编排（SSE）、RAG 检索（攻略知识库）、记忆系统、澄清引导、工具调用 | agent_sessions, agent_messages, user_memories, kb_docs, kb_chunks | **不持有运动/用户业务数据**——只经各域服务函数获取；非业务域，独立于 `app/domains/` |
 | **auth** | `/auth` | 注册、登录（密码/Apple/微信/华为）、JWT 签发与刷新、注销 | users, refresh_tokens | 不读业务表 |
 | **sports** | `/profile` `/gear` `/routes` | 运动画像、装备目录与清单、路线库检索、轨迹处理、匹配评分 | user_profiles, gear_models, user_gear, routes | 不调用 LLM |
 | **admin**（预留） | `/admin` | 用户管理、权限管理、额度管理（quota tier 分配/调整） | quota_tiers, llm_usage, sub_tokens | 不做 LLM 编排 |
@@ -113,7 +113,7 @@ design/             tokens.json(单一来源) → CI 生成四端主题
 
 ### 5.1 ER 概览
 
-`users 1—1 user_profiles`；`users 1—N user_gear N—1 gear_models`；`users 1—N trip_plans 1—N trip_items N—1 routes`；`routes 1—N route_tracks`；`users 1—N assistant_sessions 1—N assistant_messages`；`routes N—1 spots`（起点/途经地标）。
+`users 1—1 user_profiles`；`users 1—N user_gear N—1 gear_models`；`users 1—N trip_plans 1—N trip_items N—1 routes`；`routes 1—N route_tracks`；`users 1—N agent_sessions 1—N agent_messages`；`routes N—1 spots`（起点/途经地标）。
 
 ### 5.2 SQL DDL（核心表，PostGIS）
 
@@ -203,15 +203,15 @@ CREATE TABLE trip_plans (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE assistant_sessions (
+CREATE TABLE agent_sessions (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title      VARCHAR(64),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE TABLE assistant_messages (
+CREATE TABLE agent_messages (
   id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  session_id UUID NOT NULL REFERENCES assistant_sessions(id) ON DELETE CASCADE,
+  session_id UUID NOT NULL REFERENCES agent_sessions(id) ON DELETE CASCADE,
   role       TEXT NOT NULL CHECK (role IN ('user','assistant','tool')),
   content    TEXT NOT NULL,
   tool_name  TEXT,
