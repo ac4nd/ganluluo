@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import SessionLocal
 from app.models.gear import GearModel
-from app.services.gear_catalog import MODELS
+from app.domains.sports.gear_catalog import MODELS
 
 
 async def seed(session: AsyncSession) -> int:

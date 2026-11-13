@@ -9,11 +9,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.assistant import AssistantSession
 from app.models.user import User
-from app.schemas.clarify import ClarifyState
-from app.services import knowledge_service, profile_service, session_service
-from app.services import tools as tool_registry
-from app.services.clarify_service import detect_intent, extract_slots, next_clarification
-from app.services.llm import Provider
+from app.domains.assistant.clarify_schemas import ClarifyState
+from app.domains.assistant import knowledge
+from app.domains.assistant import session_store as session_service
+from app.domains.sports import profile_service
+from app.domains.assistant import tools as tool_registry
+from app.domains.assistant.clarify import detect_intent, extract_slots, next_clarification
+from app.domains.assistant.llm import Provider
 
 PERSONA = "你是「甘露罗」户外助手，一位严谨、友善的户外路线顾问。"
 MAX_TOOL_ROUNDS = 3
@@ -53,7 +55,7 @@ async def run_chat(session: AsyncSession, user: User, sess: AssistantSession,
     else:
         await session_service.set_clarify(session, sess.id, None)
 
-    sources = await knowledge_service.search(session, message,
+    sources = await knowledge.search(session, message,
                                              sport=state.slots.get("sport") or None)
     if sources:
         yield {"type": "sources",

@@ -2,7 +2,7 @@
 
 import re
 
-from app.schemas.clarify import ClarifyState
+from app.domains.assistant.clarify_schemas import ClarifyState
 
 PLAN_KEYWORDS = ("推荐", "规划", "想去", "走一条", "安排")
 INFO_KEYWORDS = ("怎么", "是什么", "攻略", "介绍")

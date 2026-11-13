@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import create_access_token, create_refresh_token, decode_token
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
-from app.schemas.auth import TokenPair
+from app.domains.auth.schemas import TokenPair
 
 
 async def _insert_refresh(session: AsyncSession, user_id: int, jti: str, exp: datetime, *, commit: bool = True) -> None:

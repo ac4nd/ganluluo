@@ -1,6 +1,6 @@
 # tests/test_knowledge_search.py
-from app.services.kb_service import ingest_document
-from app.services.knowledge_service import search
+from app.domains.assistant.kb_service import ingest_document
+from app.domains.assistant.knowledge import search
 
 
 async def test_search_hits_right_doc(db):

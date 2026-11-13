@@ -1,6 +1,6 @@
 from typing import ClassVar
 
-from app.services.match_service import match_score
+from app.domains.sports.match_service import match_score
 
 
 class FakeRoute:

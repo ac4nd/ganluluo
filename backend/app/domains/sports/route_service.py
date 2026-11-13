@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.route import Route
-from app.schemas.route import RouteIn
+from app.domains.sports.route_schemas import RouteIn
 
 
 async def list_routes(session: AsyncSession, sport: str | None = None, region: str | None = None,

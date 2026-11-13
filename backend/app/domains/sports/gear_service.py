@@ -2,8 +2,8 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.gear import GearModel, UserGear
-from app.schemas.gear import GearItemIn, GearItemOut
-from app.services.gear_catalog import CATEGORIES, ITEMS
+from app.domains.sports.gear_schemas import GearItemIn, GearItemOut
+from app.domains.sports.gear_catalog import CATEGORIES, ITEMS
 
 
 async def get_catalog(session: AsyncSession) -> dict:

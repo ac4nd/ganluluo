@@ -3,7 +3,7 @@ import json
 
 import httpx
 
-from app.services.llm import Delta, FakeProvider, OpenAICompatProvider
+from app.domains.assistant.llm import Delta, FakeProvider, OpenAICompatProvider
 
 
 def test_fake_provider_turns():

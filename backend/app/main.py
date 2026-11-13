@@ -16,13 +16,13 @@ def rate_limit_exceeded_handler(request: Request, exc: Exception) -> Response:
 # for the @limiter.limit decorator on /auth/login (avoids circular import).
 limiter = Limiter(key_func=get_remote_address)
 
-from app.api.routes.assistant import router as assistant_router
-from app.api.routes.auth import router as auth_router
-from app.api.routes.gear import router as gear_router
-from app.api.routes.memory import router as memory_router
+from app.domains.assistant.router import router as assistant_router
+from app.domains.auth.router import router as auth_router
+from app.domains.sports.gear_router import router as gear_router
+from app.domains.assistant.memory_router import router as memory_router
 from app.api.routes.ops import router as ops_router
-from app.api.routes.profile import router as profile_router
-from app.api.routes.routes import router as routes_router
+from app.domains.sports.profile_router import router as profile_router
+from app.domains.sports.route_router import router as routes_router
 
 
 def create_app() -> FastAPI:

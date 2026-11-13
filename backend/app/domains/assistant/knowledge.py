@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.kb import KbChunk, KbDoc
-from app.services.embedder import Embedder, get_embedder
+from app.domains.assistant.embedder import Embedder, get_embedder
 
 RRF_K = 60
 

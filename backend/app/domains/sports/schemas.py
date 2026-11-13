@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, model_validator
 
-from app.schemas.auth import Sport
+from app.domains.auth.schemas import Sport
 
 
 class ProfileIn(BaseModel):

@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.core.db import get_session
 from app.models.user import User
-from app.schemas.gear import GearItemOut, GearListIn
-from app.services import gear_service
+from app.domains.sports.gear_schemas import GearItemOut, GearListIn
+from app.domains.sports import gear_service
 
 # No router prefix: /gear-list is a top-level per-user resource, so the catalog
 # spells its full path and the gear-list endpoints match the brief verbatim.

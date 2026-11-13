@@ -1,4 +1,4 @@
-from app.services.session_service import (
+from app.domains.assistant.session_store import (
     append_message,
     create_session,
     recent_messages,

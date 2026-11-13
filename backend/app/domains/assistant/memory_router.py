@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.core.db import get_session
 from app.models.user import User
-from app.services import memory_service
+from app.domains.assistant import memory_service as memory_service
 
 router = APIRouter(prefix="/memory")
 

@@ -8,8 +8,8 @@ from app.core.db import get_session
 from app.core.security import verify_password
 from app.main import limiter
 from app.models.user import User
-from app.schemas.auth import LoginIn, LogoutOut, RefreshIn, RegisterIn, TokenPair, UserOut
-from app.services import auth_service, user_service
+from app.domains.auth.schemas import LoginIn, LogoutOut, RefreshIn, RegisterIn, TokenPair, UserOut
+from app.domains.auth import jwt_service as auth_service, service as user_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

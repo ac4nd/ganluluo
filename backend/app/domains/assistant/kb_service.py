@@ -3,8 +3,8 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.kb import KbChunk, KbDoc
-from app.services.chunker import chunk_text
-from app.services.embedder import Embedder, get_embedder
+from app.domains.assistant.chunker import chunk_text
+from app.domains.assistant.embedder import Embedder, get_embedder
 
 
 async def ingest_document(session: AsyncSession, source_name: str, text: str,

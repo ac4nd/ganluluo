@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.profile import UserProfile
-from app.schemas.profile import ProfileIn
+from app.domains.sports.schemas import ProfileIn
 
 
 async def get_or_create(session: AsyncSession, user_id: int) -> UserProfile:

@@ -2,7 +2,7 @@
 from sqlalchemy import select
 
 from app.models.user import User
-from app.services.memory_service import extract_memories, list_memories, save_memories
+from app.domains.assistant.memory_service import extract_memories, list_memories, save_memories
 
 from .test_auth_login import register_and_login
 

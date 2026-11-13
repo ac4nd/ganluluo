@@ -1,5 +1,5 @@
-from app.schemas.clarify import ClarifyState
-from app.services.clarify_service import detect_intent, extract_slots, next_clarification
+from app.domains.assistant.clarify_schemas import ClarifyState
+from app.domains.assistant.clarify import detect_intent, extract_slots, next_clarification
 
 
 def test_detect_intent_three_branches():

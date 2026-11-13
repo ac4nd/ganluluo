@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from app.schemas.auth import Sport
+from app.domains.auth.schemas import Sport
 
 
 class RouteIn(BaseModel):
