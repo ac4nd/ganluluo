@@ -52,12 +52,20 @@ TOOL_SPECS: list[ToolSpec] = [
 TOOL_REGISTRY: dict[str, ToolSpec] = {spec.name: spec for spec in TOOL_SPECS}
 
 
-async def _search_routes(session: AsyncSession, user: User, arguments: dict) -> dict:
+async def search_routes_for(
+    session: AsyncSession,
+    user: User,
+    sport: str | None = None,
+    region: str | None = None,
+    difficulty_max: int | None = None,
+) -> list[dict]:
+    """公共检索+评分：过滤已发布路线并按 match 降序返回路线卡列表。
+
+    search_routes 工具处理器与 /assistant/plan 的槽位选线共用本函数，
+    关卡（published、sport/region/difficulty 过滤、profile 装备评分）不复制。
+    """
     routes: list[Route] = await route_service.list_routes(
-        session,
-        sport=arguments.get("sport"),
-        region=arguments.get("region"),
-        difficulty_max=arguments.get("difficulty_max"),
+        session, sport=sport, region=region, difficulty_max=difficulty_max
     )
     profile = await profile_service.get_or_create(session, user.id)
     gear_keys = {
@@ -87,7 +95,19 @@ async def _search_routes(session: AsyncSession, user: User, arguments: dict) -> 
             )
         )
     scored.sort(key=lambda t: t[0], reverse=True)
-    return {"cards": [card for _, card in scored]}
+    return [card for _, card in scored]
+
+
+async def _search_routes(session: AsyncSession, user: User, arguments: dict) -> dict:
+    return {
+        "cards": await search_routes_for(
+            session,
+            user,
+            sport=arguments.get("sport"),
+            region=arguments.get("region"),
+            difficulty_max=arguments.get("difficulty_max"),
+        )
+    }
 
 
 async def _check_weather(session: AsyncSession, user: User, arguments: dict) -> dict:

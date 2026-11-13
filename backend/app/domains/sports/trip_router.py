@@ -1,89 +1,19 @@
 """行程计划 API：/trips CRUD + 计划卡（路线摘要 + 装备提醒）。
 
-装备提醒：route.required_gear − 用户 user_gear.item_keys。service 返回 ORM 行，
-路线摘要与装备差集在路由层组装为 TripPlanCard（user_gear 属 sports 域内数据，直查）。
+装备提醒：route.required_gear − 用户 user_gear.item_keys。契约与卡片组装下沉在
+trip_schemas / trip_service（M4 Task 3，/assistant/plan 共用），路由层只做 HTTP 编排。
 """
 
-from datetime import date, time
-
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.core.db import get_session
 from app.domains.sports import trip_service
-from app.models.gear import UserGear
-from app.models.route import Route
-from app.models.trip import TripPlan
+from app.domains.sports.trip_schemas import TripPlanCard, TripPlanIn, TripStatusIn
 from app.models.user import User
 
 router = APIRouter()
-
-
-class TripPlanIn(BaseModel):
-    route_id: int
-    date: date
-    meet_at: time
-    meet_place: str | None = Field(None, max_length=96)
-
-
-class TripStatusIn(BaseModel):
-    status: str
-
-
-class TripPlanOut(BaseModel):
-    id: int
-    user_id: int
-    route_id: int
-    date: date
-    meet_at: time
-    meet_place: str | None
-    status: str
-    model_config = {"from_attributes": True}
-
-
-class TripPlanCard(TripPlanOut):
-    route_name: str
-    region: str
-    sport: str
-    difficulty: int
-    distance_km: float
-    climb_m: int
-    duration_h: float | None
-    gear_missing: list[str]
-
-
-async def _owned_gear_keys(session: AsyncSession, user_id: int) -> set[str]:
-    """用户已有装备键集合（取法同 app/assistant/tools.py 的 search_routes）。"""
-    rows = await session.execute(select(UserGear.item_key).where(UserGear.user_id == user_id))
-    return set(rows.scalars())
-
-
-def _gear_missing(route: Route, owned: set[str]) -> list[str]:
-    return [g for g in (route.required_gear or []) if g not in owned]
-
-
-def _to_card(plan: TripPlan, route: Route, owned: set[str]) -> TripPlanCard:
-    base = TripPlanOut.model_validate(plan).model_dump()
-    return TripPlanCard(
-        **base,
-        route_name=route.name,
-        region=route.region,
-        sport=route.sport,
-        difficulty=route.difficulty,
-        distance_km=route.distance_km,
-        climb_m=route.climb_m,
-        duration_h=route.duration_h,
-        gear_missing=_gear_missing(route, owned),
-    )
-
-
-async def _routes_map(session: AsyncSession, plans: list[TripPlan]) -> dict[int, Route]:
-    """按计划的 route_id 批量取路线（计划行均由 FK 保证路线存在）。"""
-    rows = await session.execute(select(Route).where(Route.id.in_([p.route_id for p in plans])))
-    return {r.id: r for r in rows.scalars()}
 
 
 @router.post("", response_model=TripPlanCard, status_code=201)
@@ -98,8 +28,8 @@ async def create_trip(
         )
     except ValueError as e:  # 路线不存在或未发布
         raise HTTPException(status_code=404, detail=str(e)) from None
-    owned = await _owned_gear_keys(session, current.id)
-    return _to_card(plan, (await _routes_map(session, [plan]))[plan.route_id], owned)
+    owned = await trip_service.owned_gear_keys(session, current.id)
+    return await trip_service.build_card(session, plan, owned)
 
 
 @router.get("", response_model=list[TripPlanCard])
@@ -108,9 +38,9 @@ async def list_trips(
     session: AsyncSession = Depends(get_session),
 ) -> list[TripPlanCard]:
     plans = await trip_service.list_plans(session, current.id)
-    routes = await _routes_map(session, plans)
-    owned = await _owned_gear_keys(session, current.id)
-    return [_to_card(p, routes[p.route_id], owned) for p in plans]
+    routes = await trip_service.routes_map(session, plans)
+    owned = await trip_service.owned_gear_keys(session, current.id)
+    return [trip_service.to_card(p, routes[p.route_id], owned) for p in plans]
 
 
 @router.get("/{trip_id}", response_model=TripPlanCard)
@@ -122,8 +52,8 @@ async def get_trip(
     plan = await trip_service.get_plan(session, current.id, trip_id)
     if plan is None:  # 不存在或非本人
         raise HTTPException(status_code=404, detail="行程不存在")
-    owned = await _owned_gear_keys(session, current.id)
-    return _to_card(plan, (await _routes_map(session, [plan]))[plan.route_id], owned)
+    owned = await trip_service.owned_gear_keys(session, current.id)
+    return await trip_service.build_card(session, plan, owned)
 
 
 @router.patch("/{trip_id}/status", response_model=TripPlanCard)
@@ -141,8 +71,8 @@ async def update_trip_status(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from None
     assert plan is not None  # 上一行已确认归属
-    owned = await _owned_gear_keys(session, current.id)
-    return _to_card(plan, (await _routes_map(session, [plan]))[plan.route_id], owned)
+    owned = await trip_service.owned_gear_keys(session, current.id)
+    return await trip_service.build_card(session, plan, owned)
 
 
 @router.delete("/{trip_id}", status_code=204)

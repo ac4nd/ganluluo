@@ -1,6 +1,7 @@
 """澄清状态机：意图判定、槽位抽取、追问决策。"""
 
 import re
+from datetime import date, timedelta
 
 from app.assistant.clarify_schemas import ClarifyState
 
@@ -49,6 +50,54 @@ def detect_intent(text: str) -> str:
     return "chat"
 
 
+_WEEKDAY_NUM: dict[str, int] = {"一": 0, "二": 1, "三": 2, "四": 3, "五": 4, "六": 5, "日": 6}
+
+
+def _date_token(text: str) -> str | None:
+    """文本中的第一个日期词（明天/后天/周X/周末/M月D日）；无 → None。
+
+    extract_slots 存槽位原文，parse_date_text 负责转具体日期，共用同一抽取。
+    """
+    return m.group(0) if (m := DATE_RE.search(text)) else None
+
+
+def _next_weekday(today: date, target: int) -> date:
+    """今天（含）起下一个 target 星期（0=周一）。"""
+    return today + timedelta(days=(target - today.weekday()) % 7)
+
+
+def parse_date_text(text: str) -> date | None:
+    """把文本中的日期词解析为具体日期；无日期词或无法确定 → None。
+
+    明天/后天 → 今天偏移；周X/周末 → 今天（含）起下一个对应日；
+    M月D日 → 今年，已过则顺延一年；裸"周"、非法月日 → None。
+    """
+    token = _date_token(text)
+    if token is None:
+        return None
+    today = date.today()
+    if token == "明天":
+        return today + timedelta(days=1)
+    if token == "后天":
+        return today + timedelta(days=2)
+    if token == "周末":
+        return _next_weekday(today, 5)  # 周末按周六
+    if token.startswith("周") and token[-1] in _WEEKDAY_NUM:
+        return _next_weekday(today, _WEEKDAY_NUM[token[-1]])
+    if (m := re.fullmatch(r"(\d{1,2})月(\d{1,2})[日号]", token)) is not None:
+        try:
+            parsed = date(today.year, int(m.group(1)), int(m.group(2)))
+        except ValueError:  # 如 2月30日
+            return None
+        if parsed < today:  # 今年已过 → 明年同月日
+            try:
+                parsed = date(today.year + 1, int(m.group(1)), int(m.group(2)))
+            except ValueError:  # 如今年 2月29日、明年非闰年
+                return None
+        return parsed
+    return None  # 裸"周"无法确定星期
+
+
 def extract_slots(text: str, state: ClarifyState) -> ClarifyState:
     """从用户消息抽取槽位，返回新状态（不改动入参；round_no 由调用方推进）。"""
     slots = dict(state.slots)
@@ -60,8 +109,8 @@ def extract_slots(text: str, state: ClarifyState) -> ClarifyState:
         if region in text:
             slots["region"] = region
             break
-    if m := DATE_RE.search(text):
-        slots["date"] = m.group(0)
+    if (date_token := _date_token(text)) is not None:
+        slots["date"] = date_token
     if m := LENGTH_RE.search(text):
         slots["length"] = m.group(1)
     if any(k in text for k in SKIP_KEYWORDS):

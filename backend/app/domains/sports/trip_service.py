@@ -1,6 +1,8 @@
 """行程计划服务：MVP 单表 trip_plans，一行 = 一次出行（路线 × 日期 × 集合点）。
 
-assistant 层（/assistant/plan）只经本模块函数创建计划，不直查业务表。
+assistant 层（/assistant/plan）只经本模块函数创建计划与组装卡片，不直查业务表、
+不 import 路由模块；TripPlanCard 契约见 trip_schemas，卡片组装（路线摘要 +
+装备差集）自 M4 Task 3 起从 trip_router 下沉至此供两层共用。
 """
 
 from datetime import date, time
@@ -8,6 +10,8 @@ from datetime import date, time
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.domains.sports.trip_schemas import TripPlanCard, TripPlanOut
+from app.models.gear import UserGear
 from app.models.route import Route
 from app.models.trip import TripPlan
 
@@ -74,3 +78,42 @@ async def delete_plan(session: AsyncSession, user_id: int, plan_id: int) -> bool
     await session.delete(plan)
     await session.commit()
     return True
+
+
+async def owned_gear_keys(session: AsyncSession, user_id: int) -> set[str]:
+    """用户已有装备键集合（取法同 app/assistant/tools.py 的 search_routes）。"""
+    rows = await session.execute(select(UserGear.item_key).where(UserGear.user_id == user_id))
+    return set(rows.scalars())
+
+
+def gear_missing(route: Route, owned: set[str]) -> list[str]:
+    """装备提醒：路线必备装备 − 用户已有装备，保持路线声明顺序。"""
+    return [g for g in (route.required_gear or []) if g not in owned]
+
+
+def to_card(plan: TripPlan, route: Route, owned: set[str]) -> TripPlanCard:
+    """计划卡组装：TripPlanOut 基础字段 + 路线摘要 + 装备差集。"""
+    base = TripPlanOut.model_validate(plan).model_dump()
+    return TripPlanCard(
+        **base,
+        route_name=route.name,
+        region=route.region,
+        sport=route.sport,
+        difficulty=route.difficulty,
+        distance_km=route.distance_km,
+        climb_m=route.climb_m,
+        duration_h=route.duration_h,
+        gear_missing=gear_missing(route, owned),
+    )
+
+
+async def routes_map(session: AsyncSession, plans: list[TripPlan]) -> dict[int, Route]:
+    """按计划的 route_id 批量取路线（计划行均由 FK 保证路线存在）。"""
+    rows = await session.execute(select(Route).where(Route.id.in_([p.route_id for p in plans])))
+    return {r.id: r for r in rows.scalars()}
+
+
+async def build_card(session: AsyncSession, plan: TripPlan, owned: set[str]) -> TripPlanCard:
+    """单计划便捷入口：取路线并组装计划卡（列表场景用 routes_map + to_card）。"""
+    route = (await routes_map(session, [plan]))[plan.route_id]
+    return to_card(plan, route, owned)

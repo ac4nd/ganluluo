@@ -18,6 +18,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 from app.api.routes.ops import router as ops_router
 from app.assistant.memory_router import router as memory_router
+from app.assistant.plan_router import router as plan_router
 from app.assistant.router import router as assistant_router
 from app.domains.auth.router import router as auth_router
 from app.domains.sports.gear_router import router as gear_router
@@ -33,6 +34,7 @@ def create_app() -> FastAPI:
     app.include_router(ops_router, prefix="/ops", tags=["ops"])
     app.include_router(assistant_router, prefix="/assistant", tags=["assistant"])
     app.include_router(memory_router, prefix="/assistant", tags=["assistant"])
+    app.include_router(plan_router, prefix="/assistant", tags=["assistant"])
     app.include_router(trips_router, prefix="/trips", tags=["trips"])
     app.include_router(auth_router, tags=["auth"])
     app.include_router(profile_router, tags=["profile"])
