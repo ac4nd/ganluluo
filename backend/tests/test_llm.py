@@ -1,4 +1,6 @@
 # tests/test_llm.py
+import json
+
 import httpx
 
 from app.services.llm import Delta, FakeProvider, OpenAICompatProvider
@@ -31,3 +33,32 @@ def test_openai_compat_parses_sse():
     assert deltas[0] == Delta(type="token", text="你")
     assert deltas[1].type == "tool_calls"
     assert deltas[1].tool_calls[0]["name"] == "search_routes"
+
+
+def _shard(delta: dict) -> str:
+    return "data: " + json.dumps({"choices": [{"delta": delta}]}, ensure_ascii=False)
+
+
+# 真实 OpenAI 流按 index 分片：首片带 function.name（arguments 为空），
+# 后续片仅携带 arguments 片段，最后 [DONE]。
+SHARDED_SSE_BODY = "\n\n".join([
+    _shard({"tool_calls": [{"index": 0, "function": {"name": "search_routes", "arguments": ""}}]}),
+    _shard({"tool_calls": [{"index": 0, "function": {"arguments": "{\"sport\""}}]}),
+    _shard({"tool_calls": [{"index": 0, "function": {"arguments": ":\"hiking\"}"}}]}),
+    "data: [DONE]",
+]) + "\n\n"
+
+
+def test_openai_compat_accumulates_sharded_tool_calls():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text=SHARDED_SSE_BODY, headers={"Content-Type": "text/event-stream"})
+
+    p = OpenAICompatProvider(base_url="https://8.8.8.8/v1", api_key="k", model="m",
+                             transport=httpx.MockTransport(handler))
+    deltas = list(p.chat_stream([{"role": "user", "content": "hi"}], tools=[]))
+    tool_deltas = [d for d in deltas if d.type == "tool_calls"]
+    assert len(tool_deltas) == 1
+    assert tool_deltas[0].tool_calls == [
+        {"name": "search_routes", "arguments": '{"sport":"hiking"}'}
+    ]
+    assert deltas[-1].type == "done"

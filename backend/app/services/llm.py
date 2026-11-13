@@ -67,24 +67,36 @@ class OpenAICompatProvider:
                             headers={"Authorization": f"Bearer {self.api_key}"},
                             json=payload) as resp):
                 resp.raise_for_status()
+                # 真实 OpenAI 流按 index 分片下发 tool_calls：首片含 function.name
+                # （arguments 常为空串），续片仅携带 arguments 片段。逐片累积，
+                # 流结束（[DONE] 或对端关闭）时一次性吐出完整的 tool_calls Delta。
+                pending: dict[int, tuple[str | None, list[str]]] = {}
                 for line in resp.iter_lines():
                     if not line.startswith("data: "):
                         continue
                     data = line[len("data: "):]
                     if data.strip() == "[DONE]":
-                        yield Delta(type="done")
-                        return
+                        break
                     chunk = json.loads(data)
                     delta = chunk.get("choices", [{}])[0].get("delta", {})
                     if delta.get("content"):
                         yield Delta(type="token", text=delta["content"])
-                    tcs = delta.get("tool_calls")
-                    if tcs:
-                        calls = [{"name": tc["function"]["name"],
-                                  "arguments": tc["function"].get("arguments", "{}")}
-                                 for tc in tcs if tc.get("function")]
-                        if calls:
-                            yield Delta(type="tool_calls", tool_calls=calls)
+                    for tc in delta.get("tool_calls") or []:
+                        fn = tc.get("function")
+                        if not fn:
+                            continue
+                        idx = int(tc.get("index", 0))
+                        name, parts = pending.get(idx, (None, []))
+                        if fn.get("name"):
+                            name = fn["name"]
+                        if fn.get("arguments"):
+                            parts.append(fn["arguments"])
+                        pending[idx] = (name, parts)
+                if pending:
+                    calls = [{"name": pending[i][0] or "",
+                              "arguments": "".join(pending[i][1]) or "{}"}
+                             for i in sorted(pending)]
+                    yield Delta(type="tool_calls", tool_calls=calls)
         yield Delta(type="done")
 
 
