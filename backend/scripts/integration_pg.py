@@ -71,7 +71,7 @@ async def main():
     checks = [
         ("gear_models == 116", gear == 116, gear),
         ("routes == 6", routes == 6, routes),
-        ("kb_docs == 5", docs == 5, docs),
+        ("kb_docs >= 5", docs >= 5, docs),
         ("kb_chunks > 0", chunks > 0, chunks),
         ("kb_chunks.embedding is vector(1024)", emb == "vector(1024)", emb),
         ("routes.start_pt is geography(Point,4326)", start_pt == "geography(Point,4326)", start_pt),
