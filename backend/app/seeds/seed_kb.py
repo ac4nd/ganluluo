@@ -1,6 +1,7 @@
 """知识库种子：protype/route_guides.csv 每行 → 一篇攻略文档（幂等重建）。"""
 import asyncio
 import csv
+import os
 from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import SessionLocal
 from app.services.kb_service import ingest_document
 
-CSV_PATH = Path(__file__).resolve().parents[3] / "protype" / "route_guides.csv"
+# GL_KB_CSV 可覆盖 CSV 路径（远程集成容器内为 /app/route_guides.csv）；默认仓库原路径
+CSV_PATH = Path(os.environ.get("GL_KB_CSV") or Path(__file__).resolve().parents[3] / "protype" / "route_guides.csv")
 
 # 与 Sport 枚举对齐；未识别的运动类型默认 hiking
 SPORT_MAP = {
