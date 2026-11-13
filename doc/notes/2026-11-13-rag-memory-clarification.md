@@ -2,13 +2,13 @@
 
 ## 背景
 
-用户将提供各运动的线路详情攻略文档作为知识库，assistant 的回答需基于攻略内容（RAG）；需要跨会话的**记忆系统**（记住用户偏好与约束）；当用户问题模糊（缺运动类型/地区/日期/强度等关键信息）时，assistant 需**一步步引导**补全细节再给出结果。上游依据：[specification.md](../spec/specification.md) §2（06 AI 规划对话）、[system-design.md](../spec/system-design.md) §3/§5。
+用户将提供各运动的线路详情攻略文档作为知识库，agent 的回答需基于攻略内容（RAG）；需要跨会话的**记忆系统**（记住用户偏好与约束）；当用户问题模糊（缺运动类型/地区/日期/强度等关键信息）时，agent 需**一步步引导**补全细节再给出结果。上游依据：[specification.md](../spec/specification.md) §2（06 AI 规划对话）、[system-design.md](../spec/system-design.md) §3/§5。
 
 ## 决定
 
 - **知识库摄取**：攻略文档（md/docx/pdf/html）→ 解析清洗 → 按 Markdown 标题层级分块（512–800 token，overlap 80，保留 `sport/region/section/source` 元数据）→ bge-m3 向量化（1024 维）→ **pgvector HNSW** 存储；混合检索 = 向量余弦 + PostgreSQL 全文检索（zhparser/ngram），RRF 融合取 top8 → bge-reranker 重排取 top4；文档带版本号，修订走 Celery 重建索引。
 - **检索流程**：澄清完成后，槽位转结构化过滤（sport/region/difficulty）+ 查询改写（槽位拼接用户原问题）→ 混合检索 → 重排 → 注入上下文并**强制引用标注**（回答末尾列来源文档名）。
-- **记忆系统三层**：① 会话短期（Redis 最近 20 条，已有）；② 会话摘要（超过 12 轮滚动压缩为 rolling summary，存 `assistant_sessions.summary`）；③ 用户长期事实（`user_memory` 表：偏好/约束/事实三类，会话结束后由异步 worker 用 LLM 抽取，带置信度与来源会话）。注入顺序 = 人设 + 画像摘要 + top-K 相关长期记忆 + rolling summary；用户可查看与删除自己的记忆（合规）。
+- **记忆系统三层**：① 会话短期（Redis 最近 20 条，已有）；② 会话摘要（超过 12 轮滚动压缩为 rolling summary，存 `agent_sessions.summary`）；③ 用户长期事实（`user_memory` 表：偏好/约束/事实三类，会话结束后由异步 worker 用 LLM 抽取，带置信度与来源会话）。注入顺序 = 人设 + 画像摘要 + top-K 相关长期记忆 + rolling summary；用户可查看与删除自己的记忆（合规）。
 - **澄清引导状态机**：`clarify` JSONB 存 `{intent, slots, asked}`；规划类意图槽位 = 运动类型/地区/日期/时长里程/强度/同行者；**缺槽时一次只追问一个最重要的槽位**（附选项），用户回答即填充；**最多追问 3 轮**，之后按默认值出结果并显式说明假设；用户可说「随便/推荐」跳过。澄清状态机与检索共用同一状态存储。
 - **向量存储选 pgvector 而非独立向量库**（Milvus/Qdrant）：知识库规模预期 < 100 万块，复用 PostgreSQL 免去额外运维与数据双写一致性。
 

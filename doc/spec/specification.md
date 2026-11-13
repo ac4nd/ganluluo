@@ -70,13 +70,13 @@
 
 模块划分、关键时序、部署拓扑与完整数据结构（DDL + Pydantic 契约、Redis 键设计）详见 [system-design.md](system-design.md)。概要：
 
-模块划分：`api-gateway`（鉴权/限流）、`assistant`（LLM 编排与工具调用）、`route-service`（路线库/检索/匹配）、`trip-service`（计划）、`profile-service`（画像/装备）、`media-service`（视频/审核/对象存储）、`worker`（Celery：轨迹处理、天气拉取、推荐离线计算）。
+模块划分：`api-gateway`（鉴权/限流）、`agent`（LLM 编排与工具调用）、`route-service`（路线库/检索/匹配）、`trip-service`（计划）、`profile-service`（画像/装备）、`media-service`（视频/审核/对象存储）、`worker`（Celery：轨迹处理、天气拉取、推荐离线计算）。
 
 技术栈：FastAPI + PostgreSQL（PostGIS）+ Redis + 对象存储 + Celery + WebSocket（对话流式输出）+ LLM 网关（模型抽象层，可切换国产大模型供应商）。
 
 核心数据模型：`User`、`UserProfile`（偏好/经验/体能）、`GearItem`（含型号库引用）、`Route`（轨迹 GPX、难度、地貌标签、清晰度）、`TripPlan`、`Spot`（地标/景点）、`AssistantSession`。
 
-关键 API（草案）：`POST /auth/login`、`GET/PUT /profile`、`GET /gear-catalog`、`PUT /gear-list`、`GET /routes?filters`、`GET /routes/{id}`（含高程/配速/地形数据）、`POST /assistant/chat`（SSE 流式）、`POST /assistant/plan`（生成计划）、`GET /weather?loc`、`GET /alerts?loc`。
+关键 API（草案）：`POST /auth/login`、`GET/PUT /profile`、`GET /gear-catalog`、`PUT /gear-list`、`GET /routes?filters`、`GET /routes/{id}`（含高程/配速/地形数据）、`POST /agent/chat`（SSE 流式）、`POST /agent/plan`（生成计划）、`GET /weather?loc`、`GET /alerts?loc`。
 
 ## 7. 非功能需求
 
