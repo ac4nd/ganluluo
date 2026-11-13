@@ -1,10 +1,12 @@
+from typing import ClassVar
+
 from app.services.match_service import match_score
 
 
 class FakeRoute:
-    sport = "hiking"
-    difficulty = 3
-    required_gear = ["boots", "poles", "headlamp"]
+    sport: ClassVar[str] = "hiking"
+    difficulty: ClassVar[int] = 3
+    required_gear: ClassVar[list[str]] = ["boots", "poles", "headlamp"]
 
 
 def test_full_match_100():
