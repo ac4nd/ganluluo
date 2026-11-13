@@ -1,4 +1,4 @@
-"""助手 SSE 端点：POST /assistant/chat（流式事件）、GET /assistant/sessions。"""
+"""agent SSE 端点：POST /agent/chat（流式事件）、GET /agent/sessions。"""
 import json
 from collections.abc import AsyncIterator
 
@@ -7,7 +7,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.agent import orchestrator as assistant_service
+from app.agent import orchestrator as agent_service
 from app.agent import session_store as session_service
 from app.agent.llm import Provider, get_provider
 from app.api.deps import get_current_user
@@ -22,7 +22,7 @@ class ChatIn(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
 
 
-def assistant_provider() -> Provider:
+def agent_provider() -> Provider:
     """生产取配置 Provider；测试经 app.dependency_overrides 注入 FakeProvider。"""
     return get_provider()
 
@@ -34,7 +34,7 @@ def _sse(event: dict) -> str:
 @router.post("/chat")
 async def chat(body: ChatIn, user: User = Depends(get_current_user),
                session: AsyncSession = Depends(get_session),
-               provider: Provider = Depends(assistant_provider)) -> StreamingResponse:
+               provider: Provider = Depends(agent_provider)) -> StreamingResponse:
     existing = None
     if body.session_id is not None:
         existing = await session_service.own_session(session, user.id, body.session_id)
@@ -48,7 +48,7 @@ async def chat(body: ChatIn, user: User = Depends(get_current_user),
             yield _sse({"type": "session", "data": sess.id})
         else:
             sess = existing
-        async for event in assistant_service.run_chat(session, user, sess, body.message, provider):
+        async for event in agent_service.run_chat(session, user, sess, body.message, provider):
             yield _sse(event)
 
     return StreamingResponse(gen(), media_type="text/event-stream")

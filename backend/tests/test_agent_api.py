@@ -7,7 +7,7 @@ from sqlalchemy import select
 
 from app.agent.kb_service import ingest_document
 from app.agent.llm import Delta, FakeProvider
-from app.agent.router import assistant_provider
+from app.agent.router import agent_provider
 from app.agent.session_store import recent_messages, save_summary
 from app.core.db import get_session
 from app.main import create_app
@@ -36,7 +36,7 @@ async def chat(db):
 
 async def post_chat(client, token: str, message: str, session_id: str | None = None):
     return await client.post(
-        "/assistant/chat",
+        "/agent/chat",
         json={"session_id": session_id, "message": message},
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -45,7 +45,7 @@ async def post_chat(client, token: str, message: str, session_id: str | None = N
 async def test_clarify_flow(chat, db):
     """① 模糊 plan 消息 → clarify 事件追问 sport，轮数与已问槽位落库。"""
     app, client = chat
-    app.dependency_overrides[assistant_provider] = lambda: FakeProvider(
+    app.dependency_overrides[agent_provider] = lambda: FakeProvider(
         turns=[[Delta(type="done")]])
     tokens = await register_and_login(client, email="cl@b.com")
     r = await post_chat(client, tokens["access_token"], "想去个地方走走")
@@ -67,7 +67,7 @@ async def test_clarify_chain_survives_bare_answer(chat, db):
     """澄清进行中同会话裸回答「徒步」→ 不终止追问链：补 sport 槽后继续 clarify region。"""
     app, client = chat
     provider = FakeProvider(turns=[[Delta(type="done")]])
-    app.dependency_overrides[assistant_provider] = lambda: provider
+    app.dependency_overrides[agent_provider] = lambda: provider
     tokens = await register_and_login(client, email="bc@b.com")
     token = tokens["access_token"]
     r1 = await post_chat(client, token, "想去个地方走走")
@@ -97,13 +97,13 @@ async def test_clarify_chain_survives_bare_answer(chat, db):
 
 
 async def test_direct_answer_flow(chat, db):
-    """② 槽位齐全的明确消息 → sources + token 流 + done，assistant 正文落库。"""
+    """② 槽位齐全的明确消息 → sources + token 流 + done，agent 正文落库。"""
     app, client = chat
     await ingest_document(
         db, source_name="雨崩攻略",
         text="雨崩徒步路线：从西当村进山，经尼农大峡谷抵达雨崩上村，次日徒步神瀑往返。" * 5,
         sport="hiking")
-    app.dependency_overrides[assistant_provider] = lambda: FakeProvider(
+    app.dependency_overrides[agent_provider] = lambda: FakeProvider(
         turns=[[Delta(type="token", text="从西当进山"), Delta(type="done")]])
     tokens = await register_and_login(client, email="da@b.com")
     r = await post_chat(client, tokens["access_token"], "雨崩徒步怎么走，周六出发")
@@ -120,7 +120,7 @@ async def test_direct_answer_flow(chat, db):
     assert [m.role for m in msgs] == ["user", "assistant"]
     assert msgs[-1].content == "从西当进山"
     # 会话列表可见，标题取自首条消息
-    r2 = await client.get("/assistant/sessions",
+    r2 = await client.get("/agent/sessions",
                           headers={"Authorization": f"Bearer {tokens['access_token']}"})
     assert r2.status_code == 200
     listed = r2.json()
@@ -139,7 +139,7 @@ async def test_tool_call_flow(chat, db):
          Delta(type="done")],
         [Delta(type="token", text="为你找到"), Delta(type="done")],
     ])
-    app.dependency_overrides[assistant_provider] = lambda: provider
+    app.dependency_overrides[agent_provider] = lambda: provider
     tokens = await register_and_login(client, email="tc@b.com")
     r = await post_chat(client, tokens["access_token"], "推荐周六去雨崩徒步")
     assert r.status_code == 200
@@ -158,9 +158,9 @@ async def test_tool_call_flow(chat, db):
 async def test_chat_requires_auth(chat):
     """④ 未带令牌 → 401。"""
     _app, client = chat
-    r = await client.post("/assistant/chat", json={"session_id": None, "message": "你好"})
+    r = await client.post("/agent/chat", json={"session_id": None, "message": "你好"})
     assert r.status_code == 401
-    r2 = await client.get("/assistant/sessions")
+    r2 = await client.get("/agent/sessions")
     assert r2.status_code == 401
 
 
@@ -168,7 +168,7 @@ async def test_chat_reuses_existing_session(chat, db):
     """携带 session_id 复用会话：不再发 session 事件，消息进入同一会话。"""
     app, client = chat
     provider = FakeProvider(turns=[[Delta(type="token", text="你好呀"), Delta(type="done")]])
-    app.dependency_overrides[assistant_provider] = lambda: provider
+    app.dependency_overrides[agent_provider] = lambda: provider
     tokens = await register_and_login(client, email="ru@b.com")
     token = tokens["access_token"]
     first = parse_events((await post_chat(client, token, "你好呀")).text)
@@ -184,7 +184,7 @@ async def test_chat_reuses_existing_session(chat, db):
     assert [m.role for m in msgs] == ["user", "assistant", "user", "assistant"]
 
     r404 = await client.post(
-        "/assistant/chat", json={"session_id": "nope", "message": "hi"},
+        "/agent/chat", json={"session_id": "nope", "message": "hi"},
         headers={"Authorization": f"Bearer {token}"})
     assert r404.status_code == 404
 
@@ -201,7 +201,7 @@ async def test_tool_bad_arguments_fallback(chat, db):
          Delta(type="done")],
         [Delta(type="token", text="收到"), Delta(type="done")],
     ])
-    app.dependency_overrides[assistant_provider] = lambda: provider
+    app.dependency_overrides[agent_provider] = lambda: provider
     tokens = await register_and_login(client, email="fb@b.com")
     r = await post_chat(client, tokens["access_token"], "随便推荐一条")
     assert r.status_code == 200

@@ -1,4 +1,4 @@
-"""记忆 API：GET /assistant/memory 列表、DELETE /assistant/memory/{id}（归属校验）。"""
+"""记忆 API：GET /agent/memory 列表、DELETE /agent/memory/{id}（归属校验）。"""
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
