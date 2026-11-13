@@ -25,6 +25,7 @@ async def get_route(session: AsyncSession, route_id: int) -> Route | None:
 
 async def create_route(session: AsyncSession, data: RouteIn) -> Route:
     route = Route(**data.model_dump())
+    route.source = "user"
     session.add(route)
     await session.commit()
     await session.refresh(route)

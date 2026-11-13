@@ -60,10 +60,13 @@ async def process_track(session: AsyncSession, route: Route, gpx_text: str) -> T
     if len(simple) <= MAX_TRACK_POINTS:
         kept = [(la, lo, nearest_ele(la, lo)) for la, lo in simple]
     else:
+        # 均匀采样前 499 个点，末尾强制保留轨迹终点（总数不超过 500 点上限）。
         step = len(simple) / MAX_TRACK_POINTS
-        for i in range(MAX_TRACK_POINTS):
+        for i in range(MAX_TRACK_POINTS - 1):
             la, lo = simple[int(i * step)]
             kept.append((la, lo, nearest_ele(la, lo)))
+        if simple[-1] != kept[-1][:2]:
+            kept.append((simple[-1][0], simple[-1][1], nearest_ele(simple[-1][0], simple[-1][1])))
     route.track_points = [{"lat": la, "lon": lo, "ele": e} for la, lo, e in kept]
     route.elevation = points_to_elevation_profile([(la, lo, e) for la, lo, e in kept])
     route.distance_km = distance_km

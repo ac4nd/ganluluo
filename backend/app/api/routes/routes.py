@@ -40,7 +40,10 @@ async def upload_track(route_id: int, request: Request,
     route = await route_service.get_route(session, route_id)
     if route is None:
         raise HTTPException(status_code=404, detail="路线不存在")
-    body = (await request.body()).decode("utf-8", errors="replace")
+    body_bytes = await request.body()
+    if len(body_bytes) > 1_000_000:  # 1MB GPX 上限
+        raise HTTPException(status_code=413, detail="轨迹文件过大")
+    body = body_bytes.decode("utf-8", errors="replace")
     try:
         summary = await track_service.process_track(session, route, body)
     except (ValueError, GPXException) as e:

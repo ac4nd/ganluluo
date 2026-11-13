@@ -31,7 +31,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router, tags=["auth"])
     app.include_router(profile_router, tags=["profile"])
     app.include_router(gear_router)
-    app.include_router(routes_router, tags=["routes"])
+    app.include_router(routes_router)
     return app
 
 
