@@ -64,8 +64,8 @@ async def main():
         from app.services.embedder import FakeEmbedder
         q = "[" + ",".join(f"{{v:.6f}}" for v in FakeEmbedder().embed(["雨崩徒步"])[0]) + "]"
         hit = (await c.execute(text(
-            "select coalesce(sport, ''), left(content, 24), 1 - (embedding <=> :q::vector)"
-            " from kb_chunks order by embedding <=> :q::vector limit 1"),
+            "select coalesce(sport, ''), left(content, 24), 1 - (embedding <=> CAST(:q AS vector))"
+            " from kb_chunks order by embedding <=> CAST(:q AS vector) limit 1"),
             {{"q": q}})).first()
     await engine.dispose()
     checks = [
