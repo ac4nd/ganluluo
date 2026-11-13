@@ -10,7 +10,7 @@ from datetime import date as _date
 from datetime import time as _time
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
@@ -34,7 +34,9 @@ class PlanIn(BaseModel):
     route_id: int | None = None
     date: _date | None = None
     meet_at: _time | None = None
-    meet_place: str | None = None
+    # 与 TripPlanIn 一致：PG trip_plans.meet_place 为 VARCHAR(96)，超长应在校验层 422，
+    # 而非直达 INSERT 报 StringDataRightTruncation → 500。
+    meet_place: str | None = Field(None, max_length=96)
 
 
 async def _own_slots(session: AsyncSession, user: User, session_id: str | None) -> dict[str, str]:

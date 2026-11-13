@@ -34,7 +34,7 @@ async def create_plan(
         user_id=user_id, route_id=route_id, date=date, meet_at=meet_at, meet_place=meet_place
     )
     session.add(plan)
-    await session.commit()  # fixture session keeps attributes after commit
+    await session.commit()  # 项目约定 expire_on_commit=False（app/core/db.py 与 conftest），commit 后对象属性可用
     return plan
 
 

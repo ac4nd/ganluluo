@@ -136,3 +136,14 @@ async def test_no_candidates_404(client, db):
 async def test_requires_auth(client):
     r = await client.post("/assistant/plan", json={"route_id": 1, "date": "2026-11-20"})
     assert r.status_code == 401
+
+
+async def test_meet_place_over_96_422(client, db):
+    await seed_routes(db)
+    h, _ = await _auth(client, "placelen@b.com")
+    r = await client.post(
+        "/assistant/plan",
+        json={"route_id": 1, "date": "2026-11-20", "meet_place": "长" * 97},
+        headers=h,
+    )
+    assert r.status_code == 422
