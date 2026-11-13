@@ -83,7 +83,7 @@
     3. `meet_at` 缺省 → 08:00
     4. 经 `trip_service.create_plan` 落库 → 返回 TripPlanCard（与 Task 2 同构，装备提醒同样计算）
   - 检索+评分复用：`app/assistant/tools.py` 中 search_routes 处理器的现有关卡（不复制逻辑，抽公共函数或调用 service 层）
-- [ ] **Step 1: 写失败测试**（显式 route_id+date 201 式 200 生成；仅 session 槽位生成 top1；无会话无 route 422；无日期 422；他人 session 404）→ **Step 2-4: 红→实现→绿** → **Step 5: Commit** `feat: assistant plan generation from clarify slots`
+- [ ] **Step 1: 写失败测试**（显式 route_id+date 201 式 200 生成；仅 session 槽位生成 top1；无会话无 route 422；无日期 422；他人 session 422——own_session 对不存在/非本人一律 None，归入"无会话"分支，裁定记录 2026-11-14）→ **Step 2-4: 红→实现→绿** → **Step 5: Commit** `feat: assistant plan generation from clarify slots`
 
 ---
 

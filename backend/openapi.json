@@ -185,6 +185,268 @@
         }
       }
     },
+    "/assistant/plan": {
+      "post": {
+        "tags": [
+          "assistant"
+        ],
+        "summary": "Generate Plan",
+        "operationId": "generate_plan_assistant_plan_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripPlanCard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/trips": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "List Trips",
+        "operationId": "list_trips_trips_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TripPlanCard"
+                  },
+                  "type": "array",
+                  "title": "Response List Trips Trips Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Create Trip",
+        "operationId": "create_trip_trips_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripPlanIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripPlanCard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/trips/{trip_id}": {
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Get Trip",
+        "operationId": "get_trip_trips__trip_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripPlanCard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Delete Trip",
+        "operationId": "delete_trip_trips__trip_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/{trip_id}/status": {
+      "patch": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Update Trip Status",
+        "operationId": "update_trip_status_trips__trip_id__status_patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripStatusIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripPlanCard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/register": {
       "post": {
         "tags": [
@@ -963,6 +1225,69 @@
         ],
         "title": "LogoutOut"
       },
+      "PlanIn": {
+        "properties": {
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "route_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route Id"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "meet_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meet At"
+          },
+          "meet_place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meet Place"
+          }
+        },
+        "type": "object",
+        "title": "PlanIn"
+      },
       "ProfileIn": {
         "properties": {
           "sports": {
@@ -1404,6 +1729,158 @@
           "clarity"
         ],
         "title": "TrackSummaryOut"
+      },
+      "TripPlanCard": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "route_id": {
+            "type": "integer",
+            "title": "Route Id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "meet_at": {
+            "type": "string",
+            "format": "time",
+            "title": "Meet At"
+          },
+          "meet_place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meet Place"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "route_name": {
+            "type": "string",
+            "title": "Route Name"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "sport": {
+            "type": "string",
+            "title": "Sport"
+          },
+          "difficulty": {
+            "type": "integer",
+            "title": "Difficulty"
+          },
+          "distance_km": {
+            "type": "number",
+            "title": "Distance Km"
+          },
+          "climb_m": {
+            "type": "integer",
+            "title": "Climb M"
+          },
+          "duration_h": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration H"
+          },
+          "gear_missing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Gear Missing"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "route_id",
+          "date",
+          "meet_at",
+          "meet_place",
+          "status",
+          "route_name",
+          "region",
+          "sport",
+          "difficulty",
+          "distance_km",
+          "climb_m",
+          "duration_h",
+          "gear_missing"
+        ],
+        "title": "TripPlanCard"
+      },
+      "TripPlanIn": {
+        "properties": {
+          "route_id": {
+            "type": "integer",
+            "title": "Route Id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "meet_at": {
+            "type": "string",
+            "format": "time",
+            "title": "Meet At"
+          },
+          "meet_place": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 96
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meet Place"
+          }
+        },
+        "type": "object",
+        "required": [
+          "route_id",
+          "date",
+          "meet_at"
+        ],
+        "title": "TripPlanIn"
+      },
+      "TripStatusIn": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "TripStatusIn"
       },
       "UserOut": {
         "properties": {
