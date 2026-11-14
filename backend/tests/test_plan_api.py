@@ -64,8 +64,8 @@ async def test_explicit_route_and_date_200(client, db):
 async def test_session_slots_top1_and_default_meet_at(client, db):
     await seed_routes(db)
     h, uid = await _auth(client, "slot@b.com")
-    # region 槽位用 REGION_KEYWORDS 中能命中种子路线 region 列的词（"梅里"仅
-    # 命中雨崩线；"雨崩"只出现在路线名里，list_routes 的 region ilike 不匹配）
+    # region 槽位用 REGION_KEYWORDS 中能命中种子路线的词（"梅里"命中雨崩线
+    # 的 region 列；"雨崩"命中路线名，两词过滤后均只剩雨崩线一个候选）
     sid = await _plan_session(db, uid, {"sport": "hiking", "region": "梅里"})
     r = await client.post(
         "/assistant/plan", json={"session_id": sid, "date": "2026-11-20"}, headers=h
@@ -78,6 +78,22 @@ async def test_session_slots_top1_and_default_meet_at(client, db):
     assert body["meet_at"] == "08:00:00"  # meet_at 缺省 → 08:00
     assert body["meet_place"] is None
     assert body["gear_missing"] == REQUIRED
+
+
+async def test_session_region_name_keyword_top1(client, db):
+    # 真实场景：用户说"想去雨崩"→ clarify 抽取 region="雨崩"（只出现在路线
+    # 名，region 列是"云南迪庆州德钦县·梅里雪山"）→ name 列兜底命中雨崩线
+    await seed_routes(db)
+    h, uid = await _auth(client, "yubeng@b.com")
+    sid = await _plan_session(db, uid, {"sport": "hiking", "region": "雨崩"})
+    r = await client.post(
+        "/assistant/plan", json={"session_id": sid, "date": "2026-11-20"}, headers=h
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["user_id"] == uid
+    assert body["route_id"] == 1
+    assert "雨崩" in body["route_name"]
 
 
 async def test_date_from_slot_parsed(client, db):

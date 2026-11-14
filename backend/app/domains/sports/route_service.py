@@ -11,7 +11,9 @@ async def list_routes(session: AsyncSession, sport: str | None = None, region: s
     if sport:
         stmt = stmt.where(Route.sport == sport)
     if region:
-        stmt = stmt.where(Route.region.ilike(f"%{region}%"))
+        # region 关键词同时匹配地区列与路线名（"雨崩/虎跳峡"等词只出现在
+        # 路线名里，clarify 抽取的 region 槽位才能命中）。
+        stmt = stmt.where(Route.region.ilike(f"%{region}%") | Route.name.ilike(f"%{region}%"))
     if difficulty_max:
         stmt = stmt.where(Route.difficulty <= difficulty_max)
     if clarity:

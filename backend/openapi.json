@@ -852,8 +852,10 @@
                   "type": "null"
                 }
               ],
+              "description": "地区关键词，匹配地区或路线名",
               "title": "Region"
-            }
+            },
+            "description": "地区关键词，匹配地区或路线名"
           },
           {
             "name": "difficulty_max",
@@ -1276,7 +1278,8 @@
           "meet_place": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 96
               },
               {
                 "type": "null"

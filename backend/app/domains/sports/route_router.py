@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from gpxpy.gpx import GPXException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,7 +12,8 @@ router = APIRouter(prefix="/routes", tags=["routes"])
 
 
 @router.get("", response_model=list[RouteOut])
-async def list_routes(sport: str | None = None, region: str | None = None,
+async def list_routes(sport: str | None = None,
+                      region: str | None = Query(None, description="地区关键词，匹配地区或路线名"),
                       difficulty_max: int | None = None, clarity: str | None = None,
                       session: AsyncSession = Depends(get_session)) -> list[RouteOut]:
     rows = await route_service.list_routes(session, sport, region, difficulty_max, clarity)
