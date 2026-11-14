@@ -36,8 +36,10 @@ MIME_BY_EXT = {".mp4": "video/mp4", ".mov": "video/quicktime", ".webm": "video/w
 PRESIGN_EXPIRES_S = 600
 DOWNLOAD_EXPIRES_S = 3600
 
-# 服务端签发的 key 格式（防任意 key 注入：路径穿越、他人 bucket 路径、大写扩展名）
-KEY_RE = re.compile(r"^media/[0-9a-f]{32}\.(mp4|mov|webm)$")
+# 服务端签发的 key 格式（防任意 key 注入：路径穿越、他人 bucket 路径、大写扩展名）。
+# 校验用 fullmatch 而非 $ 锚点：$ 允许结尾换行，"media/<32hex>.mp4\n" 会绕过格式门
+# （本应 422 却放行到对象查询变 404）；fullmatch 要求整串匹配，杜绝该绕过。
+KEY_RE = re.compile(r"media/[0-9a-f]{32}\.(mp4|mov|webm)")
 MAGIC_LEN = 16  # head 读取长度：同时覆盖 mp4 ftyp（bytes 4-8）与 webm EBML 头（前 4 字节）
 WEBM_MAGIC = b"\x1aE\xdf\xa3"
 
@@ -49,7 +51,11 @@ class PresignIn(BaseModel):
     size: int
 
 
-class RegisterIn(BaseModel):
+class MediaRegisterIn(BaseModel):
+    """登记请求体。不复用 auth 的 RegisterIn 同名类：FastAPI 对重名 schema 生成
+    限定名（app__domains__...），会把 /auth/register 的 openapi ref 一并改成限定名，
+    破坏外部按 `RegisterIn` 名引用的消费者。"""
+
     object_key: str
     filename: str
     size: int
@@ -81,6 +87,21 @@ class MediaUrlOut(BaseModel):
     expires_in: int
 
 
+class MediaReviewIn(BaseModel):
+    """admin 审核请求体：action ∈ {approve, reject}（白名单外 → 400）。"""
+
+    action: str
+
+
+class MediaReviewOut(BaseModel):
+    id: int
+    status: str
+
+
+# 审核动作 → 目标状态（白名单映射，review_media 复用）
+REVIEW_ACTIONS = {"approve": "approved", "reject": "rejected"}
+
+
 # ---- 领域异常（路由层映射 HTTP 状态码，同 trip_service 的 ValueError 模式） ----
 class MediaKeyInvalid(ValueError):
     """object_key 不符合签发格式或已被登记 → 422。"""
@@ -100,6 +121,14 @@ class MediaNotFound(Exception):
 
 class MediaNotApproved(Exception):
     """媒体未通过审核（pending/rejected）→ 403。"""
+
+
+class InvalidReviewAction(ValueError):
+    """审核动作不在 {approve, reject} 白名单 → 400。"""
+
+
+class MediaAlreadyReviewed(Exception):
+    """非 pending 状态再次审核（重复审核）→ 400。"""
 
 
 def _check_ext(filename: str) -> str:
@@ -146,7 +175,7 @@ async def register_media(
     """登记直传完成的对象：key 格式白名单 → 重复登记检查 → head 16 字节 magic
     校验 → MediaItem(pending)。filename 为 brief 契约字段但模型无对应列，不落库。
     """
-    if not KEY_RE.match(object_key):
+    if not KEY_RE.fullmatch(object_key):
         raise MediaKeyInvalid("object_key 格式非法")
     dup = (
         await session.execute(select(MediaItem).where(MediaItem.object_key == object_key))
@@ -188,3 +217,24 @@ async def download_url(
         raise MediaNotApproved("未通过审核")
     url = store.presign_get(item.object_key, DOWNLOAD_EXPIRES_S)
     return MediaUrlOut(url=url, expires_in=DOWNLOAD_EXPIRES_S)
+
+
+async def review_media(session: AsyncSession, media_id: int, action: str) -> MediaItem:
+    """admin 审核（M6-media Task 3）：pending → approved/rejected，状态机单向一次。
+
+    rejected 不删除对象：留证优先（审核依据/申诉复查/审计），仅改 status 使
+    download_url 持续 403，对象可随后续策略（定期清理）再处置。
+    非法 action → InvalidReviewAction（400）；媒体不存在 → MediaNotFound（404）；
+    非 pending 重复审核 → MediaAlreadyReviewed（400）。
+    """
+    target = REVIEW_ACTIONS.get(action)
+    if target is None:
+        raise InvalidReviewAction("非法审核动作")
+    item = await session.get(MediaItem, media_id)
+    if item is None:
+        raise MediaNotFound("媒体不存在")
+    if item.status != "pending":
+        raise MediaAlreadyReviewed("已审核过")
+    item.status = target
+    await session.commit()  # 项目约定 expire_on_commit=False，commit 后属性可用
+    return item

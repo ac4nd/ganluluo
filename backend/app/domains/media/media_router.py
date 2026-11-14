@@ -19,10 +19,10 @@ from app.domains.media.media_service import (
     MediaObjectMissing,
     MediaOut,
     MediaRegisteredOut,
+    MediaRegisterIn,
     MediaUrlOut,
     PresignIn,
     PresignOut,
-    RegisterIn,
 )
 from app.domains.media.media_store import MediaStore, get_media_store
 from app.models.user import User
@@ -49,7 +49,7 @@ async def presign(
 
 @router.post("", response_model=MediaRegisteredOut, status_code=201)
 async def register_media(
-    data: RegisterIn,
+    data: MediaRegisterIn,
     current: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
     store: MediaStore = Depends(get_store),

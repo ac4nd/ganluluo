@@ -140,6 +140,16 @@ async def test_register_invalid_and_foreign_key_422(media_client):
     assert r.status_code == 422
 
 
+async def test_register_key_trailing_newline_422(media_client):
+    """格式门用 fullmatch：合法 key 加结尾换行不得放行（$ 锚点会被 \n 绕过，本应 422 却 404）。"""
+    c, _ = media_client
+    h, _ = await _auth(c, "newline@b.com")
+    key = f"media/{uuid.uuid4().hex}.mp4\n"
+    r = await c.post("/media", json={"object_key": key, "filename": "clip.mp4", "size": 10}, headers=h)
+    assert r.status_code == 422
+    assert r.json()["detail"] == "object_key 格式非法"
+
+
 async def test_my_list_desc_and_contract(media_client, db):
     c, store = media_client
     h, uid = await _auth(c, "list@b.com")

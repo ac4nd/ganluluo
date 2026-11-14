@@ -288,6 +288,136 @@
         }
       }
     },
+    "/admin/media": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "List Media",
+        "description": "媒体审核分页列表：默认 pending 待审队列；status 白名单外 → 422；按 id asc（同 /admin/users）。",
+        "operationId": "list_media_admin_media_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "pending",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaPageOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/media/{media_id}/review": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Review Media",
+        "description": "审核：pending → approved/rejected；rejected 不删对象（留证，见 media_service.review_media）。",
+        "operationId": "review_media_admin_media__media_id__review_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "media_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Media Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaReviewIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaReviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/assistant/chat": {
       "post": {
         "tags": [
@@ -717,7 +847,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/app__domains__auth__schemas__RegisterIn"
+                "$ref": "#/components/schemas/RegisterIn"
               }
             }
           },
@@ -1407,7 +1537,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/app__domains__media__media_service__RegisterIn"
+                "$ref": "#/components/schemas/MediaRegisterIn"
               }
             }
           },
@@ -1522,6 +1652,45 @@
   },
   "components": {
     "schemas": {
+      "AdminMediaOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "kind",
+          "status",
+          "size_bytes",
+          "created_at"
+        ],
+        "title": "AdminMediaOut"
+      },
       "AdminUserOut": {
         "properties": {
           "id": {
@@ -1851,6 +2020,61 @@
         ],
         "title": "MediaOut"
       },
+      "MediaPageOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminMediaOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "size"
+        ],
+        "title": "MediaPageOut"
+      },
+      "MediaRegisterIn": {
+        "properties": {
+          "object_key": {
+            "type": "string",
+            "title": "Object Key"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "object_key",
+          "filename",
+          "size"
+        ],
+        "title": "MediaRegisterIn",
+        "description": "登记请求体。不复用 auth 的 RegisterIn 同名类：FastAPI 对重名 schema 生成\n限定名（app__domains__...），会把 /auth/register 的 openapi ref 一并改成限定名，\n破坏外部按 `RegisterIn` 名引用的消费者。"
+      },
       "MediaRegisteredOut": {
         "properties": {
           "id": {
@@ -1868,6 +2092,38 @@
           "status"
         ],
         "title": "MediaRegisteredOut"
+      },
+      "MediaReviewIn": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "title": "Action"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "MediaReviewIn",
+        "description": "admin 审核请求体：action ∈ {approve, reject}（白名单外 → 400）。"
+      },
+      "MediaReviewOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status"
+        ],
+        "title": "MediaReviewOut"
       },
       "MediaUrlOut": {
         "properties": {
@@ -2084,6 +2340,52 @@
           "refresh_token"
         ],
         "title": "RefreshIn"
+      },
+      "RegisterIn": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^1\\d{10}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 72,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "nickname": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Nickname"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password",
+          "nickname"
+        ],
+        "title": "RegisterIn"
       },
       "RouteDetailOut": {
         "properties": {
@@ -2785,75 +3087,6 @@
           "type"
         ],
         "title": "ValidationError"
-      },
-      "app__domains__auth__schemas__RegisterIn": {
-        "properties": {
-          "email": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "email"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Email"
-          },
-          "phone": {
-            "anyOf": [
-              {
-                "type": "string",
-                "pattern": "^1\\d{10}$"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone"
-          },
-          "password": {
-            "type": "string",
-            "maxLength": 72,
-            "minLength": 8,
-            "title": "Password"
-          },
-          "nickname": {
-            "type": "string",
-            "maxLength": 32,
-            "minLength": 1,
-            "title": "Nickname"
-          }
-        },
-        "type": "object",
-        "required": [
-          "password",
-          "nickname"
-        ],
-        "title": "RegisterIn"
-      },
-      "app__domains__media__media_service__RegisterIn": {
-        "properties": {
-          "object_key": {
-            "type": "string",
-            "title": "Object Key"
-          },
-          "filename": {
-            "type": "string",
-            "title": "Filename"
-          },
-          "size": {
-            "type": "integer",
-            "title": "Size"
-          }
-        },
-        "type": "object",
-        "required": [
-          "object_key",
-          "filename",
-          "size"
-        ],
-        "title": "RegisterIn"
       }
     },
     "securitySchemes": {

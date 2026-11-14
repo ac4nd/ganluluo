@@ -1,7 +1,10 @@
-"""管理 API（M5-admin Task 4）：/admin 用户管理与路线审核，admin 域对外 API 面。
+"""管理 API（M5-admin Task 4 + M6-media Task 3）：/admin 用户管理、路线审核与媒体审核。
 
-5 端点全部 Depends(get_current_admin)（Task 1 依赖）：普通用户 403 "需要管理员权限"，
+7 端点全部 Depends(get_current_admin)（Task 1 依赖）：普通用户 403 "需要管理员权限"，
 禁用账号在其上游 get_current_user 即 403 "账号已禁用"。
+
+媒体审核两端点复用 media_service（状态机 review_media / 审核动作白名单）：
+rejected 不删对象（留证），仅改 status 使用户侧 download_url 持续 403。
 
 交接①：PATCH 置 disabled=True 时必须显式吊销该用户全部 refresh tokens
 （jwt_service._revoke_all）：Task 1 审查实测 refresh 的 disabled 分支 claim 更新未
@@ -19,12 +22,22 @@ from app.api.deps import get_current_admin
 from app.core.db import get_session
 from app.domains.admin.quota_service import get_status
 from app.domains.auth.jwt_service import _revoke_all
+from app.domains.media import media_service
+from app.domains.media.media_service import (
+    InvalidReviewAction,
+    MediaAlreadyReviewed,
+    MediaNotFound,
+    MediaReviewIn,
+    MediaReviewOut,
+)
+from app.models.media import MediaItem
 from app.models.route import Route
 from app.models.user import User
 
 router = APIRouter()
 
 VALID_TIERS = {"trial", "vip"}
+VALID_MEDIA_STATUS = {"pending", "approved", "rejected"}
 
 
 class AdminUserOut(BaseModel):
@@ -73,6 +86,24 @@ class DraftRouteOut(BaseModel):
 class PublishOut(BaseModel):
     ok: bool
     status: str
+
+
+class AdminMediaOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    kind: str
+    status: str
+    size_bytes: int
+    created_at: datetime
+
+
+class MediaPageOut(BaseModel):
+    items: list[AdminMediaOut]
+    total: int
+    page: int
+    size: int
 
 
 async def _live_user(session: AsyncSession, user_id: int) -> User | None:
@@ -185,3 +216,43 @@ async def publish_route(
     route.status = "published"
     await session.commit()
     return PublishOut(ok=True, status="published")
+
+
+@router.get("/media", response_model=MediaPageOut)
+async def list_media(
+    status: str = Query("pending"),
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
+    _admin: User = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> MediaPageOut:
+    """媒体审核分页列表：默认 pending 待审队列；status 白名单外 → 422；按 id asc（同 /admin/users）。"""
+    if status not in VALID_MEDIA_STATUS:
+        raise HTTPException(status_code=422, detail="非法媒体状态")
+    stmt = select(MediaItem).where(MediaItem.status == status)
+    total = (
+        await session.execute(select(func.count()).select_from(stmt.subquery()))
+    ).scalar_one()
+    rows = (
+        await session.execute(stmt.order_by(MediaItem.id).offset((page - 1) * size).limit(size))
+    ).scalars().all()
+    return MediaPageOut(items=[AdminMediaOut.model_validate(m) for m in rows], total=total, page=page, size=size)
+
+
+@router.post("/media/{media_id}/review", response_model=MediaReviewOut)
+async def review_media(
+    media_id: int,
+    payload: MediaReviewIn,
+    _admin: User = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> MediaReviewOut:
+    """审核：pending → approved/rejected；rejected 不删对象（留证，见 media_service.review_media）。"""
+    try:
+        item = await media_service.review_media(session, media_id, payload.action)
+    except InvalidReviewAction as e:  # action 白名单（approve/reject）外
+        raise HTTPException(status_code=400, detail=str(e)) from None
+    except MediaNotFound as e:  # 媒体不存在
+        raise HTTPException(status_code=404, detail=str(e)) from None
+    except MediaAlreadyReviewed as e:  # 非 pending 重复审核
+        raise HTTPException(status_code=400, detail=str(e)) from None
+    return MediaReviewOut(id=item.id, status=item.status)
