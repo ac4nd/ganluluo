@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, time
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.quota import LlmUsage, QuotaTier
@@ -77,12 +78,20 @@ _TIERS: dict[str, tuple[int, int, str]] = {
 
 async def seed_tiers(session: AsyncSession) -> int:
     """确保 trial/vip 档位行存在（已存在则跳过），返回本次新建行数。"""
-    existing = set(await session.scalars(select(QuotaTier.tier)))
-    created = 0
-    for tier, (chats, tokens, desc) in _TIERS.items():
-        if tier in existing:
-            continue
-        session.add(QuotaTier(tier=tier, daily_chats=chats, daily_tokens=tokens, description=desc))
-        created += 1
-    await session.commit()
-    return created
+    try:
+        existing = set(await session.scalars(select(QuotaTier.tier)))
+        created = 0
+        for tier, (chats, tokens, desc) in _TIERS.items():
+            if tier in existing:
+                continue
+            session.add(QuotaTier(tier=tier, daily_chats=chats, daily_tokens=tokens, description=desc))
+            created += 1
+        await session.commit()
+        return created
+    except IntegrityError:
+        # 并发首注册竞态：两进程同时对空表 INSERT 同主键档位行，输者在 flush/commit
+        # 期撞唯一约束。吞错 + 回滚保证幂等（对手进程已建行，本侧按 0 新建计），
+        # 否则 IntegrityError 上抛会被 auth/router 的注册 409 分支误捕（此时用户行
+        # 已在 seed_tiers 之前建成，造成"注册失败但用户已存在"）。
+        await session.rollback()
+        return 0

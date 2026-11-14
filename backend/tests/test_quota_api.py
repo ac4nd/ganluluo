@@ -6,14 +6,16 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
 
 from app.assistant.llm import Delta, FakeProvider
+from app.assistant.orchestrator import run_chat
 from app.assistant.router import assistant_provider
 from app.assistant.session_store import create_session
 from app.core.db import get_session
 from app.core.security import decode_token
-from app.domains.admin.quota_service import record_usage
+from app.domains.admin.quota_service import get_status, record_usage
 from app.main import create_app
 from app.models.assistant import AssistantMessage
 from app.models.quota import LlmUsage
+from app.models.user import User
 
 from .test_auth_login import register_and_login
 
@@ -104,3 +106,31 @@ async def test_chat_rate_limited_429(chat):
     token = tokens["access_token"]
     statuses = [(await post_chat(client, token, f"第{i}次聊天")).status_code for i in range(6)]
     assert statuses == [200, 200, 200, 200, 200, 429]
+
+
+async def test_chat_disconnect_writes_partial_usage(client, db):
+    """I-1：客户端中途断开不丢用量。收 1 个 token 后 aclose 生成器（≡ Starlette 取消
+    SSE 生成器 → GeneratorExit）→ finally 补写 1 条部分用量；用户消息已落库、
+    assistant 收尾消息与 done 不再产出。"""
+    provider = FakeProvider(turns=[[Delta(type="token", text="读到一半就断开了足够长"),
+                                    Delta(type="token", text="后半不会被消费"),
+                                    Delta(type="done")]])
+    tokens = await register_and_login(client, email="qdisc@b.com")
+    user_id = int(decode_token(tokens["access_token"])["sub"])
+    user = (await db.execute(select(User).where(User.id == user_id))).scalar_one()
+    sess = await create_session(db, user_id, title="断开用例")
+    quota = await get_status(db, user_id, user.quota_tier)
+
+    gen = run_chat(db, user, sess, "你好", provider, quota=quota)
+    assert await gen.__anext__() == {"type": "token", "data": "读到一半就断开了足够长"}
+    await gen.aclose()  # 等价客户端断开：GeneratorExit 进 finally，补写部分用量
+
+    rows = (await db.execute(select(LlmUsage).where(LlmUsage.user_id == user_id))).scalars().all()
+    assert len(rows) == 1  # 断开流恰好补写 1 条，不重复
+    row = rows[0]
+    assert row.completion_tokens > 0  # 部分用量（已收 token 文本 //2）
+    assert row.total_tokens == row.prompt_tokens + row.completion_tokens
+    msgs = (await db.execute(
+        select(AssistantMessage).where(AssistantMessage.session_id == sess.id))).scalars().all()
+    assert [m.role for m in msgs] == ["user"]  # 用户消息已落库；assistant 收尾消息未写
+    assert msgs[0].content == "你好"

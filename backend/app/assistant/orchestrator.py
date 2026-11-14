@@ -97,52 +97,70 @@ async def run_chat(session: AsyncSession, user: User, sess: AssistantSession,
     messages.extend({"role": m.role, "content": m.content} for m in recent)
 
     text_parts: list[str] = []
-    for _round in range(MAX_TOOL_ROUNDS):
-        round_text: list[str] = []
-        calls: list[dict] = []
-        for delta in provider.chat_stream(messages, tool_registry.TOOL_SPECS):
-            if delta.type == "token" and delta.text:
-                round_text.append(delta.text)
-                yield {"type": "token", "data": delta.text}
-            elif delta.type == "tool_calls" and delta.tool_calls:
-                calls.extend(delta.tool_calls)
-        text_parts.extend(round_text)
-        if not calls:
-            break
-        messages.append({"role": "assistant", "content": "".join(round_text),
-                         "tool_calls": [{"name": str(c.get("name", "")),
-                                         "arguments": str(c.get("arguments", "{}"))}
-                                        for c in calls]})
-        cards: list[dict] = []
-        for call_id, call in enumerate(calls):
-            name = str(call.get("name", ""))
-            try:
-                arguments = json.loads(call.get("arguments") or "{}")
-                if not isinstance(arguments, dict):
-                    arguments = {}
-            except json.JSONDecodeError:
-                arguments = {}
-            try:
-                result = await tool_registry.execute_tool(session, user, name, arguments)
-            except ValueError as exc:
-                result = {"error": str(exc)}
-            content = json.dumps(result, ensure_ascii=False)[:2000]
-            await session_service.append_message(session, sess, "tool", content,
-                                                 tool_name=name)
-            if name == "search_routes":
-                cards.extend(result.get("cards", []))
-            messages.append({"role": "tool", "tool_call_id": str(call_id),
-                             "name": name, "content": content})
-        if cards:
-            yield {"type": "cards", "data": cards}
-
-    await session_service.append_message(session, sess, "assistant", "".join(text_parts))
-    # 用量写入（record_usage 是唯一合法路径）：流结束后按字符数 //2 估算一次写入。
-    # prompt 取组装的 system 上下文+消息总字符数，completion 取生成正文；
-    # 仅 LLM 生成轮记录（澄清追问轮未调用 provider，不写 llm_usage）。
-    # model：provider 自带 model（OpenAICompat）→ 配置 llm_model → "unknown" 兜底。
+    tool_round_used = False
+    usage_written = False
+    # model 取值提前到循环前（finally 断开补写复用）：provider 自带 model（OpenAICompat）
+    # → 配置 llm_model → "unknown" 兜底。
     model = str(getattr(provider, "model", "") or get_settings().llm_model or "unknown")
-    await record_usage(session, user.id, sess.id, model,
-                       sum(len(str(m["content"])) for m in messages) // 2,
-                       len("".join(text_parts)) // 2)
+    try:
+        for _round in range(MAX_TOOL_ROUNDS):
+            round_text: list[str] = []
+            calls: list[dict] = []
+            for delta in provider.chat_stream(messages, tool_registry.TOOL_SPECS):
+                if delta.type == "token" and delta.text:
+                    round_text.append(delta.text)
+                    # 同步进累计变量：断开（GeneratorExit）发生在 yield 点，此时本轮
+                    # 尚未结束、round_text 还没合入累计，finally 须能看到已产出文本
+                    text_parts.append(delta.text)
+                    yield {"type": "token", "data": delta.text}
+                elif delta.type == "tool_calls" and delta.tool_calls:
+                    calls.extend(delta.tool_calls)
+            if not calls:
+                break
+            tool_round_used = True
+            messages.append({"role": "assistant", "content": "".join(round_text),
+                             "tool_calls": [{"name": str(c.get("name", "")),
+                                             "arguments": str(c.get("arguments", "{}"))}
+                                            for c in calls]})
+            cards: list[dict] = []
+            for call_id, call in enumerate(calls):
+                name = str(call.get("name", ""))
+                try:
+                    arguments = json.loads(call.get("arguments") or "{}")
+                    if not isinstance(arguments, dict):
+                        arguments = {}
+                except json.JSONDecodeError:
+                    arguments = {}
+                try:
+                    result = await tool_registry.execute_tool(session, user, name, arguments)
+                except ValueError as exc:
+                    result = {"error": str(exc)}
+                content = json.dumps(result, ensure_ascii=False)[:2000]
+                await session_service.append_message(session, sess, "tool", content,
+                                                     tool_name=name)
+                if name == "search_routes":
+                    cards.extend(result.get("cards", []))
+                messages.append({"role": "tool", "tool_call_id": str(call_id),
+                                 "name": name, "content": content})
+            if cards:
+                yield {"type": "cards", "data": cards}
+
+        await session_service.append_message(session, sess, "assistant", "".join(text_parts))
+        # 用量写入（record_usage 是唯一合法路径）：流结束后按字符数 //2 估算一次写入。
+        # prompt 取组装的 system 上下文+消息总字符数，completion 取生成正文；
+        # 仅 LLM 生成轮记录（澄清追问轮未调用 provider，不写 llm_usage）。
+        await record_usage(session, user.id, sess.id, model,
+                           sum(len(str(m["content"])) for m in messages) // 2,
+                           len("".join(text_parts)) // 2)
+        usage_written = True
+    finally:
+        # I-1：客户端中途断开时 Starlette 取消生成器（aclose → GeneratorExit），生成主
+        # 循环异常退出，正常尾部的 record_usage 不执行 → 真实 LLM 成本已发生却零计数，
+        # 日配额可被"读 N 个 token 就断开"绕过。finally 里未写过且有产出（token 文本
+        # 非空或工具轮发生）才补写：正常流恰好 1 条（usage_written 已置位跳过）、断开流
+        # 补 1 条部分用量；clarify-only 等零产出路径不进 try，维持不写。
+        if not usage_written and (text_parts or tool_round_used):
+            await record_usage(session, user.id, sess.id, model,
+                               sum(len(str(m["content"])) for m in messages) // 2,
+                               len("".join(text_parts)) // 2)
     yield {"type": "done"}

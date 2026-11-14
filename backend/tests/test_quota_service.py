@@ -48,3 +48,15 @@ async def test_status_falls_back_without_tier_row(db):
     assert st.daily_chats_limit == 5 and st.daily_tokens_limit == 20000
     assert st.daily_chats_used == 0 and st.daily_tokens_used == 0
     assert st.allowed is True
+
+
+async def test_seed_tiers_swallows_duplicate_pk_integrity_error(db):
+    """并发首注册竞态模拟：seed 与已提交行撞同主键（对手进程已建 trial 行）→
+    seed_tiers 吞掉 IntegrityError 回滚返回 0，不抛给 auth/router 的注册 409 分支。"""
+    assert await seed_tiers(db) >= 2
+    # 往会话塞一条同主键待 flush 行，模拟并发对手行：seed_tiers 内部查询 autoflush
+    # 时 INSERT 撞已提交 trial 的主键 → IntegrityError 在其 commit 链路触发
+    db.add(QuotaTier(tier="trial", daily_chats=5, daily_tokens=20000, description="并发对手行"))
+    assert await seed_tiers(db) == 0  # 不抛：吞错 + 回滚
+    rows = {t.tier for t in await db.scalars(select(QuotaTier))}
+    assert rows == {"trial", "vip"}  # 已提交数据完好、冲突行未落库

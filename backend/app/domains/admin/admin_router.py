@@ -124,11 +124,15 @@ async def patch_user(
         user.quota_tier = payload.quota_tier
     if payload.disabled is not None:
         user.disabled = payload.disabled
-    await session.commit()
     if payload.disabled:
-        # 交接①：烧掉该用户全部 refresh tokens（_revoke_all 自带 commit），否则
-        # re-enable 后旧 token 复活续期；吊销后 refresh 走 401 而非 disabled 403 分支
+        # 交接①：烧掉该用户全部 refresh tokens，否则 re-enable 后旧 token 复活续期；
+        # 吊销后 refresh 走 401 而非 disabled 403 分支。
+        # I-2：disable 路径不再提前 commit——_revoke_all 内部 UPDATE + commit 收尾时
+        # 用户字段变更随同一次提交，消除"字段已提交、吊销未提交"中间崩溃 + 之后
+        # re-enable 让旧 refresh token 复活续期的窗口。
         await _revoke_all(session, user.id)
+    else:
+        await session.commit()
     return AdminUserOut.model_validate(user)
 
 
