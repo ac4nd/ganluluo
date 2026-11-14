@@ -106,7 +106,7 @@ async def run_chat(session: AsyncSession, user: User, sess: AssistantSession,
         for _round in range(MAX_TOOL_ROUNDS):
             round_text: list[str] = []
             calls: list[dict] = []
-            for delta in provider.chat_stream(messages, tool_registry.TOOL_SPECS):
+            async for delta in provider.chat_stream(messages, tool_registry.TOOL_SPECS):
                 if delta.type == "token" and delta.text:
                     round_text.append(delta.text)
                     # 同步进累计变量：断开（GeneratorExit）发生在 yield 点，此时本轮
@@ -118,12 +118,18 @@ async def run_chat(session: AsyncSession, user: User, sess: AssistantSession,
             if not calls:
                 break
             tool_round_used = True
+            # OpenAI wire 合规：先为每个 call 定 id（wire 原生 id 优先，无则按轮次
+            # 合成 call_{round}_{index}），再组装 assistant/tool 两类消息——保证
+            # tool 消息 tool_call_id 与 assistant.tool_calls[].id 一一对应（合成 id
+            # 时两侧同源），否则真实 OpenAI 兼容 Provider 第二轮请求会 400。
+            call_ids = [str(c.get("id") or f"call_{_round}_{i}") for i, c in enumerate(calls)]
             messages.append({"role": "assistant", "content": "".join(round_text),
-                             "tool_calls": [{"name": str(c.get("name", "")),
-                                             "arguments": str(c.get("arguments", "{}"))}
-                                            for c in calls]})
+                             "tool_calls": [{"id": cid, "type": "function",
+                                             "function": {"name": str(c.get("name", "")),
+                                                          "arguments": str(c.get("arguments", "{}"))}}
+                                            for cid, c in zip(call_ids, calls)]})
             cards: list[dict] = []
-            for call_id, call in enumerate(calls):
+            for call_id, call in zip(call_ids, calls):
                 name = str(call.get("name", ""))
                 try:
                     arguments = json.loads(call.get("arguments") or "{}")
@@ -140,7 +146,7 @@ async def run_chat(session: AsyncSession, user: User, sess: AssistantSession,
                                                      tool_name=name)
                 if name == "search_routes":
                     cards.extend(result.get("cards", []))
-                messages.append({"role": "tool", "tool_call_id": str(call_id),
+                messages.append({"role": "tool", "tool_call_id": call_id,
                                  "name": name, "content": content})
             if cards:
                 yield {"type": "cards", "data": cards}

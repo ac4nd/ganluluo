@@ -155,6 +155,57 @@ async def test_tool_call_flow(chat, db):
     assert json.loads(tool_rows[0].content)["cards"]
 
 
+async def test_tool_call_wire_id_roundtrip(chat, db):
+    """③b FakeProvider tool_calls 带 wire id → 二次请求组装 wire 合规：
+    assistant.tool_calls 为 [{id, type: "function", function: {...}}]，tool 消息
+    tool_call_id 与 assistant 声明的 id 一一对应。"""
+    app, client = chat
+    await seed_routes(db)
+    provider = FakeProvider(turns=[
+        [Delta(type="tool_calls", tool_calls=[
+            {"name": "search_routes", "arguments": '{"sport":"hiking"}', "id": "call_42"}]),
+         Delta(type="done")],
+        [Delta(type="token", text="为你找到"), Delta(type="done")],
+    ])
+    app.dependency_overrides[assistant_provider] = lambda: provider
+    tokens = await register_and_login(client, email="wire@b.com")
+    r = await post_chat(client, tokens["access_token"], "推荐周六去雨崩徒步")
+    assert r.status_code == 200
+    assert len(provider.calls) == 2
+    msgs = provider.calls[1]["messages"]
+    assistant_tool = [m for m in msgs if m.get("tool_calls")]
+    assert assistant_tool[0]["tool_calls"] == [{
+        "id": "call_42", "type": "function",
+        "function": {"name": "search_routes", "arguments": '{"sport":"hiking"}'}}]
+    tool_msgs = [m for m in msgs if m["role"] == "tool"]
+    assert tool_msgs[0]["tool_call_id"] == "call_42"
+
+
+async def test_tool_call_synthesized_ids(chat, db):
+    """③c tool_calls 无 id（旧脚本格式）→ 编排层按轮次合成 call_{round}_{index}，
+    assistant 与 tool 两侧消息使用同一合成 id。"""
+    app, client = chat
+    await seed_routes(db)
+    provider = FakeProvider(turns=[
+        [Delta(type="tool_calls", tool_calls=[
+            {"name": "search_routes", "arguments": '{"sport":"hiking"}'}]),
+         Delta(type="done")],
+        [Delta(type="token", text="为你找到"), Delta(type="done")],
+    ])
+    app.dependency_overrides[assistant_provider] = lambda: provider
+    tokens = await register_and_login(client, email="syn@b.com")
+    r = await post_chat(client, tokens["access_token"], "推荐周六去雨崩徒步")
+    assert r.status_code == 200
+    assert len(provider.calls) == 2
+    msgs = provider.calls[1]["messages"]
+    assistant_tool = [m for m in msgs if m.get("tool_calls")]
+    assert assistant_tool[0]["tool_calls"] == [{
+        "id": "call_0_0", "type": "function",
+        "function": {"name": "search_routes", "arguments": '{"sport":"hiking"}'}}]
+    tool_msgs = [m for m in msgs if m["role"] == "tool"]
+    assert tool_msgs[0]["tool_call_id"] == "call_0_0"
+
+
 async def test_chat_requires_auth(chat):
     """④ 未带令牌 → 401。"""
     _app, client = chat
