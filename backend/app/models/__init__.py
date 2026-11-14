@@ -5,6 +5,7 @@ from app.models.kb import KbChunk, KbDoc
 from app.models.profile import UserProfile
 from app.models.refresh_token import RefreshToken
 from app.models.route import Route
+from app.models.track import RouteTrack
 from app.models.trip import TripPlan
 from app.models.user import User
 
@@ -17,6 +18,7 @@ __all__ = [
     "KbDoc",
     "RefreshToken",
     "Route",
+    "RouteTrack",
     "TripPlan",
     "User",
     "UserGear",
