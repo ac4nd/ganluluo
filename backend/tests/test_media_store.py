@@ -43,6 +43,16 @@ def test_fake_head_bytes_missing_key_raises():
         store.head_bytes("videos/ghost.mp4", 4)
 
 
+def test_head_bytes_rejects_non_positive_n():
+    # M6 Task 2 审查交接：登记端点固定 head 16 字节，n>=1 防护在 store 层统一兜底
+    store = FakeMediaStore()
+    store.put(KEY, b"data")
+    with pytest.raises(ValueError):
+        store.head_bytes(KEY, 0)
+    with pytest.raises(ValueError):
+        store.head_bytes(KEY, -1)
+
+
 def test_get_media_store_unconfigured_falls_back_to_fake(monkeypatch):
     # 显式置空四项（环境变量优先于 .env 文件），保证"未配置"语义
     for name in ("GL_MINIO_ENDPOINT", "GL_MINIO_ACCESS_KEY", "GL_MINIO_SECRET_KEY", "GL_MINIO_BUCKET"):

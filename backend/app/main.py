@@ -22,6 +22,7 @@ from app.assistant.plan_router import router as plan_router
 from app.assistant.router import router as assistant_router
 from app.domains.admin.admin_router import router as admin_router
 from app.domains.auth.router import router as auth_router
+from app.domains.media.media_router import router as media_router
 from app.domains.sports.gear_router import router as gear_router
 from app.domains.sports.profile_router import router as profile_router
 from app.domains.sports.route_router import router as routes_router
@@ -44,6 +45,7 @@ def create_app() -> FastAPI:
     app.include_router(gear_router)
     app.include_router(routes_router)
     app.include_router(tracks_router, prefix="/tracks", tags=["tracks"])
+    app.include_router(media_router, prefix="/media", tags=["media"])
     return app
 
 

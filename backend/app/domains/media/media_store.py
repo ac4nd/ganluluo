@@ -17,6 +17,8 @@ class MediaStore(Protocol):
 
     def remove(self, key: str) -> None: ...
 
+    # head_bytes：n 必须 >= 1（两个实现统一在入口校验，n < 1 → ValueError；
+    # M6 Task 2 审查交接项，登记端点固定读 16 字节）
     def head_bytes(self, key: str, n: int) -> bytes: ...
 
 
@@ -44,6 +46,8 @@ class MinioMediaStore:
         self._client.remove_object(self.bucket, key)
 
     def head_bytes(self, key: str, n: int) -> bytes:
+        if n < 1:
+            raise ValueError("n must be positive")
         # get_object 返回 urllib3.HTTPResponse：SDK 文档惯例 with 管理 + close/release_conn
         resp = self._client.get_object(self.bucket, key, offset=0, length=n)
         try:
@@ -76,7 +80,9 @@ class FakeMediaStore:
         self._objects.pop(key, None)
 
     def head_bytes(self, key: str, n: int) -> bytes:
-        # key 不存在 → KeyError（HTTP 语义由 Task 2 用户 API 层定义）
+        if n < 1:
+            raise ValueError("n must be positive")
+        # key 不存在 → KeyError（登记端点统一兜成 HTTP 404）
         return self._objects[key][:n]
 
 
