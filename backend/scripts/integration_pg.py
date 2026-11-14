@@ -67,7 +67,7 @@ async def main():
             "select coalesce(sport, ''), left(content, 24), 1 - (embedding <=> CAST(:q AS vector))"
             " from kb_chunks order by embedding <=> CAST(:q AS vector) limit 1"),
             {{"q": q}})).first()
-        # M4-M5 迁移覆盖：0010 trips / 0011 route_tracks / 0012 admin flags / 0013 quota
+        # M4-M6 迁移覆盖：0010 trips / 0011 route_tracks / 0012 admin flags / 0013 quota / 0014 media
         ver = (await c.execute(text("select version_num from alembic_version"))).scalar()
         trip_tbl = (await c.execute(text(
             "select count(*) from information_schema.tables"
@@ -84,6 +84,9 @@ async def main():
         quota_tbls = (await c.execute(text(
             "select count(*) from information_schema.tables t where t.table_name in"
             " ('quota_tiers','llm_usage','sub_tokens') and t.table_schema='public'"))).scalar()
+        media_tbl = (await c.execute(text(
+            "select count(*) from information_schema.tables"
+            " where table_name='media_items' and table_schema='public'"))).scalar()
     await engine.dispose()
     checks = [
         ("gear_models == 116", gear == 116, gear),
@@ -94,18 +97,19 @@ async def main():
         ("routes.start_pt is geography(Point,4326)", start_pt == "geography(Point,4326)", start_pt),
         ("HNSW index idx_chunks_hnsw exists", hnsw == 1, hnsw),
         ("vector NN smoke hit", hit is not None and hit[2] > 0, hit),
-        ("alembic version == 0013", ver == "0013", ver),
+        ("alembic version == 0014", ver == "0014", ver),
         ("trip_plans table exists (0010)", trip_tbl == 1, trip_tbl),
         ("route_tracks table exists (0011)", track_tbl == 1, track_tbl),
         ("assistant_* tables renamed back (0007/0008)", agent_tbl == 2, agent_tbl),
         ("users is_admin/disabled/quota_tier columns (0012/0013)", user_cols == 3, user_cols),
         ("quota_tiers/llm_usage/sub_tokens tables (0013)", quota_tbls == 3, quota_tbls),
+        ("media_items table exists (0014)", media_tbl == 1, media_tbl),
     ]
     print("smoke rows:", dict(gear=gear, routes=routes, docs=docs, chunks=chunks,
                               embedding=emb, start_pt=start_pt, hnsw=hnsw, nn=hit,
                               ver=ver, trips=trip_tbl, tracks=track_tbl,
                               agent_tbls=agent_tbl, user_cols=user_cols,
-                              quota_tbls=quota_tbls))
+                              quota_tbls=quota_tbls, media=media_tbl))
     failed = [name for name, ok, _ in checks if not ok]
     for name, ok, val in checks:
         print(("PASS" if ok else "FAIL"), name, "->", val)
@@ -188,7 +192,7 @@ def main() -> int:
             ("pip install deps",
              (f"pip install -i {PIP_MIRROR} 'sqlalchemy[asyncio]' asyncpg alembic"
               " pydantic-settings pwdlib email-validator gpxpy pgvector httpx slowapi"
-              " pyjwt python-multipart"
+              " pyjwt python-multipart minio"
               " 'pydantic[email]'")),
             ("alembic upgrade head",
              f"PYTHONPATH=/app GL_DATABASE_URL='{PG_URL}' alembic upgrade head"),

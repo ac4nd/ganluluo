@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     minio_access_key: str = ""
     minio_secret_key: str = ""
     minio_bucket: str = ""
+    minio_secure: bool = False  # GL_MINIO_SECURE：MinIO 是否走 TLS（https）
 
 
 @lru_cache

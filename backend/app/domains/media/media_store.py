@@ -2,12 +2,16 @@
 
 MediaStore 协议 + MinIO 实现 + 离线 Fake 降级：get_media_store() 与
 get_embedder() 同模式——GL_MINIO_* 四项配置齐全走 MinioMediaStore，
-否则内存 FakeMediaStore（本地开发/测试离线可用）。
+否则内存 FakeMediaStore（本地开发/测试离线可用）。降级必须有告警日志；
+env=prod 时漏配直接 fail-fast（静默 Fake 会让 presign 产出废 URL 全域失效）。
 """
+import logging
 from datetime import timedelta
 from typing import Protocol
 
 from minio import Minio
+
+logger = logging.getLogger(__name__)
 
 
 class MediaStore(Protocol):
@@ -96,8 +100,21 @@ def get_media_store() -> MediaStore:
 
         s = get_settings()
         if s.minio_endpoint and s.minio_access_key and s.minio_secret_key and s.minio_bucket:
-            _store = MinioMediaStore(s.minio_endpoint, s.minio_access_key, s.minio_secret_key, s.minio_bucket)
+            _store = MinioMediaStore(
+                s.minio_endpoint,
+                s.minio_access_key,
+                s.minio_secret_key,
+                s.minio_bucket,
+                secure=s.minio_secure,
+            )
         else:
+            # 生产漏配 fail-fast：静默降级 Fake 会让 presign 返回废 URL（全域媒体失效）且零告警
+            if s.env == "prod":
+                raise RuntimeError(
+                    "MinIO 未配置（GL_MINIO_ENDPOINT/ACCESS_KEY/SECRET_KEY/BUCKET），"
+                    "生产环境不允许媒体存储降级为内存 Fake"
+                )
+            logger.warning("MinIO 未配置，媒体存储降级为内存 Fake（生产不可用）")
             _store = FakeMediaStore()  # 未配置 → 离线降级（同 get_embedder 的 Fake 分支）
     return _store
 

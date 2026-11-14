@@ -10,6 +10,7 @@ import uuid
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from minio.error import S3Error
 from sqlalchemy import select
 
 from app.core.db import get_session
@@ -124,6 +125,42 @@ async def test_register_unknown_object_404(media_client):
     r = await c.post("/media", json={"object_key": key, "filename": "clip.mp4", "size": 10}, headers=h)
     assert r.status_code == 404
     assert r.json()["detail"] == "对象不存在或已失效"
+
+
+def _s3_stub_error(code: str) -> S3Error:
+    """真实 S3Error 对象（minio 7.x 8 参签名；response 仅属性存储无运行时校验，None 即可）。"""
+    return S3Error(None, code, "stub message", "/", "req", "host")
+
+
+def _head_boom(code: str):
+    """head_bytes 替身：抛指定 code 的 S3Error，模拟真实 MinIO 存储侧故障。"""
+
+    def boom(key: str, n: int) -> bytes:
+        raise _s3_stub_error(code)
+
+    return boom
+
+
+async def test_register_s3_nosuchkey_still_404(media_client, monkeypatch):
+    """S3Error(NoSuchKey) = 对象确实不存在 → 语义收窄后仍维持 404 契约。"""
+    c, store = media_client
+    h, _ = await _auth(c, "nosuchkey@b.com")
+    key = f"media/{uuid.uuid4().hex}.mp4"
+    monkeypatch.setattr(store, "head_bytes", _head_boom("NoSuchKey"))
+    r = await c.post("/media", json={"object_key": key, "filename": "clip.mp4", "size": 10}, headers=h)
+    assert r.status_code == 404
+    assert r.json()["detail"] == "对象不存在或已失效"
+
+
+async def test_register_s3_infra_error_503(media_client, monkeypatch):
+    """其余 S3Error（AccessDenied/NoSuchBucket/5xx 类）是基础设施故障 → 503，不得伪装成 404。"""
+    c, store = media_client
+    h, _ = await _auth(c, "s3down@b.com")
+    key = f"media/{uuid.uuid4().hex}.mp4"
+    monkeypatch.setattr(store, "head_bytes", _head_boom("AccessDenied"))
+    r = await c.post("/media", json={"object_key": key, "filename": "clip.mp4", "size": 10}, headers=h)
+    assert r.status_code == 503
+    assert r.json()["detail"] == "存储服务暂不可用"
 
 
 async def test_register_invalid_and_foreign_key_422(media_client):

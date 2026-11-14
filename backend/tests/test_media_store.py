@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 
 from app.core.config import get_settings
@@ -53,14 +55,33 @@ def test_head_bytes_rejects_non_positive_n():
         store.head_bytes(KEY, -1)
 
 
-def test_get_media_store_unconfigured_falls_back_to_fake(monkeypatch):
-    # 显式置空四项（环境变量优先于 .env 文件），保证"未配置"语义
+def test_get_media_store_unconfigured_falls_back_to_fake(monkeypatch, caplog):
+    # 显式置空四项（环境变量优先于 .env 文件），保证"未配置"语义；dev 下允许降级但不许静默
     for name in ("GL_MINIO_ENDPOINT", "GL_MINIO_ACCESS_KEY", "GL_MINIO_SECRET_KEY", "GL_MINIO_BUCKET"):
         monkeypatch.setenv(name, "")
     get_settings.cache_clear()
     reset_media_store()
     try:
-        assert isinstance(get_media_store(), FakeMediaStore)
+        with caplog.at_level(logging.WARNING, logger="app.domains.media.media_store"):
+            store = get_media_store()
+        assert isinstance(store, FakeMediaStore)  # dev 缺配置 → Fake 且不抛
+        assert any("MinIO 未配置" in r.message for r in caplog.records)  # 降级必须有告警
+    finally:
+        # 恢复缓存，避免污染其他测试的 settings/store 单例
+        get_settings.cache_clear()
+        reset_media_store()
+
+
+def test_get_media_store_prod_missing_config_fails_fast(monkeypatch):
+    # prod + 漏配 → RuntimeError fail-fast：静默 Fake 会让 presign 返回废 URL 全域失效且零告警
+    monkeypatch.setenv("GL_ENV", "prod")
+    for name in ("GL_MINIO_ENDPOINT", "GL_MINIO_ACCESS_KEY", "GL_MINIO_SECRET_KEY", "GL_MINIO_BUCKET"):
+        monkeypatch.setenv(name, "")
+    get_settings.cache_clear()
+    reset_media_store()
+    try:
+        with pytest.raises(RuntimeError, match="MinIO"):
+            get_media_store()
     finally:
         # 恢复缓存，避免污染其他测试的 settings/store 单例
         get_settings.cache_clear()

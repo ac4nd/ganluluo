@@ -16,6 +16,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
+from fastapi import HTTPException
 from minio.error import S3Error
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -174,6 +175,8 @@ async def register_media(
 ) -> MediaItem:
     """登记直传完成的对象：key 格式白名单 → 重复登记检查 → head 16 字节 magic
     校验 → MediaItem(pending)。filename 为 brief 契约字段但模型无对应列，不落库。
+    head 失败语义：KeyError（Fake 路径）/ S3Error(NoSuchKey) → MediaObjectMissing(404)；
+    其余 S3Error（AccessDenied/NoSuchBucket/5xx…）→ HTTPException(503) 存储基础设施故障。
     """
     if not KEY_RE.fullmatch(object_key):
         raise MediaKeyInvalid("object_key 格式非法")
@@ -185,8 +188,14 @@ async def register_media(
     ext = f".{object_key.rsplit('.', 1)[1]}"  # 正则已保证 ∈ ALLOWED_EXT
     try:
         head = store.head_bytes(object_key, MAGIC_LEN)
-    except (KeyError, S3Error):
-        raise MediaObjectMissing("对象不存在或已失效") from None
+    except KeyError:
+        raise MediaObjectMissing("对象不存在或已失效") from None  # Fake 路径：内存 dict 缺 key
+    except S3Error as e:
+        if e.code == "NoSuchKey":  # 对象确实不存在 → 维持 404 语义
+            raise MediaObjectMissing("对象不存在或已失效") from None
+        # 其余（AccessDenied/NoSuchBucket/5xx…）是基础设施故障，不得伪装成"对象不存在"：
+        # 对象可能实际存在，伪装 404 会诱导用户重传并掩盖存储故障 → 503 交由上层告警
+        raise HTTPException(status_code=503, detail="存储服务暂不可用") from None
     if not _magic_ok(head, ext):
         store.remove(object_key)  # 不符 → 删除对象（防伪装/垃圾文件留存），对齐 S3 幂等语义
         raise MagicMismatch("文件内容与扩展名不符")
