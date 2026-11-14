@@ -1,6 +1,6 @@
 """对话编排：澄清状态机 → 知识检索 → 工具调用循环 → SSE 事件流。
 
-事件协议：{"type": "token"|"clarify"|"cards"|"sources"|"done", "data": ...}。
+事件协议：{"type": "token"|"clarify"|"cards"|"sources"|"quota_exceeded"|"done", "data": ...}。
 """
 import json
 from collections.abc import AsyncIterator
@@ -13,6 +13,10 @@ from app.assistant import tools as tool_registry
 from app.assistant.clarify import detect_intent, extract_slots, next_clarification
 from app.assistant.clarify_schemas import ClarifyState
 from app.assistant.llm import Provider
+from app.core.config import get_settings
+
+# 跨域调用 admin 域 service（与 tools.py 调 sports 同模式）：用量写入唯一合法路径
+from app.domains.admin.quota_service import QuotaStatus, record_usage
 from app.domains.sports import profile_service
 from app.models.assistant import AssistantSession
 from app.models.user import User
@@ -23,8 +27,21 @@ RECENT_LIMIT = 20
 
 
 async def run_chat(session: AsyncSession, user: User, sess: AssistantSession,
-                   message: str, provider: Provider) -> AsyncIterator[dict]:
-    """编排一轮对话：落库用户消息 → 澄清判定 → 检索 → 组装上下文 → 流式生成。"""
+                   message: str, provider: Provider,
+                   quota: QuotaStatus | None = None) -> AsyncIterator[dict]:
+    """编排一轮对话：配额闸门 → 落库用户消息 → 澄清判定 → 检索 → 组装上下文 → 流式生成。"""
+    # 配额闸门在用户消息落库之前：超额不落消息、不调 provider、不进检索。
+    # allowed 为严格 <（恰好用满即拦截），由 get_status 判定后传入。
+    if quota is not None and not quota.allowed:
+        yield {"type": "quota_exceeded", "data": {
+            "tier": user.quota_tier,
+            "daily_chats_used": quota.daily_chats_used,
+            "daily_chats_limit": quota.daily_chats_limit,
+            "reset_at": "明天 00:00",
+        }}
+        yield {"type": "done"}
+        return
+
     await session_service.append_message(session, sess, "user", message)
 
     state = ClarifyState(**sess.clarify) if sess.clarify else ClarifyState()
@@ -120,4 +137,12 @@ async def run_chat(session: AsyncSession, user: User, sess: AssistantSession,
             yield {"type": "cards", "data": cards}
 
     await session_service.append_message(session, sess, "assistant", "".join(text_parts))
+    # 用量写入（record_usage 是唯一合法路径）：流结束后按字符数 //2 估算一次写入。
+    # prompt 取组装的 system 上下文+消息总字符数，completion 取生成正文；
+    # 仅 LLM 生成轮记录（澄清追问轮未调用 provider，不写 llm_usage）。
+    # model：provider 自带 model（OpenAICompat）→ 配置 llm_model → "unknown" 兜底。
+    model = str(getattr(provider, "model", "") or get_settings().llm_model or "unknown")
+    await record_usage(session, user.id, sess.id, model,
+                       sum(len(str(m["content"])) for m in messages) // 2,
+                       len("".join(text_parts)) // 2)
     yield {"type": "done"}

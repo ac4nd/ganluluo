@@ -2,7 +2,8 @@
 import json
 from collections.abc import AsyncIterator
 
-from fastapi import APIRouter, Depends, HTTPException
+import jwt
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +13,11 @@ from app.assistant import orchestrator as assistant_service
 from app.assistant import session_store as session_service
 from app.assistant.llm import Provider, get_provider
 from app.core.db import get_session
+from app.core.security import decode_token
+from app.domains.admin.quota_service import get_status
+
+# 与 auth/router.py 同先例：limiter 定义在 app.main 路由导入之前，规避循环导入
+from app.main import limiter
 from app.models.user import User
 
 router = APIRouter()
@@ -27,12 +33,28 @@ def assistant_provider() -> Provider:
     return get_provider()
 
 
+def _user_key(request: Request) -> str:
+    """per-user 限流键：Bearer JWT 的 sub；解析失败回退客户端 IP。"""
+    auth = request.headers.get("authorization") or ""
+    if auth.startswith("Bearer "):
+        try:
+            sub = decode_token(auth[7:]).get("sub")
+        except jwt.PyJWTError:
+            sub = None
+        if sub is not None:
+            return str(sub)
+    return request.client.host if request.client else "anon"
+
+
 def _sse(event: dict) -> str:
     return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
 
 @router.post("/chat")
-async def chat(body: ChatIn, user: User = Depends(get_current_user),
+# 短窗防刷（5/minute per-user），与日配额（5/day）相互独立：slowapi 在端点执行前
+# 检查，超限抛 RateLimitExceeded → main.py handler 返回 JSON 429（SSE 未开始）。
+@limiter.limit("5/minute", key_func=_user_key)
+async def chat(request: Request, body: ChatIn, user: User = Depends(get_current_user),
                session: AsyncSession = Depends(get_session),
                provider: Provider = Depends(assistant_provider)) -> StreamingResponse:
     existing = None
@@ -41,6 +63,9 @@ async def chat(body: ChatIn, user: User = Depends(get_current_user),
         if existing is None:
             raise HTTPException(status_code=404, detail="会话不存在")
 
+    # 日配额状态读取一次传入 run_chat（闸门在其内部、消息落库之前）
+    quota = await get_status(session, user.id, user.quota_tier)
+
     async def gen() -> AsyncIterator[str]:
         if existing is None:
             sess = await session_service.create_session(session, user.id,
@@ -48,7 +73,8 @@ async def chat(body: ChatIn, user: User = Depends(get_current_user),
             yield _sse({"type": "session", "data": sess.id})
         else:
             sess = existing
-        async for event in assistant_service.run_chat(session, user, sess, body.message, provider):
+        async for event in assistant_service.run_chat(session, user, sess, body.message,
+                                                      provider, quota=quota):
             yield _sse(event)
 
     return StreamingResponse(gen(), media_type="text/event-stream")
