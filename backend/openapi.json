@@ -1045,10 +1045,88 @@
           }
         }
       }
+    },
+    "/tracks": {
+      "post": {
+        "tags": [
+          "tracks"
+        ],
+        "summary": "Upload Track",
+        "operationId": "upload_track_tracks_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_track_tracks_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
     "schemas": {
+      "Body_upload_track_tracks_post": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Region"
+          },
+          "sport": {
+            "$ref": "#/components/schemas/Sport"
+          },
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "region",
+          "sport",
+          "file"
+        ],
+        "title": "Body_upload_track_tracks_post"
+      },
       "ChatIn": {
         "properties": {
           "session_id": {
@@ -1699,6 +1777,50 @@
           "refresh_token"
         ],
         "title": "TokenPair"
+      },
+      "TrackOut": {
+        "properties": {
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "distance_km": {
+            "type": "number",
+            "title": "Distance Km"
+          },
+          "climb_m": {
+            "type": "integer",
+            "title": "Climb M"
+          },
+          "difficulty": {
+            "type": "integer",
+            "title": "Difficulty"
+          },
+          "clarity": {
+            "type": "string",
+            "title": "Clarity"
+          },
+          "route_id": {
+            "type": "integer",
+            "title": "Route Id"
+          },
+          "track_id": {
+            "type": "integer",
+            "title": "Track Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "points",
+          "distance_km",
+          "climb_m",
+          "difficulty",
+          "clarity",
+          "route_id",
+          "track_id"
+        ],
+        "title": "TrackOut",
+        "description": "POST /tracks 响应：TrackSummary + 新建 route/track 的两 id。"
       },
       "TrackSummaryOut": {
         "properties": {
