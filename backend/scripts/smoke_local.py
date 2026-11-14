@@ -121,6 +121,23 @@ step("DELETE 204", r.status_code == 204)
 r = c.get("/trips", headers=H)
 step("删除后列表剩生成计划", r.status_code == 200 and len(r.json()) == 1, f"count={len(r.json())}")
 
+# ---- 9b. 轨迹上传（M4.5）：GPX → 草稿路线 + 同步处理 ----
+GPX = ("""<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="stage"><trk><name>s</name><trkseg>"""
+       + "".join(f'<trkpt lat="30.{i:04d}" lon="120.0000"><ele>{100 + i * 40}</ele></trkpt>'
+                 for i in range(8))
+       + """</trkseg></trk></gpx>""")
+r = c.post("/tracks", headers=H,
+           files={"file": ("stage.gpx", GPX.encode(), "application/gpx+xml")},
+           data={"name": "阶段验证线", "region": "测试区域", "sport": "hiking"})
+up = r.json() if r.status_code == 201 else {}
+step("POST /tracks 201 同步处理",
+     r.status_code == 201 and up.get("points") == 8 and up.get("route_id") and up.get("track_id"),
+     f"points={up.get('points')} distance={up.get('distance_km')}km climb={up.get('climb_m')}m")
+r = c.get("/routes", params={"region": "测试区域"})
+step("draft 路线不进公共库", r.status_code == 200 and len(r.json()) == 0,
+     f"count={len(r.json())}")
+
 # ---- 10. 记忆 + info 分支流 ----
 r = c.get("/assistant/memory", headers=H)
 step("assistant/memory 列表", r.status_code == 200 and isinstance(r.json(), list))
