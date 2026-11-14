@@ -20,6 +20,7 @@ from app.api.routes.ops import router as ops_router
 from app.assistant.memory_router import router as memory_router
 from app.assistant.plan_router import router as plan_router
 from app.assistant.router import router as assistant_router
+from app.domains.admin.admin_router import router as admin_router
 from app.domains.auth.router import router as auth_router
 from app.domains.sports.gear_router import router as gear_router
 from app.domains.sports.profile_router import router as profile_router
@@ -33,6 +34,7 @@ def create_app() -> FastAPI:
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
     app.include_router(ops_router, prefix="/ops", tags=["ops"])
+    app.include_router(admin_router, prefix="/admin", tags=["admin"])
     app.include_router(assistant_router, prefix="/assistant", tags=["assistant"])
     app.include_router(memory_router, prefix="/assistant", tags=["assistant"])
     app.include_router(plan_router, prefix="/assistant", tags=["assistant"])

@@ -1,0 +1,183 @@
+"""管理 API（M5-admin Task 4）：/admin 用户管理与路线审核，admin 域对外 API 面。
+
+5 端点全部 Depends(get_current_admin)（Task 1 依赖）：普通用户 403 "需要管理员权限"，
+禁用账号在其上游 get_current_user 即 403 "账号已禁用"。
+
+交接①：PATCH 置 disabled=True 时必须显式吊销该用户全部 refresh tokens
+（jwt_service._revoke_all）：Task 1 审查实测 refresh 的 disabled 分支 claim 更新未
+commit，不吊销则已签发的 refresh token 在 re-enable 后复活续期。
+"""
+
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, ConfigDict
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_admin
+from app.core.db import get_session
+from app.domains.admin.quota_service import get_status
+from app.domains.auth.jwt_service import _revoke_all
+from app.models.route import Route
+from app.models.user import User
+
+router = APIRouter()
+
+VALID_TIERS = {"trial", "vip"}
+
+
+class AdminUserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: str | None
+    nickname: str
+    quota_tier: str
+    is_admin: bool
+    disabled: bool
+    created_at: datetime
+
+
+class UserPageOut(BaseModel):
+    items: list[AdminUserOut]
+    total: int
+    page: int
+    size: int
+
+
+class UserPatchIn(BaseModel):
+    quota_tier: str | None = None
+    disabled: bool | None = None
+
+
+class UsageOut(BaseModel):
+    chats_used: int
+    tokens_used: int
+    tier: str
+    daily_chats_limit: int
+    daily_tokens_limit: int
+    allowed: bool
+
+
+class DraftRouteOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    region: str
+    sport: str
+    created_at: datetime
+
+
+class PublishOut(BaseModel):
+    ok: bool
+    status: str
+
+
+async def _live_user(session: AsyncSession, user_id: int) -> User | None:
+    """按 id 取未注销用户（deleted_at 口径同 get_current_user 的"账号不存在或已注销"）。"""
+    return (
+        await session.execute(
+            select(User).where(User.id == user_id, User.deleted_at.is_(None))
+        )
+    ).scalar_one_or_none()
+
+
+@router.get("/users", response_model=UserPageOut)
+async def list_users(
+    query: str | None = None,
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
+    _admin: User = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> UserPageOut:
+    stmt = select(User).where(User.deleted_at.is_(None))
+    if query:
+        like = f"%{query}%"
+        stmt = stmt.where(User.email.ilike(like) | User.nickname.ilike(like))
+    total = (
+        await session.execute(select(func.count()).select_from(stmt.subquery()))
+    ).scalar_one()
+    rows = (
+        await session.execute(stmt.order_by(User.id).offset((page - 1) * size).limit(size))
+    ).scalars().all()
+    return UserPageOut(items=[AdminUserOut.model_validate(u) for u in rows], total=total, page=page, size=size)
+
+
+@router.patch("/users/{user_id}", response_model=AdminUserOut)
+async def patch_user(
+    user_id: int,
+    payload: UserPatchIn,
+    admin: User = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> AdminUserOut:
+    user = await _live_user(session, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    if payload.quota_tier is not None and payload.quota_tier not in VALID_TIERS:
+        raise HTTPException(status_code=400, detail="非法配额档位")
+    if payload.disabled and user.id == admin.id:
+        raise HTTPException(status_code=400, detail="不能禁用自己")
+    # 宽松处理（brief 允许）：两字段都缺省 → 原样返回 200
+    if payload.quota_tier is not None:
+        user.quota_tier = payload.quota_tier
+    if payload.disabled is not None:
+        user.disabled = payload.disabled
+    await session.commit()
+    if payload.disabled:
+        # 交接①：烧掉该用户全部 refresh tokens（_revoke_all 自带 commit），否则
+        # re-enable 后旧 token 复活续期；吊销后 refresh 走 401 而非 disabled 403 分支
+        await _revoke_all(session, user.id)
+    return AdminUserOut.model_validate(user)
+
+
+@router.get("/users/{user_id}/usage", response_model=UsageOut)
+async def user_usage(
+    user_id: int,
+    _admin: User = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> UsageOut:
+    user = await _live_user(session, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    status = await get_status(session, user_id, user.quota_tier)
+    return UsageOut(
+        chats_used=status.daily_chats_used,
+        tokens_used=status.daily_tokens_used,
+        tier=user.quota_tier,
+        daily_chats_limit=status.daily_chats_limit,
+        daily_tokens_limit=status.daily_tokens_limit,
+        allowed=status.allowed,
+    )
+
+
+@router.get("/routes/drafts", response_model=list[DraftRouteOut])
+async def list_drafts(
+    _admin: User = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> list[DraftRouteOut]:
+    rows = (
+        await session.execute(
+            select(Route).where(Route.status == "draft").order_by(Route.id.desc())
+        )
+    ).scalars().all()
+    return [DraftRouteOut.model_validate(r) for r in rows]
+
+
+@router.post("/routes/{route_id}/publish", response_model=PublishOut)
+async def publish_route(
+    route_id: int,
+    _admin: User = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> PublishOut:
+    route = (
+        await session.execute(select(Route).where(Route.id == route_id))
+    ).scalar_one_or_none()
+    if route is None:
+        raise HTTPException(status_code=404, detail="路线不存在")
+    if route.status != "draft":
+        raise HTTPException(status_code=400, detail="路线非草稿状态")
+    route.status = "published"
+    await session.commit()
+    return PublishOut(ok=True, status="published")
