@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     llm_base_url: str = ""
     llm_api_key: str = ""
     llm_model: str = ""
+    admin_email: str = ""
 
 
 @lru_cache

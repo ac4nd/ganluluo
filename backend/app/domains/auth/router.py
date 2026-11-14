@@ -38,6 +38,9 @@ async def login(
         or not verify_password(data.password, user.password_hash)
     ):
         raise HTTPException(status_code=401, detail="账号或密码错误")
+    # 禁用账号：密码正确也不签发（login 在 router 而非 service.py，故拦在此处）
+    if user.disabled:
+        raise HTTPException(status_code=403, detail="账号已禁用")
     return await auth_service.issue_pair(session, user)
 
 
@@ -48,6 +51,8 @@ async def refresh(data: RefreshIn, session: AsyncSession = Depends(get_session))
     except PermissionError as exc:
         if str(exc) == "refresh token reuse detected":
             raise HTTPException(status_code=401, detail="刷新令牌已被使用，已吊销全部会话") from None
+        if str(exc) == "account disabled":
+            raise HTTPException(status_code=403, detail="账号已禁用") from None
         raise HTTPException(status_code=401, detail="刷新令牌无效") from None
     except (ValueError, jwt.InvalidTokenError, LookupError):
         raise HTTPException(status_code=401, detail="刷新令牌无效") from None

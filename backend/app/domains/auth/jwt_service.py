@@ -59,6 +59,9 @@ async def rotate(session: AsyncSession, refresh_token: str) -> TokenPair:
     user = (await session.execute(select(User).where(User.id == int(payload["sub"])))).scalar_one_or_none()
     if user is None or user.deleted_at is not None:
         raise PermissionError("invalid refresh token")
+    if user.disabled:
+        # 禁用账号拒绝续期（沿用字符串消息 + router 翻译的既有风格，见 reuse detected）
+        raise PermissionError("account disabled")
     # Revoke-claim and the successor pair share ONE commit: a crash in between
     # can no longer strand a revoked token with no replacement to log in with.
     access = create_access_token(user.id)
