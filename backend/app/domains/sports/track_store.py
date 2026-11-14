@@ -25,7 +25,11 @@ def save_gpx(content: bytes) -> str:
 
 
 def read_gpx(key: str) -> str:
-    """按 key 读取 GPX 文本；非法 key（含路径穿越形态）一律 ValueError。"""
-    if _KEY_RE.match(key) is None:
+    """按 key 读取 GPX 文本；非法 key（含路径穿越形态）一律 ValueError。
+
+    fullmatch 而非 match+$：`$` 会匹配末尾换行前，"tracks/xx.gpx\\n" 结尾的
+    key 可绕过 match；fullmatch 锚定整个串，无此绕过。
+    """
+    if _KEY_RE.fullmatch(key) is None:
         raise ValueError("非法轨迹文件标识")
     return (uploads_dir / key.removeprefix("tracks/")).read_text(encoding="utf-8")

@@ -17,6 +17,7 @@ dependencies = [
   "slowapi>=0.1.9",
   "gpxpy>=1.6",
   "pgvector>=0.3",
+  "python-multipart>=0.0.9",
 ]
 
 [project.optional-dependencies]

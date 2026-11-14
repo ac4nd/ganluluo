@@ -44,3 +44,10 @@ class TrackSummaryOut(BaseModel):
     climb_m: int
     difficulty: int
     clarity: str
+
+
+class TrackOut(TrackSummaryOut):
+    """POST /tracks 响应：TrackSummary + 新建 route/track 的两 id。"""
+
+    route_id: int
+    track_id: int
