@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     llm_api_key: str = ""
     llm_model: str = ""
     admin_email: str = ""
+    # MinIO 对象存储：四项齐全启用 MinioMediaStore，否则离线降级 FakeMediaStore
+    minio_endpoint: str = ""
+    minio_access_key: str = ""
+    minio_secret_key: str = ""
+    minio_bucket: str = ""
 
 
 @lru_cache

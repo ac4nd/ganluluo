@@ -2,6 +2,7 @@ from app.models.assistant import AssistantMessage, AssistantSession, UserMemory
 from app.models.base import Base
 from app.models.gear import GearModel, UserGear
 from app.models.kb import KbChunk, KbDoc
+from app.models.media import MediaItem
 from app.models.profile import UserProfile
 from app.models.quota import LlmUsage, QuotaTier, SubToken
 from app.models.refresh_token import RefreshToken
@@ -18,6 +19,7 @@ __all__ = [
     "KbChunk",
     "KbDoc",
     "LlmUsage",
+    "MediaItem",
     "QuotaTier",
     "RefreshToken",
     "Route",
