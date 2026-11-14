@@ -22,3 +22,5 @@ class User(Base):
     # false()：SQLite 渲染 0 / PG 渲染 false（先例 track.processed；字面 "0" 在 PG 上不可隐式 cast）
     is_admin: Mapped[bool] = mapped_column(default=False, server_default=false())
     disabled: Mapped[bool] = mapped_column(default=False, server_default=false())
+    # M5-admin Task 2：配额档位（trial/vip）；server_default 兜住存量行与迁移列
+    quota_tier: Mapped[str] = mapped_column(String(16), default="trial", server_default="trial")
