@@ -1,4 +1,4 @@
-"""助手 SSE 端点：POST /assistant/chat（流式事件）、GET /assistant/sessions。"""
+"""助手 SSE 端点：POST /assistant/chat（流式事件）、GET /assistant/sessions 与 /quota。"""
 import json
 from collections.abc import AsyncIterator
 
@@ -14,6 +14,7 @@ from app.assistant.llm import Provider, get_provider
 from app.core.db import get_session
 from app.core.rate_limit import limiter, user_key
 from app.domains.admin.quota_service import get_status
+from app.domains.admin.schemas import UsageOut
 from app.models.user import User
 
 router = APIRouter()
@@ -69,3 +70,13 @@ async def list_sessions(user: User = Depends(get_current_user),
                         session: AsyncSession = Depends(get_session)) -> list[dict]:
     rows = await session_service.list_sessions(session, user.id)
     return [{"id": s.id, "title": s.title, "created_at": s.created_at.isoformat()} for s in rows]
+
+
+@router.get("/quota", response_model=UsageOut)
+async def my_quota(user: User = Depends(get_current_user),
+                   session: AsyncSession = Depends(get_session)) -> UsageOut:
+    """用户侧当日配额（06 环形按钮 / 09 额度卡数据源）。"""
+    st = await get_status(session, user.id, user.quota_tier)
+    return UsageOut(chats_used=st.daily_chats_used, tokens_used=st.daily_tokens_used,
+                    tier=user.quota_tier, daily_chats_limit=st.daily_chats_limit,
+                    daily_tokens_limit=st.daily_tokens_limit, allowed=st.allowed)

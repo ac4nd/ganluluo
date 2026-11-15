@@ -38,12 +38,17 @@ async def create_plan(
     return plan
 
 
-async def list_plans(session: AsyncSession, user_id: int) -> list[TripPlan]:
-    """按 (status=='planned') desc, date asc 排序：未来计划在前，同组内按日期升序。"""
+async def list_plans(session: AsyncSession, user_id: int,
+                     status: str | None = None) -> list[TripPlan]:
+    """按 (status=='planned') desc, date asc 排序：未来计划在前，同组内按日期升序。
+
+    status 过滤（planned/done/cancelled）：05「最近足迹」取 done、07「日期轴」取 planned。
+    """
+    stmt = select(TripPlan).where(TripPlan.user_id == user_id)
+    if status is not None:
+        stmt = stmt.where(TripPlan.status == status)
     result = await session.execute(
-        select(TripPlan)
-        .where(TripPlan.user_id == user_id)
-        .order_by((TripPlan.status == "planned").desc(), TripPlan.date.asc())
+        stmt.order_by((TripPlan.status == "planned").desc(), TripPlan.date.asc())
     )
     return list(result.scalars().all())
 

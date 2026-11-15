@@ -542,6 +542,33 @@
         ]
       }
     },
+    "/assistant/quota": {
+      "get": {
+        "tags": [
+          "assistant"
+        ],
+        "summary": "My Quota",
+        "description": "用户侧当日配额（06 环形按钮 / 09 额度卡数据源）。",
+        "operationId": "my_quota_assistant_quota_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/assistant/memory": {
       "get": {
         "tags": [
@@ -669,49 +696,26 @@
       }
     },
     "/trips": {
-      "get": {
-        "tags": [
-          "trips"
-        ],
-        "summary": "List Trips",
-        "operationId": "list_trips_trips_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/TripPlanCard"
-                  },
-                  "type": "array",
-                  "title": "Response List Trips Trips Get"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
-      },
       "post": {
         "tags": [
           "trips"
         ],
         "summary": "Create Trip",
         "operationId": "create_trip_trips_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TripPlanIn"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -734,12 +738,65 @@
               }
             }
           }
-        },
+        }
+      },
+      "get": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "List Trips",
+        "operationId": "list_trips_trips_get",
         "security": [
           {
             "HTTPBearer": []
           }
-        ]
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "按状态过滤：planned/done/cancelled",
+              "title": "Status"
+            },
+            "description": "按状态过滤：planned/done/cancelled"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TripPlanCard"
+                  },
+                  "title": "Response List Trips Trips Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/trips/{trip_id}": {
@@ -2531,6 +2588,21 @@
               }
             ],
             "title": "Warning"
+          },
+          "track_points": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Track Points"
           }
         },
         "type": "object",

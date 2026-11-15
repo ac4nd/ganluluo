@@ -134,3 +134,22 @@ async def test_chat_disconnect_writes_partial_usage(client, db):
         select(AssistantMessage).where(AssistantMessage.session_id == sess.id))).scalars().all()
     assert [m.role for m in msgs] == ["user"]  # 用户消息已落库；assistant 收尾消息未写
     assert msgs[0].content == "你好"
+
+
+async def test_quota_endpoint(chat, db):
+    """G-1：用户侧当日配额（06 环形按钮 / 09 额度卡数据源）。"""
+    app, client = chat
+    app.dependency_overrides[assistant_provider] = lambda: FakeProvider(
+        turns=[[Delta(type="done")]])
+    tokens = await register_and_login(client, email="myq@b.com")
+    h = {"Authorization": f"Bearer {tokens['access_token']}"}
+    r = await client.get("/assistant/quota", headers=h)
+    assert r.status_code == 200
+    body = r.json()
+    assert body == {"chats_used": 0, "tokens_used": 0, "tier": "trial",
+                    "daily_chats_limit": 5, "daily_tokens_limit": 20000,
+                    "allowed": True}
+    await client.post("/assistant/chat", json={"message": "你好"}, headers=h)
+    r = await client.get("/assistant/quota", headers=h)
+    assert r.json()["chats_used"] == 1 and r.json()["tokens_used"] > 0
+    assert r.json()["allowed"] is True

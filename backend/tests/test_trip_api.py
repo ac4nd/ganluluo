@@ -87,6 +87,25 @@ async def test_patch_status_done(client, db):
     assert r.json()["status"] == "done"
 
 
+async def test_list_status_filter(client, db):
+    """F-2：status 过滤——05「最近足迹」取 done、07「日期轴」取 planned。"""
+    await seed_routes(db)
+    h, _ = await _auth(client, "filter@b.com")
+    planned = (await client.post("/trips", json=TRIP_BODY, headers=h)).json()["id"]
+    done_body = {"route_id": 2, "date": "2026-11-21", "meet_at": "07:00"}
+    done = (await client.post("/trips", json=done_body, headers=h)).json()["id"]
+    await client.patch(f"/trips/{done}/status", json={"status": "done"}, headers=h)
+
+    r = await client.get("/trips", headers=h)
+    assert {c["id"] for c in r.json()} == {planned, done}
+    r = await client.get("/trips", params={"status": "planned"}, headers=h)
+    assert [c["id"] for c in r.json()] == [planned]
+    r = await client.get("/trips", params={"status": "done"}, headers=h)
+    assert [c["id"] for c in r.json()] == [done]
+    r = await client.get("/trips", params={"status": "nope"}, headers=h)
+    assert r.status_code == 422
+
+
 async def test_patch_invalid_status_400(client, db):
     await seed_routes(db)
     h, _ = await _auth(client, "badstatus@b.com")

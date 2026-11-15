@@ -36,6 +36,9 @@ class RouteDetailOut(RouteOut):
     terrain: list[dict]
     required_gear: list[str]
     warning: str | None
+    # 处理后保留点（≤500 点 lat/lon/ele）：高程折线放大与 3D 影像轨迹飞行的数据源；
+    # 未上传轨迹的种子路线为 None
+    track_points: list[dict] | None = None
 
 
 class TrackSummaryOut(BaseModel):

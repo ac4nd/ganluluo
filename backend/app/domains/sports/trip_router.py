@@ -4,7 +4,7 @@
 trip_schemas / trip_service（M4 Task 3，/assistant/plan 共用），路由层只做 HTTP 编排。
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
@@ -34,10 +34,13 @@ async def create_trip(
 
 @router.get("", response_model=list[TripPlanCard])
 async def list_trips(
+    status: str | None = Query(None, description="按状态过滤：planned/done/cancelled"),
     current: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> list[TripPlanCard]:
-    plans = await trip_service.list_plans(session, current.id)
+    if status is not None and status not in ("planned", "done", "cancelled"):
+        raise HTTPException(status_code=422, detail="非法行程状态")
+    plans = await trip_service.list_plans(session, current.id, status=status)
     routes = await trip_service.routes_map(session, plans)
     owned = await trip_service.owned_gear_keys(session, current.id)
     return [trip_service.to_card(p, routes[p.route_id], owned) for p in plans]

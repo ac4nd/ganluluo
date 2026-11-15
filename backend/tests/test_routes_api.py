@@ -45,6 +45,18 @@ async def test_get_detail(client, db):
     body = r.json()
     assert body["name"].startswith("雨崩")
     assert isinstance(body["elevation"], list)
+    assert body["track_points"] is None  # 种子路线无轨迹
+
+
+async def test_detail_exposes_track_points_after_upload(client, db):
+    """F-3：上传处理后详情暴露 track_points（08 高程折线/3D 飞行数据源）。"""
+    await seed_routes(db)
+    await client.post("/routes/1/track", content=GPX.encode(),
+                      headers={"Content-Type": "text/plain"})
+    r = await client.get("/routes/1")
+    assert r.status_code == 200
+    pts = r.json()["track_points"]
+    assert pts and all(set(p) == {"lat", "lon", "ele"} for p in pts)
 
 
 async def test_get_detail_404(client, db):

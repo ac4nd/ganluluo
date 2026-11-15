@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_admin
 from app.core.db import get_session
 from app.domains.admin.quota_service import get_status
+from app.domains.admin.schemas import UsageOut
 from app.domains.auth.jwt_service import _revoke_all
 from app.domains.media import media_service
 from app.domains.media.media_router import get_store
@@ -67,15 +68,6 @@ class UserPageOut(BaseModel):
 class UserPatchIn(BaseModel):
     quota_tier: str | None = None
     disabled: bool | None = None
-
-
-class UsageOut(BaseModel):
-    chats_used: int
-    tokens_used: int
-    tier: str
-    daily_chats_limit: int
-    daily_tokens_limit: int
-    allowed: bool
 
 
 class DraftRouteOut(BaseModel):
