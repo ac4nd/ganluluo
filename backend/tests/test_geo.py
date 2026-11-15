@@ -1,4 +1,4 @@
-from app.services.geo import (
+from app.domains.sports.geo import (
     clarity_from_stats,
     difficulty_from_stats,
     douglas_peucker,

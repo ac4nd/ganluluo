@@ -4,8 +4,9 @@ revision = "0002"
 down_revision = "0001"
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 
 def upgrade() -> None:

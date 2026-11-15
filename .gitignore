@@ -11,3 +11,5 @@ node_modules/
 .coverage
 htmlcov/
 .pytest_cache/
+backend/ganluluo_backend.egg-info/
+*.stackdump

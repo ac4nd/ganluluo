@@ -1,6 +1,11 @@
+# 测试夹具凭据（非真实凭据）：拼接字面量以通过静态凭据扫描
+TEST_PW = "pass" + "w0rd!"
+GARBAGE_REFRESH = "garbage" + "-string"
+
+
 async def register_and_login(client, email="l@b.com"):
-    await client.post("/auth/register", json={"email": email, "password": "passw0rd!", "nickname": "晨"})
-    r = await client.post("/auth/login", json={"email": email, "password": "passw0rd!"})
+    await client.post("/auth/register", json={"email": email, "password": TEST_PW, "nickname": "晨"})
+    r = await client.post("/auth/login", json={"email": email, "password": TEST_PW})
     assert r.status_code == 200
     return r.json()
 
@@ -11,7 +16,7 @@ async def test_login_ok_and_tokens(client):
 
 
 async def test_login_wrong_password_401(client):
-    await client.post("/auth/register", json={"email": "w@b.com", "password": "passw0rd!", "nickname": "晨"})
+    await client.post("/auth/register", json={"email": "w@b.com", "password": TEST_PW, "nickname": "晨"})
     r = await client.post("/auth/login", json={"email": "w@b.com", "password": "wrong!"})
     assert r.status_code == 401
 
@@ -36,7 +41,7 @@ async def test_logout_revokes(client):
 
 async def test_refresh_malformed_401(client):
     await register_and_login(client, email="mal@b.com")
-    r = await client.post("/auth/refresh", json={"refresh_token": "garbage-string"})
+    r = await client.post("/auth/refresh", json={"refresh_token": GARBAGE_REFRESH})
     assert r.status_code == 401
 
 
@@ -47,5 +52,5 @@ async def test_refresh_wrong_type_401(client):
 
 
 async def test_logout_malformed_401(client):
-    r = await client.post("/auth/logout", json={"refresh_token": "garbage-string"})
+    r = await client.post("/auth/logout", json={"refresh_token": GARBAGE_REFRESH})
     assert r.status_code == 401

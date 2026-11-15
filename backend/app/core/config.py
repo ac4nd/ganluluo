@@ -12,6 +12,16 @@ class Settings(BaseSettings):
     jwt_alg: str = "HS256"
     access_ttl_min: int = 15
     refresh_ttl_days: int = 7
+    llm_base_url: str = ""
+    llm_api_key: str = ""
+    llm_model: str = ""
+    admin_email: str = ""
+    # MinIO 对象存储：四项齐全启用 MinioMediaStore，否则离线降级 FakeMediaStore
+    minio_endpoint: str = ""
+    minio_access_key: str = ""
+    minio_secret_key: str = ""
+    minio_bucket: str = ""
+    minio_secure: bool = False  # GL_MINIO_SECURE：MinIO 是否走 TLS（https）
 
 
 @lru_cache

@@ -12,6 +12,32 @@ async def test_list_with_filters(client, db):
     assert "五台山顺朝（三天两夜大朝台）" not in names
 
 
+async def test_region_filter_matches_route_name(client, db):
+    # "雨崩"只出现在路线名（region 列是"云南迪庆州德钦县·梅里雪山"），
+    # region 过滤按 region 列 OR name 列匹配后命中
+    await seed_routes(db)
+    r = await client.get("/routes", params={"region": "雨崩"})
+    assert r.status_code == 200
+    names = {x["name"] for x in r.json()}
+    assert names == {"雨崩徒步（神瀑+冰湖精华线）"}
+
+
+async def test_region_filter_still_matches_region_column(client, db):
+    # 回归保护：region 列词（"迪庆"）仍命中雨崩线 + 虎跳峡线
+    await seed_routes(db)
+    r = await client.get("/routes", params={"region": "迪庆"})
+    assert r.status_code == 200
+    names = {x["name"] for x in r.json()}
+    assert names == {"雨崩徒步（神瀑+冰湖精华线）", "虎跳峡高路徒步（一日精华段）"}
+
+
+async def test_region_filter_no_match_returns_empty(client, db):
+    await seed_routes(db)
+    r = await client.get("/routes", params={"region": "不存在的地区"})
+    assert r.status_code == 200
+    assert r.json() == []
+
+
 async def test_get_detail(client, db):
     await seed_routes(db)
     r = await client.get("/routes/1")
