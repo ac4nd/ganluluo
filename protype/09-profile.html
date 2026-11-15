@@ -152,6 +152,28 @@
           <div class="stat"><div class="v">15.6k</div><div class="k">累计爬升 m</div></div>
         </div>
 
+        <div class="quota-card" id="quotaCard">
+          <div class="qc-head">
+            <div class="qc-title">
+              <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 4l1.8 4.7L18.5 10.5l-4.7 1.8L12 17l-1.8-4.7L5.5 10.5l4.7-1.8z"/><path d="M18.8 15.6l.7 1.7 1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7z"/></svg></span>
+              AI 助手额度
+              <span class="badge-tier trial" id="qcTier">试用版</span>
+            </div>
+          </div>
+          <div class="qc-reset" id="qcReset">每日 00:00 重置 · 试用版每日 5 次对话 / 2 万 Token</div>
+          <div class="qrow"><span>今日对话</span><b id="qcChats">-/-</b></div>
+          <div class="qbar" id="qcBarChats"><i style="width:0%"></i></div>
+          <div class="qrow"><span>今日 Token</span><b id="qcTokens">-/-</b></div>
+          <div class="qbar" id="qcBarTokens"><i style="width:0%"></i></div>
+          <div class="qc-foot">
+            <span class="qc-note" id="qcNote"></span>
+            <a class="btn-up" id="qcBtn" href="#">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+              <span id="qcBtnText">升级 VIP</span>
+            </a>
+          </div>
+        </div>
+
         <div class="sec"><h3>我的运动偏好</h3><a href="02-onboard-sport.html">编辑</a></div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px">
           <div class="icon-tile sel" style="flex-direction:column;padding:12px 6px;gap:8px;text-align:center">
@@ -214,5 +236,32 @@
     <div class="home-bar"></div>
   </div>
 </div>
+<script>
+/* 额度 mock（口径与后端 quota_service 一致）：?tier=vip 预览 VIP 态，默认试用 */
+(function(){
+  const vip = new URLSearchParams(location.search).get("tier") === "vip";
+  const q = vip ? {chats:18, chatsLimit:50, tokens:312000, tokensLimit:500000}
+                : {chats:2, chatsLimit:5, tokens:8420, tokensLimit:20000};
+  const fmt = n => n >= 10000 ? (n/1000).toFixed(1).replace(/\.0$/,"") + "k" : String(n);
+  const cls = r => r >= .85 ? "danger" : r >= .6 ? "warn" : "";
+  document.getElementById("qcTier").textContent = vip ? "VIP 会员" : "试用版";
+  document.getElementById("qcTier").className = "badge-tier " + (vip ? "vip" : "trial");
+  document.getElementById("quotaCard").classList.toggle("vip", vip);
+  document.getElementById("qcReset").textContent = vip
+    ? "每日 00:00 重置 · VIP 每日 50 次对话 / 50 万 Token"
+    : "每日 00:00 重置 · 试用版每日 5 次对话 / 2 万 Token";
+  document.getElementById("qcChats").textContent = q.chats + " / " + q.chatsLimit + " 次";
+  document.getElementById("qcTokens").textContent = fmt(q.tokens) + " / " + fmt(q.tokensLimit);
+  const bc = document.getElementById("qcBarChats"), bt = document.getElementById("qcBarTokens");
+  bc.className = "qbar " + cls(q.chats / q.chatsLimit);
+  bc.querySelector("i").style.width = Math.round(q.chats / q.chatsLimit * 100) + "%";
+  bt.className = "qbar " + cls(q.tokens / q.tokensLimit);
+  bt.querySelector("i").style.width = Math.round(q.tokens / q.tokensLimit * 100) + "%";
+  document.getElementById("qcNote").textContent = vip
+    ? "进行中徒步可无限次召唤实况助手"
+    : "额度用尽后 AI 规划次日恢复";
+  document.getElementById("qcBtnText").textContent = vip ? "管理续费" : "升级 VIP";
+})();
+</script>
 </body>
 </html>

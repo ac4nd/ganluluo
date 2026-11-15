@@ -442,3 +442,58 @@ a.link{color:var(--accent);text-decoration:none;font-weight:600}
 @keyframes cinemaBreath{from{transform:scale(1.02)}to{transform:scale(1.07)}}
 .cinema-fade{position:absolute;inset:0;background:#050804;opacity:0;z-index:3;pointer-events:none}
 @media (prefers-reduced-motion: reduce){.cinema-video{animation:none}}
+
+/* ============================================================
+   AI 助手配额（M5）：环形进度按钮 + 悬浮明细（06）/ 额度卡（09）
+   数据口径与后端 quota_service 一致：trial 5 次/20k token，vip 50 次/500k
+   ============================================================ */
+.quota-ring{position:relative;width:38px;height:38px;flex:none;border-radius:50%;cursor:pointer;
+  background:rgba(13,18,8,.55);border:1px solid var(--glass-line);padding:0;
+  display:flex;align-items:center;justify-content:center;transition:border-color .25s}
+.quota-ring:hover{border-color:var(--line-strong)}
+.quota-ring .ring{position:absolute;inset:-1px;width:calc(100% + 2px);height:calc(100% + 2px);transform:rotate(-90deg)}
+.quota-ring .arc-bg{fill:none;stroke:rgba(255,255,255,.10);stroke-width:3}
+.quota-ring .arc{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset .5s ease,stroke .3s}
+.quota-ring.warn .arc{stroke:var(--amber)}
+.quota-ring.danger .arc{stroke:var(--red)}
+.quota-ring .qv{font-size:8px;font-weight:800;fill:var(--text);letter-spacing:0}
+.quota-ring .qk{font-size:5.5px;font-weight:600;fill:var(--dim)}
+/* 悬浮明细卡（hover 或 ?tip=1 强制演示） */
+.quota-tip{position:absolute;right:0;bottom:70px;width:238px;border-radius:16px;
+  background:rgba(10,14,6,.97);border:1px solid var(--line-strong);
+  box-shadow:0 18px 44px rgba(0,0,0,.55);padding:14px 15px;z-index:90;
+  opacity:0;visibility:hidden;transform:translateY(8px);transition:.22s ease}
+.quota-ring:hover .quota-tip,.quota-tip.force{opacity:1;visibility:visible;transform:translateY(0)}
+.quota-tip::after{content:"";position:absolute;right:14px;bottom:-6px;width:12px;height:12px;
+  background:rgba(10,14,6,.97);border-right:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);transform:rotate(45deg)}
+.qt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.qt-head b{font-size:13px}
+.qt-reset{font-size:10.5px;color:var(--dim)}
+.qrow{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;color:var(--muted);margin:9px 0 5px}
+.qrow b{color:var(--text);font-size:12px}
+.qbar{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.qbar i{display:block;height:100%;border-radius:999px;background:var(--grad);transition:width .5s ease}
+.qbar.warn i{background:var(--amber)}
+.qbar.danger i{background:var(--red)}
+.qt-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--glass-line)}
+.qt-foot a{font-size:11.5px;color:var(--accent);text-decoration:none;font-weight:700}
+/* 档位徽章：试用 / VIP */
+.badge-tier{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:3px 9px;border-radius:999px;font-weight:700}
+.badge-tier.trial{background:rgba(255,255,255,.07);color:var(--muted);border:1px solid var(--glass-line)}
+.badge-tier.vip{background:rgba(242,221,125,.14);color:#f2dd7d;border:1px solid rgba(242,221,125,.45)}
+.badge-tier.vip svg{flex:none}
+/* 09 额度卡 */
+.quota-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:18px}
+.quota-card.vip{border-color:rgba(242,221,125,.38);
+  background:linear-gradient(140deg,rgba(242,221,125,.09) 0%,rgba(255,255,255,.045) 55%)}
+.quota-card .qc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.quota-card .qc-title{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:800}
+.quota-card .qc-title .ic{width:30px;height:30px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#0d1506;flex:none}
+.quota-card.vip .qc-title .ic{background:linear-gradient(135deg,#f6e7a0,#d9b84e)}
+.quota-card .qc-reset{font-size:10.5px;color:var(--dim);margin:2px 0 12px;padding-left:38px}
+.quota-card .qrow{margin:10px 0 5px;font-size:12px}
+.quota-card .qc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--glass-line)}
+.quota-card .qc-note{font-size:10.5px;color:var(--dim)}
+.quota-card .btn-up{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;
+  padding:8px 14px;border-radius:999px;text-decoration:none;color:#0d1506;
+  background:linear-gradient(135deg,#f6e7a0,#d9b84e);box-shadow:0 6px 18px rgba(217,184,78,.28)}
