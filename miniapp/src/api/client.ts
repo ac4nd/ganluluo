@@ -132,6 +132,8 @@ export interface RequestOptions {
   skipAuth?: boolean
   /** 单发覆盖 baseURL（如临时直连 8123 自测） */
   baseUrl?: string
+  /** 内部防循环标志：401 刷新后重试时置 true，重试仍 401 直接抛错（勿手动传） */
+  _retried?: boolean
 }
 
 function withQuery(path: string, params?: RequestOptions['params']): string {
@@ -205,15 +207,17 @@ function refreshOnce(): Promise<TokenPair> {
 }
 
 /**
- * 核心请求：非 2xx 抛 ApiError；401 时用 refresh_token 换新对并重试原请求一次
- * （重试标记 skipAuth，若仍 401 直接抛错，绝不二次刷新）。
+ * 核心请求：非 2xx 抛 ApiError；401 时用 refresh_token 换新对并重试原请求一次。
+ * 防循环用独立的 _retried 标志（重试仍 401 直接抛错，绝不二次刷新）；
+ * 不能复用 skipAuth——那会同时抑制 Authorization 注入，导致重试请求
+ * 不带新 token、必然再 401（review Critical-1，回归测试见 test/client.test.ts）。
  */
 export async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const res = await raw(path, opts)
   if (res.statusCode >= 200 && res.statusCode < 300) return res.data as T
-  if (res.statusCode === 401 && !opts.skipAuth) {
+  if (res.statusCode === 401 && !opts.skipAuth && !opts._retried) {
     await refreshOnce()
-    return request<T>(path, { ...opts, skipAuth: true })
+    return request<T>(path, { ...opts, _retried: true })
   }
   throw normalizeError(res.statusCode, res.data)
 }

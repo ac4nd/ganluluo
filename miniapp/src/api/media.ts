@@ -35,7 +35,9 @@ export async function uploadToStorage(presigned: PresignOut, blob: Blob, content
     } catch {
       /* 无响应体 */
     }
-    throw { status: res.status, detail, raw: undefined }
+    // Error 实例 + ApiError 形状字段（review Minor-3：不再裸 throw 对象，
+    // 保留 stack 与 instanceof Error，调用方仍可读 status/detail/raw）
+    throw Object.assign(new Error(detail), { status: res.status, detail, raw: undefined })
   }
 }
 
