@@ -127,7 +127,7 @@ async def main():
                 raise ValueError(f"presign URL host 与配置端点不符: {{u.netloc}}")
             import io
             await asyncio.to_thread(
-                store.client.put_object, store.bucket, key,
+                store._client.put_object, store.bucket, key,
                 io.BytesIO(payload), len(payload), content_type="video/mp4")
             size = await store.stat(key)
             await store.remove(key)
