@@ -1,0 +1,109 @@
+/* ============================================================
+ * 赶路咯 design tokens（本文件由 design/build-tokens.mjs 自动生成，勿手改）
+ * 源头：design/tokens.json（color 值抄自 protype/assets/style.css :root）
+ * 生成：node design/build-tokens.mjs
+ * ============================================================ */
+:root {
+  --color-bg-outer-1: #f0f3e2;
+  --color-bg-outer-2: #dde7c4;
+  --color-screen: #0c110a;
+  --color-screen-2: #131a0c;
+  --color-card: rgba(255,255,255,.055);
+  --color-card-2: rgba(255,255,255,.09);
+  --color-card-3: rgba(255,255,255,.13);
+  --color-glass-line: rgba(255,255,255,.07);
+  --color-glass-hi: rgba(255,255,255,.16);
+  --color-line: rgba(190,240,120,.13);
+  --color-line-strong: rgba(190,240,120,.24);
+  --color-accent: #a4f150;
+  --color-accent-2: #5fd23c;
+  --color-accent-deep: #3aa32b;
+  --color-grad: linear-gradient(135deg,#c2f96a 0%,#5fd23c 100%);
+  --color-glow: 0 8px 32px rgba(140,235,80,.38);
+  --color-text: #f1f7e6;
+  --color-muted: #a7b494;
+  --color-dim: #74825f;
+  --color-amber: #ffc857;
+  --color-red: #ff6d5a;
+  --color-blue: #6ec8ff;
+  --color-on-accent: #0d1506;
+  --radius-sm: 14px;
+  --radius-md: 16px;
+  --radius-lg: 18px;
+  --radius-xl: 20px;
+  --radius-hero: 26px;
+  --radius-pill: 999px;
+  --spacing-xs: 4px;
+  --spacing-sm: 6px;
+  --spacing-md: 8px;
+  --spacing-lg: 10px;
+  --spacing-xl: 12px;
+  --spacing-2xl: 16px;
+  --spacing-gutter: 22px;
+  --spacing-page: 20px;
+  --typography-font: -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+  --typography-title-xl: 30px;
+  --typography-title-lg: 24px;
+  --typography-heading: 17px;
+  --typography-body: 15px;
+  --typography-sub: 13px;
+  --typography-caption: 12px;
+  --typography-micro: 11px;
+  --typography-tag: 10.5px;
+  --typography-weight-regular: 400;
+  --typography-weight-medium: 600;
+  --typography-weight-bold: 800;
+}
+
+/* weapp 没有 html/:root 根元素，变量挂在 page 上（Taro 小程序端写法） */
+page {
+  --color-bg-outer-1: #f0f3e2;
+  --color-bg-outer-2: #dde7c4;
+  --color-screen: #0c110a;
+  --color-screen-2: #131a0c;
+  --color-card: rgba(255,255,255,.055);
+  --color-card-2: rgba(255,255,255,.09);
+  --color-card-3: rgba(255,255,255,.13);
+  --color-glass-line: rgba(255,255,255,.07);
+  --color-glass-hi: rgba(255,255,255,.16);
+  --color-line: rgba(190,240,120,.13);
+  --color-line-strong: rgba(190,240,120,.24);
+  --color-accent: #a4f150;
+  --color-accent-2: #5fd23c;
+  --color-accent-deep: #3aa32b;
+  --color-grad: linear-gradient(135deg,#c2f96a 0%,#5fd23c 100%);
+  --color-glow: 0 8px 32px rgba(140,235,80,.38);
+  --color-text: #f1f7e6;
+  --color-muted: #a7b494;
+  --color-dim: #74825f;
+  --color-amber: #ffc857;
+  --color-red: #ff6d5a;
+  --color-blue: #6ec8ff;
+  --color-on-accent: #0d1506;
+  --radius-sm: 14px;
+  --radius-md: 16px;
+  --radius-lg: 18px;
+  --radius-xl: 20px;
+  --radius-hero: 26px;
+  --radius-pill: 999px;
+  --spacing-xs: 4px;
+  --spacing-sm: 6px;
+  --spacing-md: 8px;
+  --spacing-lg: 10px;
+  --spacing-xl: 12px;
+  --spacing-2xl: 16px;
+  --spacing-gutter: 22px;
+  --spacing-page: 20px;
+  --typography-font: -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+  --typography-title-xl: 30px;
+  --typography-title-lg: 24px;
+  --typography-heading: 17px;
+  --typography-body: 15px;
+  --typography-sub: 13px;
+  --typography-caption: 12px;
+  --typography-micro: 11px;
+  --typography-tag: 10.5px;
+  --typography-weight-regular: 400;
+  --typography-weight-medium: 600;
+  --typography-weight-bold: 800;
+}

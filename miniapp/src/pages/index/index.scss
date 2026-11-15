@@ -1,0 +1,100 @@
+/* 占位页样式：全部引用 design tokens（--color-* / --radius-* / --spacing-* /
+   --typography-*），验证 tokens.css 生成链路 */
+@import '../../styles/tokens.css';
+
+.index-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 48px 32px 64px;
+  background: radial-gradient(120% 40% at 50% 0%, var(--color-screen-2) 0%, var(--color-screen) 60%);
+}
+
+.hero-card {
+  margin-bottom: 32px;
+  padding: 40px 32px;
+  border-radius: var(--radius-hero);
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-card);
+}
+
+.hero-label {
+  margin-bottom: 16px;
+  font-size: var(--typography-micro);
+  font-weight: var(--typography-weight-bold);
+  letter-spacing: 0.22em;
+  color: var(--color-dim);
+}
+
+.hero-title {
+  font-size: var(--typography-title-xl);
+  font-weight: var(--typography-weight-bold);
+  line-height: 1.24;
+}
+
+.hero-title .em {
+  font-style: italic;
+  color: var(--color-accent);
+}
+
+.hero-sub {
+  margin-top: 16px;
+  font-size: var(--typography-sub);
+  line-height: 1.65;
+  color: var(--color-muted);
+}
+
+.panel {
+  padding: 32px 28px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-glass-line);
+  background: var(--color-card-2);
+}
+
+.panel-title {
+  margin-bottom: 24px;
+  font-size: var(--typography-heading);
+  font-weight: var(--typography-weight-bold);
+}
+
+.probe-btn {
+  width: 100%;
+  height: 88px;
+  border-radius: var(--radius-pill);
+  background: var(--color-grad);
+  color: var(--color-on-accent);
+  font-size: 30px;
+  font-weight: var(--typography-weight-bold);
+  box-shadow: var(--color-glow);
+}
+
+.probe-btn.is-loading {
+  opacity: 0.7;
+}
+
+.probe-result {
+  margin-top: 24px;
+  padding: 20px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-line);
+  background: var(--color-card);
+  font-size: var(--typography-caption);
+  line-height: 1.5;
+  word-break: break-all;
+
+  &.ok {
+    color: var(--color-accent);
+    border-color: rgba(164, 241, 80, 0.4);
+  }
+
+  &.fail {
+    color: var(--color-red);
+    border-color: rgba(255, 109, 90, 0.4);
+  }
+}
+
+.probe-hint {
+  margin-top: 24px;
+  font-size: var(--typography-caption);
+  line-height: 1.6;
+  color: var(--color-dim);
+}

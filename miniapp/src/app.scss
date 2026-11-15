@@ -1,0 +1,21 @@
+/* 全局样式：先接入生成的 design tokens（design/tokens.json → styles/tokens.css），
+   再写基础层。组件级样式在各自页面/组件的 scss 里用 var(--color-*) 等。 */
+@import './styles/tokens.css';
+
+/* H5：Taro 页面挂在 #app 下的容器里，body 兜底承载变量与底色 */
+body {
+  font-family: var(--typography-font);
+  color: var(--color-text);
+  background: var(--color-screen);
+  font-size: var(--typography-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* weapp：page 是样式根 */
+page {
+  font-family: var(--typography-font);
+  color: var(--color-text);
+  background: var(--color-screen);
+  font-size: var(--typography-body);
+  -webkit-font-smoothing: antialiased;
+}
