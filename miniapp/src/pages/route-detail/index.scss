@@ -1,0 +1,484 @@
+/* 路线详情页样式（btn/chip/tag 共享原语在 app.scss；px = 原型 390 视口 ×2）。 */
+@import '../../styles/tokens.css';
+
+.rd-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding-bottom: 220px;
+  background: radial-gradient(120% 30% at 50% 0%, var(--color-screen-2) 0%, var(--color-screen) 55%);
+}
+
+.rd-state-card {
+  margin: 48px 40px 0;
+  padding: 56px 40px;
+  text-align: center;
+  border-radius: var(--radius-hero);
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-card);
+
+  .rd-state-title {
+    font-size: 34px;
+    font-weight: var(--typography-weight-bold);
+  }
+
+  .rd-state-sub {
+    margin-top: 14px;
+    font-size: 24px;
+    line-height: 1.6;
+    color: var(--color-muted);
+    word-break: break-all;
+  }
+}
+
+.rd-retry {
+  margin: 32px auto 0;
+  width: 60%;
+}
+
+/* ---------- 封面（对齐原型 08 hero） ---------- */
+.rd-hero {
+  position: relative;
+  height: 380px;
+}
+
+.rd-hero-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.rd-hero-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(12, 17, 10, 0.5), rgba(12, 17, 10, 0) 34%, rgba(12, 17, 10, 0) 52%, rgba(12, 17, 10, 0.96) 96%);
+}
+
+.rd-hero-btns {
+  position: absolute;
+  top: 56px;
+  left: 32px;
+  right: 32px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.icon-btn {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(12, 17, 10, 0.5);
+  border: 1px solid var(--color-glass-hi);
+  color: var(--color-text);
+  font-size: 36px;
+  line-height: 1;
+
+  &:active {
+    background: rgba(12, 17, 10, 0.7);
+  }
+}
+
+.rd-hero-cap {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  bottom: 28px;
+}
+
+.rd-hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.rd-hero-name {
+  font-size: 50px;
+  font-weight: var(--typography-weight-bold);
+  line-height: 1.25;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+.rd-hero-region {
+  margin-top: 10px;
+  font-size: 24px;
+  color: var(--color-muted);
+}
+
+/* ---------- tabs ---------- */
+.rd-tabs {
+  display: flex;
+  gap: 16px;
+  padding: 24px 40px 0;
+}
+
+.rd-tab {
+  padding: 14px 34px;
+  border-radius: var(--radius-pill);
+  font-size: 26px;
+  color: var(--color-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-line);
+
+  &.on {
+    color: var(--color-accent);
+    border-color: rgba(164, 241, 80, 0.55);
+    background: rgba(164, 241, 80, 0.15);
+    font-weight: var(--typography-weight-medium);
+  }
+}
+
+/* ---------- 内容区 ---------- */
+.rd-body {
+  padding: 0 40px;
+}
+
+.metrics {
+  display: flex;
+  margin-top: 28px;
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  border: 1px solid var(--color-glass-line);
+  padding: 26px 0;
+}
+
+.metric {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+
+  .v {
+    font-size: 34px;
+    font-weight: var(--typography-weight-bold);
+    color: var(--color-text);
+    white-space: nowrap;
+  }
+
+  .v.stars {
+    font-size: 30px;
+    letter-spacing: 2px;
+
+    .s-on {
+      color: var(--color-gold);
+    }
+
+    .s-off {
+      color: rgba(255, 255, 255, 0.18);
+    }
+  }
+
+  .k {
+    margin-top: 8px;
+    font-size: 20px;
+    color: var(--color-dim);
+  }
+
+  &.hl .v {
+    color: var(--color-accent);
+  }
+}
+
+.info-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 20px;
+
+  .chip.dim {
+    opacity: 0.62;
+    border-style: dashed;
+  }
+}
+
+/* ---------- chart-card（对齐原型 .chart-card） ---------- */
+.chart-card {
+  margin-top: 32px;
+  padding: 28px;
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  border: 1px solid var(--color-glass-line);
+}
+
+.chart-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+
+  .t {
+    font-size: 28px;
+    font-weight: var(--typography-weight-bold);
+  }
+
+  .badge-val {
+    flex: none;
+    font-size: 20px;
+    color: var(--color-muted);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--color-glass-line);
+    border-radius: var(--radius-pill);
+    padding: 6px 18px;
+  }
+}
+
+.chart-svg {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.chart-empty {
+  margin-top: 20px;
+  padding: 36px 0;
+  text-align: center;
+  font-size: 23px;
+  color: var(--color-dim);
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius-md);
+}
+
+/* ---------- 地形比例条（对齐原型 .terr） ---------- */
+.terr {
+  display: flex;
+  height: 34px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin-top: 24px;
+  background: rgba(255, 255, 255, 0.06);
+
+  .terr-seg {
+    height: 100%;
+
+    & + .terr-seg {
+      border-left: 3px solid rgba(12, 17, 10, 0.9);
+    }
+  }
+}
+
+.terr-legend {
+  margin-top: 20px;
+
+  .li {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    font-size: 23px;
+    color: var(--color-muted);
+
+    .sw {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      flex: none;
+    }
+
+    .li-name {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .li-pct {
+      color: var(--color-text);
+      font-weight: var(--typography-weight-bold);
+    }
+  }
+}
+
+/* ---------- 装备 chips ---------- */
+.gear-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.gear-note {
+  margin-top: 18px;
+  font-size: 20px;
+  color: var(--color-dim);
+}
+
+/* ---------- 安全提醒（对齐原型 .notice） ---------- */
+.notice {
+  display: flex;
+  gap: 18px;
+  margin-top: 32px;
+  padding: 26px 28px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 109, 90, 0.1);
+  border: 1px solid rgba(255, 109, 90, 0.42);
+
+  .n-ico {
+    flex: none;
+    font-size: 28px;
+    line-height: 1.4;
+  }
+
+  .n-text {
+    flex: 1;
+    min-width: 0;
+    font-size: 23px;
+    line-height: 1.65;
+    color: var(--color-red);
+  }
+}
+
+/* ---------- 轨迹 tab ---------- */
+.track-note {
+  margin-top: 20px;
+  font-size: 21px;
+  line-height: 1.6;
+  color: var(--color-dim);
+}
+
+.track-empty {
+  margin-top: 48px;
+
+  .empty-ico {
+    font-size: 60px;
+  }
+}
+
+/* ---------- 底部操作条（对齐原型 .action-bar） ---------- */
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding: 24px 40px calc(24px + env(safe-area-inset-bottom));
+  background: rgba(12, 17, 10, 0.92);
+  border-top: 1px solid var(--color-glass-line);
+  backdrop-filter: blur(12px);
+}
+
+.sq-btn {
+  width: 108px;
+  height: 108px;
+  flex: none;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-line-strong);
+  color: var(--color-muted);
+  font-size: 40px;
+  line-height: 1;
+}
+
+.bar-main {
+  flex: 1;
+}
+
+/* ---------- 加入计划半屏表单 ---------- */
+.sheet-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(4, 8, 4, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 40px 40px 0 0;
+  background: #121a10;
+  border-top: 1px solid var(--color-line-strong);
+  padding: 40px 40px calc(40px + env(safe-area-inset-bottom));
+  animation: sheet-up 0.24s ease;
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(40%);
+    opacity: 0.4;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.sheet-title {
+  font-size: 34px;
+  font-weight: var(--typography-weight-bold);
+}
+
+.sheet-sub {
+  margin-top: 8px;
+  font-size: 23px;
+  color: var(--color-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sheet-field {
+  margin-top: 30px;
+
+  .sf-label {
+    display: block;
+    font-size: 22px;
+    color: var(--color-dim);
+    margin-bottom: 12px;
+  }
+
+  .sf-value {
+    height: 92px;
+    display: flex;
+    align-items: center;
+    padding: 0 30px;
+    border-radius: 26px;
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid var(--color-line);
+    font-size: 27px;
+    color: var(--color-text);
+  }
+
+  .sf-input {
+    display: block;
+    height: 92px;
+    box-sizing: border-box;
+    padding: 0 30px;
+    border-radius: 26px;
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid var(--color-line);
+    color: var(--color-text);
+    font-size: 27px;
+    width: 100%;
+  }
+
+  .sf-placeholder {
+    color: var(--color-dim);
+    font-size: 25px;
+  }
+}
+
+.sheet-err {
+  margin-top: 24px;
+  padding: 18px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 109, 90, 0.45);
+  background: rgba(255, 109, 90, 0.1);
+  font-size: 23px;
+  line-height: 1.5;
+  color: var(--color-red);
+  word-break: break-all;
+}
+
+.sheet-submit {
+  margin-top: 40px;
+}
