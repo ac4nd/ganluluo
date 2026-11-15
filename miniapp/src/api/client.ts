@@ -24,6 +24,8 @@ export type RefreshIn = components['schemas']['RefreshIn']
 
 /** 本地存储 key：登录态双 token 存一个对象（TokenPair） */
 export const TOKEN_KEY = 'gl_token_pair'
+/** 首页入口（Task 2 起 index 页 = 入口/导航页） */
+export const HOME_PAGE = '/pages/index/index'
 /** 登录态彻底失效后的统一去向（login 页在 Task 2 注册进 app.config 后生效） */
 export const LOGIN_PAGE = '/pages/login/index'
 

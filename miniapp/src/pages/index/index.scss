@@ -1,17 +1,17 @@
-/* 占位页样式：全部引用 design tokens（--color-* / --radius-* / --spacing-* /
-   --typography-*），验证 tokens.css 生成链路 */
+/* 入口/导航页样式。px 约定：Taro designWidth=750（= 原型 390 视口的 2 倍稿），
+   颜色一律引用 design tokens（--color-* / --radius-*）。 */
 @import '../../styles/tokens.css';
 
 .index-page {
   box-sizing: border-box;
   min-height: 100vh;
-  padding: 48px 32px 64px;
+  padding: 88px 40px 96px;
   background: radial-gradient(120% 40% at 50% 0%, var(--color-screen-2) 0%, var(--color-screen) 60%);
 }
 
 .hero-card {
   margin-bottom: 32px;
-  padding: 40px 32px;
+  padding: 40px 36px;
   border-radius: var(--radius-hero);
   border: 1px solid var(--color-line-strong);
   background: var(--color-card);
@@ -19,14 +19,14 @@
 
 .hero-label {
   margin-bottom: 16px;
-  font-size: var(--typography-micro);
+  font-size: 21px;
   font-weight: var(--typography-weight-bold);
   letter-spacing: 0.22em;
   color: var(--color-dim);
 }
 
 .hero-title {
-  font-size: var(--typography-title-xl);
+  font-size: 52px;
   font-weight: var(--typography-weight-bold);
   line-height: 1.24;
 }
@@ -38,63 +38,117 @@
 
 .hero-sub {
   margin-top: 16px;
-  font-size: var(--typography-sub);
+  font-size: 25px;
   line-height: 1.65;
   color: var(--color-muted);
 }
 
-.panel {
-  padding: 32px 28px;
+/* ---------- 登录态摘要 ---------- */
+.auth-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 28px 30px;
+  margin-bottom: 28px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-glass-line);
   background: var(--color-card-2);
 }
 
-.panel-title {
-  margin-bottom: 24px;
-  font-size: var(--typography-heading);
-  font-weight: var(--typography-weight-bold);
+.auth-dot {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-dim);
+
+  &.on {
+    background: var(--color-accent);
+    box-shadow: 0 0 16px rgba(164, 241, 80, 0.6);
+  }
 }
 
-.probe-btn {
-  width: 100%;
-  height: 88px;
+.auth-text {
+  flex: 1;
+  min-width: 0;
+
+  .auth-line {
+    display: block;
+    font-size: 27px;
+    font-weight: 700;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .auth-mail {
+    display: block;
+    margin-top: 4px;
+    font-size: 21px;
+    color: var(--color-dim);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+.btn-login {
+  flex: none;
+  padding: 14px 28px;
   border-radius: var(--radius-pill);
   background: var(--color-grad);
   color: var(--color-on-accent);
-  font-size: 30px;
+  font-size: 24px;
   font-weight: var(--typography-weight-bold);
-  box-shadow: var(--color-glow);
 }
 
-.probe-btn.is-loading {
-  opacity: 0.7;
+/* ---------- 导航列表 ---------- */
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.probe-result {
-  margin-top: 24px;
-  padding: 20px 24px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-line);
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 30px 30px;
+  border-radius: var(--radius-lg);
   background: var(--color-card);
-  font-size: var(--typography-caption);
-  line-height: 1.5;
-  word-break: break-all;
+  border: 1px solid var(--color-line);
 
-  &.ok {
-    color: var(--color-accent);
-    border-color: rgba(164, 241, 80, 0.4);
+  .nav-text {
+    flex: 1;
+    min-width: 0;
+
+    .nav-title {
+      display: block;
+      font-size: 29px;
+      font-weight: 700;
+    }
+
+    .nav-desc {
+      display: block;
+      margin-top: 6px;
+      font-size: 22px;
+      color: var(--color-dim);
+    }
   }
 
-  &.fail {
-    color: var(--color-red);
-    border-color: rgba(255, 109, 90, 0.4);
+  .nav-arrow {
+    font-size: 36px;
+    color: var(--color-dim);
+  }
+
+  &.disabled {
+    opacity: 0.45;
   }
 }
 
-.probe-hint {
-  margin-top: 24px;
-  font-size: var(--typography-caption);
-  line-height: 1.6;
+.index-foot {
+  margin-top: 48px;
+  text-align: center;
+  font-size: 21px;
   color: var(--color-dim);
 }
