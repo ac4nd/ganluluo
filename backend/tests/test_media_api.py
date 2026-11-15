@@ -53,10 +53,11 @@ async def _auth(c, email: str):
 
 
 async def _registered_media(c, store, h, ext="mp4"):
-    """走完 presign → 预置魔法数对象 → 登记 全流程，返回 (object_key, response)。"""
+    """走完 presign → 预置魔法数对象（内容按声明 size 补齐，过 I-2 stat 核验）→
+    登记 全流程，返回 (object_key, response)。"""
     body = {"filename": f"clip.{ext}", "content_type": MIME_BY_EXT[ext], "size": 12345}
     key = (await c.post("/media/presign", json=body, headers=h)).json()["object_key"]
-    store.put(key, HEAD_BY_EXT[ext])
+    store.put(key, HEAD_BY_EXT[ext].ljust(body["size"], b"\x00"))
     r = await c.post(
         "/media", json={"object_key": key, "filename": body["filename"], "size": body["size"]}, headers=h
     )
@@ -118,6 +119,50 @@ async def test_register_magic_mismatch_422_removes_object(media_client):
     assert key not in store._objects  # 魔法数不符 → 对象已被 remove
 
 
+async def test_register_size_mismatch_422_removes_object(media_client):
+    """I-2 stat 核真实大小：put 短内容 + 登记声明大 size → 422 且对象被 remove。"""
+    c, store = media_client
+    h, _ = await _auth(c, "sizelie@b.com")
+    body = {"filename": "clip.mp4", "content_type": "video/mp4", "size": 12345}
+    key = (await c.post("/media/presign", json=body, headers=h)).json()["object_key"]
+    store.put(key, HEAD_BY_EXT["mp4"])  # 只 16 字节魔法头：实测 != 声明
+    r = await c.post(
+        "/media", json={"object_key": key, "filename": body["filename"], "size": body["size"]}, headers=h
+    )
+    assert r.status_code == 422
+    assert r.json()["detail"] == "文件大小与声明不符"
+    assert key not in store._objects  # 大小不符 → 对象已被 remove
+
+
+async def test_register_size_over_max_422(media_client, monkeypatch):
+    """I-2：实测 > 200MB 上限（声明合规）→ 422 并 remove（monkeypatch stat 模拟超大对象）。"""
+    c, store = media_client
+    h, _ = await _auth(c, "sizebig@b.com")
+    body = {"filename": "clip.mp4", "content_type": "video/mp4", "size": 12345}
+    key = (await c.post("/media/presign", json=body, headers=h)).json()["object_key"]
+    store.put(key, HEAD_BY_EXT["mp4"].ljust(12345, b"\x00"))
+
+    async def stat_huge(key: str) -> int:
+        return MAX_SIZE + 1
+
+    monkeypatch.setattr(store, "stat", stat_huge)
+    r = await c.post(
+        "/media", json={"object_key": key, "filename": body["filename"], "size": 12345}, headers=h
+    )
+    assert r.status_code == 422 and r.json()["detail"] == "文件大小与声明不符"
+    assert key not in store._objects
+
+
+async def test_register_persists_actual_size(media_client):
+    """I-2 落库实测值：声明 == 实测（12345）→ /media/my 回读 size_bytes == 12345。"""
+    c, store = media_client
+    h, _ = await _auth(c, "sizeok@b.com")
+    _, r = await _registered_media(c, store, h)
+    assert r.status_code == 201
+    items = (await c.get("/media/my", headers=h)).json()
+    assert items[0]["size_bytes"] == 12345  # 与 store 实测一致，非客户端可伪造值
+
+
 async def test_register_unknown_object_404(media_client):
     c, _ = media_client
     h, _ = await _auth(c, "ghost@b.com")
@@ -133,9 +178,10 @@ def _s3_stub_error(code: str) -> S3Error:
 
 
 def _head_boom(code: str):
-    """head_bytes 替身：抛指定 code 的 S3Error，模拟真实 MinIO 存储侧故障。"""
+    """head_bytes 替身：抛指定 code 的 S3Error，模拟真实 MinIO 存储侧故障。
+    I-6 async 化后 head_bytes 为 async 协议方法，替身同签名 async。"""
 
-    def boom(key: str, n: int) -> bytes:
+    async def boom(key: str, n: int) -> bytes:
         raise _s3_stub_error(code)
 
     return boom

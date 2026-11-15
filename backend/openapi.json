@@ -247,6 +247,7 @@
           "admin"
         ],
         "summary": "Publish Route",
+        "description": "发布草稿路线（M6.5 I-5 乐观并发）：单条条件 UPDATE（WHERE id AND\nstatus='draft'）+ rowcount 判定，消除读后写竞态（双发布都读到 draft、后写\n覆盖先写）；rowcount==0 → 回查行存在性区分 404 / 非草稿 400，文案不变。",
         "operationId": "publish_route_admin_routes__route_id__publish_post",
         "security": [
           {
@@ -343,6 +344,54 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MediaPageOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/media/{media_id}/url": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Admin Media Url",
+        "description": "I-5（M6.5）人审预览：不限 status 直接 presign_get——pending 内容正是需要\n人工查看的对象（用户侧 approved-only 的 403 语义不变）；不存在 → 404。",
+        "operationId": "admin_media_url_admin_media__media_id__url_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "media_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Media Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaUrlOut"
                 }
               }
             }
@@ -1678,6 +1727,14 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "object_key": {
+            "type": "string",
+            "title": "Object Key"
+          },
+          "mime": {
+            "type": "string",
+            "title": "Mime"
           }
         },
         "type": "object",
@@ -1687,7 +1744,9 @@
           "kind",
           "status",
           "size_bytes",
-          "created_at"
+          "created_at",
+          "object_key",
+          "mime"
         ],
         "title": "AdminMediaOut"
       },

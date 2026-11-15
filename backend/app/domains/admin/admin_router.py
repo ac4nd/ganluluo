@@ -12,10 +12,11 @@ commit，不吊销则已签发的 refresh token 在 re-enable 后复活续期。
 """
 
 from datetime import datetime
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import func, select
+from sqlalchemy import CursorResult, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_admin
@@ -23,13 +24,17 @@ from app.core.db import get_session
 from app.domains.admin.quota_service import get_status
 from app.domains.auth.jwt_service import _revoke_all
 from app.domains.media import media_service
+from app.domains.media.media_router import get_store
 from app.domains.media.media_service import (
+    DOWNLOAD_EXPIRES_S,
     InvalidReviewAction,
     MediaAlreadyReviewed,
     MediaNotFound,
     MediaReviewIn,
     MediaReviewOut,
+    MediaUrlOut,
 )
+from app.domains.media.media_store import MediaStore
 from app.models.media import MediaItem
 from app.models.route import Route
 from app.models.user import User
@@ -97,6 +102,9 @@ class AdminMediaOut(BaseModel):
     status: str
     size_bytes: int
     created_at: datetime
+    # I-5（M6.5）：人审列表透出 object_key / mime，预览入口与内容类型一眼可辨
+    object_key: str
+    mime: str
 
 
 class MediaPageOut(BaseModel):
@@ -206,14 +214,23 @@ async def publish_route(
     _admin: User = Depends(get_current_admin),
     session: AsyncSession = Depends(get_session),
 ) -> PublishOut:
-    route = (
-        await session.execute(select(Route).where(Route.id == route_id))
-    ).scalar_one_or_none()
-    if route is None:
-        raise HTTPException(status_code=404, detail="路线不存在")
-    if route.status != "draft":
+    """发布草稿路线（M6.5 I-5 乐观并发）：单条条件 UPDATE（WHERE id AND
+    status='draft'）+ rowcount 判定，消除读后写竞态（双发布都读到 draft、后写
+    覆盖先写）；rowcount==0 → 回查行存在性区分 404 / 非草稿 400，文案不变。"""
+    # rowcount 在运行时 CursorResult 上，不在类型化 Result 门面上（同 jwt_service 先例）
+    res = cast(
+        "CursorResult[Any]",
+        await session.execute(
+            update(Route).where(Route.id == route_id, Route.status == "draft").values(status="published")
+        ),
+    )
+    if res.rowcount == 0:
+        route = (
+            await session.execute(select(Route).where(Route.id == route_id))
+        ).scalar_one_or_none()
+        if route is None:
+            raise HTTPException(status_code=404, detail="路线不存在")
         raise HTTPException(status_code=400, detail="路线非草稿状态")
-    route.status = "published"
     await session.commit()
     return PublishOut(ok=True, status="published")
 
@@ -237,6 +254,22 @@ async def list_media(
         await session.execute(stmt.order_by(MediaItem.id).offset((page - 1) * size).limit(size))
     ).scalars().all()
     return MediaPageOut(items=[AdminMediaOut.model_validate(m) for m in rows], total=total, page=page, size=size)
+
+
+@router.get("/media/{media_id}/url", response_model=MediaUrlOut)
+async def admin_media_url(
+    media_id: int,
+    _admin: User = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+    store: MediaStore = Depends(get_store),
+) -> MediaUrlOut:
+    """I-5（M6.5）人审预览：不限 status 直接 presign_get——pending 内容正是需要
+    人工查看的对象（用户侧 approved-only 的 403 语义不变）；不存在 → 404。"""
+    item = await session.get(MediaItem, media_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="媒体不存在")
+    url = await store.presign_get(item.object_key, DOWNLOAD_EXPIRES_S)
+    return MediaUrlOut(url=url, expires_in=DOWNLOAD_EXPIRES_S)
 
 
 @router.post("/media/{media_id}/review", response_model=MediaReviewOut)

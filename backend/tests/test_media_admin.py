@@ -14,6 +14,7 @@ from sqlalchemy import select
 
 from app.core.db import get_session
 from app.domains.media.media_router import get_store
+from app.domains.media.media_service import DOWNLOAD_EXPIRES_S
 from app.domains.media.media_store import FakeMediaStore
 from app.main import create_app
 from app.models.media import MediaItem
@@ -80,9 +81,12 @@ async def test_media_list_pending_default_filter_and_pagination(media_client, db
     assert body["total"] == 1 and body["page"] == 1 and body["size"] == 20
     assert [i["id"] for i in body["items"]] == [ids[2]]
     got = body["items"][0]
-    assert set(got) == {"id", "user_id", "kind", "status", "size_bytes", "created_at"}  # 契约字段
+    # 契约字段（M6.5 I-5 补 object_key/mime：人审列表透出预览所需）
+    assert set(got) == {"id", "user_id", "kind", "status", "size_bytes", "created_at", "object_key", "mime"}
     assert got["user_id"] == uid and got["kind"] == "video" and got["status"] == "pending"
     assert got["size_bytes"] == 12345 and "T" in got["created_at"]
+    assert got["object_key"] == (await db.get(MediaItem, ids[2])).object_key
+    assert got["mime"] == "video/mp4"
     # status 过滤：approved / rejected
     r = await c.get("/admin/media?status=approved", headers=ah)
     assert r.status_code == 200 and [i["id"] for i in r.json()["items"]] == [ids[0]]
@@ -113,6 +117,33 @@ async def test_media_list_pending_default_filter_and_pagination(media_client, db
     assert (await c.get("/admin/media?page=0", headers=ah)).status_code == 422
     assert (await c.get("/admin/media?size=0", headers=ah)).status_code == 422
     assert (await c.get("/admin/media?size=101", headers=ah)).status_code == 422
+
+
+async def test_admin_media_url_preview_three_states(media_client, db):
+    """I-5 人审预览：pending 也发预览 URL（人审正是要看 pending 内容）；approved/rejected
+    同样 200（不限 status）；不存在 → 404；非 admin → 403（get_current_admin 链路）。"""
+    c, store = media_client
+    ah = await _admin(c, db, email="previewadm@b.com")
+    h, _ = await _auth(c, "previewee@b.com")
+    key, r = await _registered_media(c, store, h)
+    mid = r.json()["id"]
+    # pending → 200，预览 URL 含 object_key
+    p = await c.get(f"/admin/media/{mid}/url", headers=ah)
+    assert p.status_code == 200
+    body = p.json()
+    assert key in body["url"] and body["expires_in"] == DOWNLOAD_EXPIRES_S
+    # rejected / approved → 仍 200（不限 status，与用户侧 approved-only 403 语义区分）
+    item = await db.get(MediaItem, mid)
+    for status in ("rejected", "approved"):
+        item.status = status
+        await db.commit()
+        assert (await c.get(f"/admin/media/{mid}/url", headers=ah)).status_code == 200
+    # 不存在 → 404
+    assert (await c.get("/admin/media/999999/url", headers=ah)).status_code == 404
+    assert (await c.get("/admin/media/999999/url", headers=ah)).json()["detail"] == "媒体不存在"
+    # 非 admin → 403
+    assert (await c.get(f"/admin/media/{mid}/url", headers=h)).status_code == 403
+    assert (await c.get(f"/admin/media/{mid}/url", headers=h)).json()["detail"] == "需要管理员权限"
 
 
 async def test_review_approve_then_user_url_403_to_200(media_client, db):

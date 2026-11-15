@@ -34,6 +34,12 @@ PIP_MIRROR = "https://mirrors.aliyun.com/pypi/simple/"
 BACKEND = Path(__file__).resolve().parents[1]
 CSV_SRC = BACKEND.parent / "protype" / "route_guides.csv"
 
+# M6.5 I-7：MinIO 冒烟依赖容器内 GL_MINIO_*——本机环境有值则内联透传进 exec 命令
+# （.env 未配置则 SMOKE 自动 SKIP 该检查项，不 FAIL）；SECURE 仅在容器内读取。
+MINIO_ENV_KEYS = ("GL_MINIO_ENDPOINT", "GL_MINIO_ACCESS_KEY", "GL_MINIO_SECRET_KEY",
+                  "GL_MINIO_BUCKET", "GL_MINIO_SECURE")
+MINIO_ENV = {k: os.environ[k] for k in MINIO_ENV_KEYS if os.environ.get(k)}
+
 SMOKE = f"""
 import asyncio
 from sqlalchemy import text
@@ -88,6 +94,36 @@ async def main():
             "select count(*) from information_schema.tables"
             " where table_name='media_items' and table_schema='public'"))).scalar()
     await engine.dispose()
+    # M6.5 I-7 MinIO 冒烟：容器内 GL_MINIO_* 四项齐全才执行（缺配置 SKIP 不 FAIL）。
+    # 流程：ensure_bucket → presign_put(测试 key, uuid hex) → 经预签 URL PUT 最小
+    # mp4 头（16B ftyp）→ stat 核真实字节数 → remove 清理（S3 幂等语义）。
+    minio_ok = None  # None = SKIP
+    minio_detail = "GL_MINIO_* not set (SKIP)"
+    if all(os.environ.get(k) for k in ("GL_MINIO_ENDPOINT", "GL_MINIO_ACCESS_KEY",
+                                       "GL_MINIO_SECRET_KEY", "GL_MINIO_BUCKET")):
+        import uuid
+        import httpx
+        from app.domains.media.media_store import MinioMediaStore
+        try:
+            store = MinioMediaStore(
+                os.environ["GL_MINIO_ENDPOINT"], os.environ["GL_MINIO_ACCESS_KEY"],
+                os.environ["GL_MINIO_SECRET_KEY"], os.environ["GL_MINIO_BUCKET"],
+                secure=os.environ.get("GL_MINIO_SECURE", "").lower() == "true",
+            )
+            await store.ensure_bucket()
+            key = "media/smoke-" + uuid.uuid4().hex + ".mp4"
+            # 最小合法 mp4 头（16B，bytes[4:8]=='ftyp'）：SMOKE 是外层 f-string，
+            # 转义序列会提前解码成 NUL 字节，故用 bytes([...]) 显式构造
+            payload = bytes([0, 0, 0, 24]) + b"ftypisom" + bytes([0, 0, 2, 0])
+            up = httpx.put(store.presign_put(key, "video/mp4", 60), content=payload)
+            up.raise_for_status()
+            size = await store.stat(key)
+            await store.remove(key)
+            minio_ok = size == len(payload)
+            minio_detail = "stat=" + str(size)
+        except Exception as e:  # 连通/权限故障 → 该检查项 FAIL，不吞掉其余 DB 检查
+            minio_ok = False
+            minio_detail = type(e).__name__ + ": " + str(e)
     checks = [
         ("gear_models == 116", gear == 116, gear),
         ("routes == 6", routes == 6, routes),
@@ -105,11 +141,15 @@ async def main():
         ("quota_tiers/llm_usage/sub_tokens tables (0013)", quota_tbls == 3, quota_tbls),
         ("media_items table exists (0014)", media_tbl == 1, media_tbl),
     ]
+    if minio_ok is None:
+        print("SKIP", "MinIO presign->put->stat->remove ->", minio_detail)
+    else:
+        checks.append(("MinIO presign->put->stat->remove", minio_ok, minio_detail))
     print("smoke rows:", dict(gear=gear, routes=routes, docs=docs, chunks=chunks,
                               embedding=emb, start_pt=start_pt, hnsw=hnsw, nn=hit,
                               ver=ver, trips=trip_tbl, tracks=track_tbl,
                               agent_tbls=agent_tbl, user_cols=user_cols,
-                              quota_tbls=quota_tbls, media=media_tbl))
+                              quota_tbls=quota_tbls, media=media_tbl, minio=minio_ok))
     failed = [name for name, ok, _ in checks if not ok]
     for name, ok, val in checks:
         print(("PASS" if ok else "FAIL"), name, "->", val)
@@ -186,6 +226,10 @@ def main() -> int:
         print(f"[3] put_archive /app: {ok} ({len(payload) / 1024:.0f} KiB)")
         results.append(("put_archive", ok))
 
+        # I-7：GL_MINIO_* 本机有值则内联透传进容器（exec 命令前缀注入）；.env 未配置为空串
+        minio_prefix = " ".join(f"{k}='{v}'" for k, v in MINIO_ENV.items())
+        if minio_prefix:
+            minio_prefix += " "
         steps: list[tuple[str, str]] = [
             ("pip install -e /app",
              f"pip install -i {PIP_MIRROR} -e /app --no-deps"),
@@ -203,7 +247,8 @@ def main() -> int:
             ("seed_kb",
              (f"PYTHONPATH=/app GL_DATABASE_URL='{PG_URL}' GL_KB_CSV=/app/route_guides.csv"
               " python -m app.seeds.seed_kb")),
-            ("smoke checks", f"PYTHONPATH=/app python - <<'PYEOF'\n{SMOKE}\nPYEOF"),
+            ("smoke checks",
+             f"{minio_prefix}PYTHONPATH=/app python - <<'PYEOF'\n{SMOKE}\nPYEOF"),
         ]
         for name, cmd in steps:
             r = ctr.exec_run(["/bin/sh", "-c", f"cd /app && {cmd}"], demux=False)

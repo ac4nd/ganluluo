@@ -1,9 +1,12 @@
 from fastapi import FastAPI
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 from starlette.requests import Request
 from starlette.responses import Response
+
+# limiter 定义在 core（M6.5 I-6 抽出）：auth/assistant/media router 直接从
+# app.core.rate_limit import，app.main 不再是 limiter 的家（循环导入债已清）。
+from app.core.rate_limit import limiter
 
 
 def rate_limit_exceeded_handler(request: Request, exc: Exception) -> Response:
@@ -11,10 +14,6 @@ def rate_limit_exceeded_handler(request: Request, exc: Exception) -> Response:
     # is typed for RateLimitExceeded; only that class is registered, so narrow first.
     assert isinstance(exc, RateLimitExceeded)
     return _rate_limit_exceeded_handler(request, exc)
-
-# Defined before router imports: app.api.routes.auth imports this limiter
-# for the @limiter.limit decorator on /auth/login (avoids circular import).
-limiter = Limiter(key_func=get_remote_address)
 
 from app.api.routes.ops import router as ops_router
 from app.assistant.memory_router import router as memory_router

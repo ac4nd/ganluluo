@@ -5,11 +5,12 @@ store 经 get_store 依赖注入（测试用 app.dependency_overrides[get_store]
 独立的 FakeMediaStore，避免对象串数据；与 agent_provider 覆盖模式一致）。
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.core.db import get_session
+from app.core.rate_limit import limiter, user_key
 from app.domains.media import media_service
 from app.domains.media.media_service import (
     MagicMismatch,
@@ -20,6 +21,7 @@ from app.domains.media.media_service import (
     MediaOut,
     MediaRegisteredOut,
     MediaRegisterIn,
+    MediaSizeMismatch,
     MediaUrlOut,
     PresignIn,
     PresignOut,
@@ -30,9 +32,10 @@ from app.models.user import User
 router = APIRouter()
 
 
-def get_store() -> MediaStore:
-    """store 依赖：生产走 get_media_store() 单例；测试 dependency_overrides 注入 Fake。"""
-    return get_media_store()
+async def get_store() -> MediaStore:
+    """store 依赖（I-6 async 工厂）：生产走 await get_media_store() 单例；
+    测试 dependency_overrides 注入 Fake。"""
+    return await get_media_store()
 
 
 @router.post("/presign", response_model=PresignOut)
@@ -42,13 +45,17 @@ async def presign(
     session: AsyncSession = Depends(get_session),
 ) -> PresignOut:
     try:
-        return media_service.presign_upload(session, current, data.filename, data.content_type, data.size)
+        return await media_service.presign_upload(session, current, data.filename, data.content_type, data.size)
     except ValueError as e:  # 白名单拒绝：扩展名 / content_type / size
         raise HTTPException(status_code=422, detail=str(e)) from None
 
 
 @router.post("", response_model=MediaRegisteredOut, status_code=201)
+# 登记限流（M6.5 I-4）：10/minute per-user（共享 user_key，Bearer sub 回退 IP），
+# 防脚本刷登记/head 校验；与 presign（签发前白名单挡）互不影响。
+@limiter.limit("10/minute", key_func=user_key)
 async def register_media(
+    request: Request,
     data: MediaRegisterIn,
     current: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
@@ -56,7 +63,7 @@ async def register_media(
 ) -> MediaRegisteredOut:
     try:
         item = await media_service.register_media(session, current, store, data.object_key, data.filename, data.size)
-    except (MediaKeyInvalid, MagicMismatch) as e:  # key 白名单 / 魔法数不符（对象已 remove）
+    except (MediaKeyInvalid, MagicMismatch, MediaSizeMismatch) as e:  # key 白名单 / 魔法数 / 大小不符（对象已 remove）
         raise HTTPException(status_code=422, detail=str(e)) from None
     except MediaObjectMissing as e:  # 谎报已上传：store 中无此对象
         raise HTTPException(status_code=404, detail=str(e)) from None
