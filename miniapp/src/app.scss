@@ -199,7 +199,7 @@ page {
 }
 
 .quota-card.vip .qc-ic {
-  background: linear-gradient(135deg, #f6e7a0, #d9b84e);
+  background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold-deep));
 }
 
 .badge-tier {
@@ -219,7 +219,7 @@ page {
 
   &.vip {
     background: rgba(242, 221, 125, 0.14);
-    color: #f2dd7d;
+    color: var(--color-gold);
     border: 1px solid rgba(242, 221, 125, 0.45);
   }
 }
@@ -294,8 +294,8 @@ page {
   font-weight: var(--typography-weight-bold);
   padding: 16px 28px;
   border-radius: var(--radius-pill);
-  color: #0d1506;
-  background: linear-gradient(135deg, #f6e7a0, #d9b84e);
+  color: var(--color-on-accent);
+  background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold-deep));
   box-shadow: 0 12px 36px rgba(217, 184, 78, 0.28);
 }
 

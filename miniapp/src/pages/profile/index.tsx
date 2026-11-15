@@ -34,9 +34,13 @@ function fmtTokens(n: number): string {
   return n >= 10000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n)
 }
 
-/** 用量比例 → 进度条档色（对齐原型 cls：>=0.85 danger / >=0.6 warn） */
+/**
+ * 用量比例 → 进度条档色（对齐原型 cls：>=0.85 danger / >=0.6 warn）。
+ * limit<=0 的防御分支与宽度计算（qbar-fill 0%）统一为中性：后端正常恒发正数限额，
+ * 真触发时渲染灰空条 + 「x / 0」，不误报红色 danger。
+ */
 function levelOf(used: number, limit: number): QuotaLevel {
-  if (limit <= 0) return 'danger'
+  if (limit <= 0) return ''
   const r = used / limit
   return r >= 0.85 ? 'danger' : r >= 0.6 ? 'warn' : ''
 }

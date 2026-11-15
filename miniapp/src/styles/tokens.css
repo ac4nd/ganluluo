@@ -26,6 +26,9 @@
   --color-amber: #ffc857;
   --color-red: #ff6d5a;
   --color-blue: #6ec8ff;
+  --color-gold: #f2dd7d;
+  --color-gold-light: #f6e7a0;
+  --color-gold-deep: #d9b84e;
   --color-on-accent: #0d1506;
   --radius-sm: 14px;
   --radius-md: 16px;
@@ -79,6 +82,9 @@ page {
   --color-amber: #ffc857;
   --color-red: #ff6d5a;
   --color-blue: #6ec8ff;
+  --color-gold: #f2dd7d;
+  --color-gold-light: #f6e7a0;
+  --color-gold-deep: #d9b84e;
   --color-on-accent: #0d1506;
   --radius-sm: 14px;
   --radius-md: 16px;

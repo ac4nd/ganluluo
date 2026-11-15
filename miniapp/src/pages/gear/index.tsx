@@ -228,8 +228,22 @@ export default function Gear() {
                 <View
                   className="gear-row"
                   onClick={() => {
-                    setOpenKey(open ? null : it.key)
-                    if (!sel) toggleItem(it.key)
+                    if (!sel) {
+                      // 未选中：点击行 = 勾选并展开（选型号/自定义名）
+                      setSaveMsg('')
+                      setSelection((cur) =>
+                        cur[it.key] ? cur : { ...cur, [it.key]: { model_id: null, custom_name: null } },
+                      )
+                      setOpenKey(it.key)
+                    } else if (open) {
+                      // 已选中且已展开（F-1）：点击行 = 取消勾选并收起，保证清单可增可减
+                      setSaveMsg('')
+                      toggleItem(it.key)
+                      setOpenKey(null)
+                    } else {
+                      // 已选中未展开：仅展开查看型号
+                      setOpenKey(it.key)
+                    }
                   }}
                 >
                   <View className="gic">{CAT_EMOJI[it.category] || '🧰'}</View>
