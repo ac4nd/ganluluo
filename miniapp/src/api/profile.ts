@@ -12,6 +12,9 @@ export type ProfileIn = S['ProfileIn']
 export type ProfileOut = S['ProfileOut']
 export type Sport = S['Sport']
 
+/** 引导 02 的运动多选上限（原型 02：「选择 1–4 项」） */
+export const MAX_SPORTS = 4
+
 /** 8 类运动（Sport 枚举的展示元数据，label/sub 对齐原型 02-onboard-sport；轻端用 emoji 代原型 SVG 图标） */
 export const SPORTS: { key: Sport; label: string; sub: string; emoji: string }[] = [
   { key: 'hiking', label: '徒步', sub: '山野长距离行走', emoji: '🥾' },

@@ -10,7 +10,7 @@ import { Input, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 
 import { login, register, getTokenPair } from '@/api/auth'
-import { HOME_PAGE, type ApiError } from '@/api/client'
+import { HOME_PAGE, ONBOARD_SPORT_PAGE, type ApiError } from '@/api/client'
 import './index.scss'
 
 type Mode = 'login' | 'register'
@@ -56,10 +56,12 @@ export default function Login() {
       if (mode === 'register') {
         await register({ email: mail, nickname: nickname.trim(), password })
         await login({ email: mail, password }) // 注册即自动登录
+        // 新用户进三步画像引导（02 运动 → 03 经验体能 → 04 装备 → 首页）
+        await Taro.reLaunch({ url: ONBOARD_SPORT_PAGE })
       } else {
         await login({ email: mail, password })
+        await Taro.reLaunch({ url: HOME_PAGE })
       }
-      await Taro.reLaunch({ url: HOME_PAGE })
     } catch (err) {
       const e = err as ApiError
       setError(e?.detail || String(err))

@@ -100,125 +100,7 @@
   word-break: break-all;
 }
 
-/* ---------- 运动偏好 tiles（对齐原型 icon-tile 双列栅格） ---------- */
-.sport-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-}
-
-.icon-tile {
-  position: relative;
-  padding: 26px 24px;
-  border-radius: var(--radius-lg);
-  background: var(--color-card);
-  border: 1px solid var(--color-line);
-  overflow: hidden;
-
-  .tile-emoji {
-    font-size: 48px;
-    line-height: 1.2;
-  }
-
-  .tile-name {
-    margin-top: 10px;
-    font-size: 28px;
-    font-weight: 700;
-  }
-
-  .tile-sub {
-    margin-top: 4px;
-    font-size: 21px;
-    color: var(--color-dim);
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  .tile-check {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 3px solid var(--color-dim);
-    color: transparent;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  &.sel {
-    border-color: rgba(164, 241, 80, 0.65);
-    background: rgba(164, 241, 80, 0.1);
-
-    .tile-check {
-      background: var(--color-grad);
-      border-color: transparent;
-      color: var(--color-on-accent);
-      font-weight: var(--typography-weight-bold);
-    }
-
-    .tile-emoji {
-      filter: drop-shadow(0 0 12px rgba(164, 241, 80, 0.45));
-    }
-  }
-}
-
-/* ---------- 经验 / 体能 option 行（对齐原型 03 option） ---------- */
-.option-group {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.option {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  padding: 24px 26px;
-  border-radius: var(--radius-lg);
-  background: var(--color-card);
-  border: 1px solid var(--color-line);
-
-  .radio {
-    flex: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 3px solid var(--color-dim);
-    margin-top: 6px;
-  }
-
-  .option-title {
-    font-size: 27px;
-    font-weight: 700;
-  }
-
-  .option-sub {
-    margin-top: 6px;
-    font-size: 22px;
-    line-height: 1.5;
-    color: var(--color-muted);
-  }
-
-  &.sel {
-    border-color: rgba(164, 241, 80, 0.55);
-    background: rgba(164, 241, 80, 0.08);
-
-    .radio {
-      border-color: transparent;
-      background: var(--color-grad);
-      box-shadow: inset 0 0 0 6px var(--color-screen);
-    }
-
-    .option-title {
-      color: var(--color-accent);
-    }
-  }
-}
+/* 运动偏好 tiles / 经验体能 option 行已上移 app.scss（M7.5 起与引导页共用） */
 
 /* ---------- 保存反馈 ---------- */
 .save-msg {
@@ -229,7 +111,7 @@
   word-break: break-all;
 }
 
-/* ---------- 装备入口行 / 退出 ---------- */
+/* ---------- 装备入口行 / 重新完成画像 / 退出 ---------- */
 .row-item {
   display: flex;
   align-items: center;
@@ -238,6 +120,10 @@
   background: var(--color-card);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-md);
+
+  &.re-onboard {
+    margin-top: 20px;
+  }
 
   .row-ic {
     width: 76px;

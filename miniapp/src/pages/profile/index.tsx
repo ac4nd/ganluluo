@@ -22,7 +22,7 @@ import {
   type ProfileOut,
   type Sport,
 } from '@/api/profile'
-import { LOGIN_PAGE } from '@/api/client'
+import { LOGIN_PAGE, ONBOARD_SPORT_PAGE } from '@/api/client'
 import './index.scss'
 
 type PagePhase = 'checking' | 'guest' | 'ready'
@@ -122,6 +122,11 @@ export default function Profile() {
 
   const goGear = (): void => {
     void Taro.navigateTo({ url: '/pages/gear/index' })
+  }
+
+  /* 重新完成画像：从 02 运动偏好开始走三步引导 */
+  const goReOnboard = (): void => {
+    void Taro.navigateTo({ url: ONBOARD_SPORT_PAGE })
   }
 
   /* ---------- 未登录降级态 ---------- */
@@ -298,7 +303,7 @@ export default function Profile() {
       </View>
       {saveMsg && <View className="save-msg">{saveMsg}</View>}
 
-      {/* 装备清单入口 */}
+      {/* 装备清单入口 + 重新完成画像入口 */}
       <View className="sec">
         <Text className="sec-title">常用装备</Text>
       </View>
@@ -306,6 +311,11 @@ export default function Profile() {
         <View className="row-ic">🎒</View>
         <Text className="row-t">装备清单</Text>
         <Text className="row-s">编辑 ›</Text>
+      </View>
+      <View className="row-item re-onboard" onClick={goReOnboard}>
+        <View className="row-ic">🧭</View>
+        <Text className="row-t">重新完成画像</Text>
+        <Text className="row-s">三步引导 ›</Text>
       </View>
 
       {/* 退出登录 */}

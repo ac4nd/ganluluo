@@ -300,6 +300,223 @@ page {
 }
 
 /* ============================================================
+   引导流（M7.5 对齐原型 02/03：step-head/stepper/notice/cta-wrap）
+   ============================================================ */
+
+.step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+
+  .step-label {
+    font-size: 22px;
+    color: var(--color-dim);
+    letter-spacing: 0.22em;
+    font-weight: var(--typography-weight-bold);
+  }
+}
+
+.back-btn {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(24, 33, 17, 0.42);
+  border: 1px solid var(--color-line);
+  color: var(--color-text);
+  font-size: 30px;
+}
+
+/* 进度条：3 段（02 运动 / 03 经验体能 / 04 装备） */
+.stepper {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 24px 0 44px;
+
+  i {
+    height: 10px;
+    flex: 1;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+
+    &.done {
+      background: var(--color-grad);
+    }
+  }
+}
+
+/* 绿色提示条（对齐原型 .notice.green） */
+.notice-green {
+  display: flex;
+  gap: 22px;
+  align-items: flex-start;
+  margin-top: 32px;
+  padding: 26px 28px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(164, 241, 80, 0.32);
+  background: rgba(164, 241, 80, 0.08);
+  font-size: 24px;
+  line-height: 1.6;
+  color: #d6f4b4;
+
+  .n-ico {
+    flex: none;
+    margin-top: 2px;
+    color: var(--color-accent);
+  }
+}
+
+/* 底部固定 CTA（对齐原型 .cta-wrap/.cta-skip） */
+.cta-wrap {
+  position: fixed;
+  left: 40px;
+  right: 40px;
+  bottom: 0;
+  z-index: 50;
+  padding: 24px 0 calc(28px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(12, 17, 10, 0) 0%, var(--color-screen) 38%);
+}
+
+.cta-skip {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 24px;
+  color: var(--color-dim);
+
+  .skip-link {
+    color: var(--color-muted);
+    text-decoration: underline;
+  }
+}
+
+/* ============================================================
+   运动 tiles / 单选项（对齐原型 02 .sport-grid/.icon-tile、03 .option；
+   M7.5 起引导页与「我的」页共用，从 profile/index.scss 上移）
+   ============================================================ */
+.sport-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.icon-tile {
+  position: relative;
+  padding: 26px 24px;
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  overflow: hidden;
+
+  .tile-emoji {
+    font-size: 48px;
+    line-height: 1.2;
+  }
+
+  .tile-name {
+    margin-top: 10px;
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  .tile-sub {
+    margin-top: 4px;
+    font-size: 21px;
+    color: var(--color-dim);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .tile-check {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3px solid var(--color-dim);
+    color: transparent;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &.sel {
+    border-color: rgba(164, 241, 80, 0.65);
+    background: rgba(164, 241, 80, 0.1);
+
+    .tile-check {
+      background: var(--color-grad);
+      border-color: transparent;
+      color: var(--color-on-accent);
+      font-weight: var(--typography-weight-bold);
+    }
+
+    .tile-emoji {
+      filter: drop-shadow(0 0 12px rgba(164, 241, 80, 0.45));
+    }
+  }
+}
+
+.option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 24px 26px;
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+
+  .radio {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid var(--color-dim);
+    margin-top: 6px;
+  }
+
+  .option-title {
+    font-size: 27px;
+    font-weight: 700;
+  }
+
+  .option-sub {
+    margin-top: 6px;
+    font-size: 22px;
+    line-height: 1.5;
+    color: var(--color-muted);
+  }
+
+  &.sel {
+    border-color: rgba(164, 241, 80, 0.55);
+    background: rgba(164, 241, 80, 0.08);
+
+    .radio {
+      border-color: transparent;
+      background: var(--color-grad);
+      box-shadow: inset 0 0 0 6px var(--color-screen);
+    }
+
+    .option-title {
+      color: var(--color-accent);
+    }
+  }
+}
+
+/* ============================================================
    装备项（对齐原型 04 .gear-item/.gear-row/.gck）
    ============================================================ */
 .gear-item {

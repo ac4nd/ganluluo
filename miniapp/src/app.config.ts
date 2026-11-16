@@ -4,6 +4,8 @@ export default defineAppConfig({
     'pages/login/index',
     'pages/profile/index',
     'pages/gear/index',
+    'pages/onboard/sport/index',
+    'pages/onboard/exp/index',
     'pages/routes/index',
     'pages/route-detail/index',
     'pages/chat/index',

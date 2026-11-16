@@ -28,6 +28,9 @@ export const TOKEN_KEY = 'gl_token_pair'
 export const HOME_PAGE = '/pages/index/index'
 /** 登录态彻底失效后的统一去向（login 页在 Task 2 注册进 app.config 后生效） */
 export const LOGIN_PAGE = '/pages/login/index'
+/** 引导流入口（M7.5：注册成功 → 02 运动偏好 → 03 经验体能 → 04 装备 → 首页） */
+export const ONBOARD_SPORT_PAGE = '/pages/onboard/sport/index'
+export const ONBOARD_EXP_PAGE = '/pages/onboard/exp/index'
 
 const BASE_URL =
   process.env.GL_API_BASE ||
@@ -35,6 +38,37 @@ const BASE_URL =
 
 /** dev/prod 同源部署时 BASE_URL 为空串可直接拼 path；诊断用 */
 export const apiBaseUrl = (): string => BASE_URL
+
+/* ---------- API 同源约束（SSRF 防护） ---------- */
+/** 提取 scheme://host[:port] 小写串；无 scheme（H5 相对路径）原样返回。 */
+function originOf(url: string): string {
+  const i = url.indexOf('://')
+  if (i === -1) return url
+  const scheme = url.slice(0, i + 3).toLowerCase()
+  const rest = url.slice(i + 3)
+  let host = rest
+  for (const ch of ['/', '?', '#']) {
+    const pos = rest.indexOf(ch)
+    if (pos !== -1 && pos < host.length) host = rest.slice(0, pos)
+  }
+  return scheme + host.toLowerCase()
+}
+
+const API_ORIGIN = originOf(BASE_URL)
+
+/**
+ * API 请求同源校验：url 必须是相对路径（H5 devServer 同源代理）或与构建期
+ * API origin 一致。防 request() 的 opts.baseUrl 能力面被滥用为任意地址外发。
+ * MinIO presign 直传不经本函数（media.ts 直连外部 upload_url，属对象存储
+ * 业务设计）。
+ */
+export function assertApiOrigin(url: string): void {
+  if (url.startsWith('/')) return
+  const target = originOf(url)
+  if (target !== API_ORIGIN) {
+    throw normalizeError(0, undefined, '拒绝非 API 同源地址：' + target)
+  }
+}
 
 /* ---------- 归一化错误 ---------- */
 export interface ApiError {
@@ -164,6 +198,7 @@ interface RawResponse {
 /** 底层请求：不做 401 刷新（供 refresh 流程与 uploadFile 复用语义时注意） */
 async function raw(path: string, opts: RequestOptions): Promise<RawResponse> {
   const url = (opts.baseUrl ?? BASE_URL) + withQuery(path, opts.params)
+  assertApiOrigin(url)
   const header: Record<string, string> = { ...opts.header }
   if (opts.data !== undefined) header['Content-Type'] = header['Content-Type'] || 'application/json'
   if (!opts.skipAuth) withAuth(header)
@@ -186,6 +221,7 @@ async function doRefresh(): Promise<TokenPair> {
   let res: RawResponse
   try {
     // 刷新请求刻意不走 request()：不带业务 401 重试逻辑，避免循环
+    assertApiOrigin(BASE_URL + '/auth/refresh')
     res = await Taro.request({
       url: BASE_URL + '/auth/refresh',
       method: 'POST',
