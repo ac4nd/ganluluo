@@ -17,7 +17,7 @@ export type MemoryItem = Record<string, unknown>
 /**
  * POST /assistant/chat —— POST SSE 事件流
  * （session / clarify / retrieve / cards / token / sources / done，见对齐矩阵 06 页）。
- * H5 返回 SseHandle（可 abort）；weapp 会抛 NotSupportedError。
+ * 双端可用：H5 fetch 流式；weapp Taro.request enableChunked。返回 SseHandle（可 abort）。
  */
 export function chat(payload: ChatIn, onEvent: (event: SseEvent) => void, opts?: SseOptions): SseHandle {
   return sse('/assistant/chat', payload, onEvent, opts)

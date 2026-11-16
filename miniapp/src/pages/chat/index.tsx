@@ -1,6 +1,6 @@
 /**
  * AI 对话页（M7 Task 4，对齐原型 06-ai-plan-chat.html）：
- * - POST /assistant/chat SSE 流（client.ts sse()：H5 fetch POST 流式，data: 行 JSON 事件）
+ * - POST /assistant/chat SSE 流（client.ts sse()：H5 fetch / weapp enableChunked 双端流式，data: 行 JSON 事件）
  *   事件协议 {type: session|token|clarify|cards|sources|quota_exceeded|done, data}：
  *   token 增量累积到当前 ai 气泡；clarify → 问题气泡 + options chips（点选即作为用户消息发送）；
  *   cards → 路线缩略卡（跳 route-detail?id=N）；sources → 可折叠「引用来源」；
@@ -316,7 +316,7 @@ export default function Chat() {
           },
         )
       } catch (err) {
-        // weapp 端 sse() 同步抛 NotSupportedError
+        // sse() 同步抛错兜底（如同源校验失败）；流内失败走 onError
         setStreaming(false)
         const msg = (err as { message?: string }).message ?? '当前端暂不支持流式对话'
         void Taro.showToast({ title: msg, icon: 'none' })

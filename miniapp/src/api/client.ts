@@ -63,7 +63,9 @@ const API_ORIGIN = originOf(BASE_URL)
  * 业务设计）。
  */
 export function assertApiOrigin(url: string): void {
-  if (url.startsWith('/')) return
+  // 协议相对地址（//evil.com/x）会被浏览器按当前 scheme 补全成外部地址，
+  // 不能当相对路径放行；originOf 对它取不到 scheme，走下方同源比对拒绝。
+  if (url.startsWith('/') && !url.startsWith('//')) return
   const target = originOf(url)
   if (target !== API_ORIGIN) {
     throw normalizeError(0, undefined, '拒绝非 API 同源地址：' + target)
@@ -289,13 +291,121 @@ export interface SseOptions {
   onError?: (err: ApiError) => void
 }
 
-/** weapp 端暂不支持的能力抛此错误 */
-export class NotSupportedError extends Error {}
+/**
+ * SSE 分帧解析纯函数（H5 fetch 与 weapp onChunkReceived 双端共用）。
+ * 输入：上一次的累积缓冲 + 新到达文本；输出：本次凑齐的完整事件数组 + 剩余缓冲。
+ * 规则（SSE 规范子集，对齐后端 sse_frame `data: {json}\n\n`，见 assistant/router.py）：
+ * - 按 \n 分行，最后一段不以 \n 结尾（半行/半事件）保留进 buffer 等下个 chunk；
+ * - `data:` 前缀剥离（有无空格均可），行尾 \r 容错，非 data 行（event:/id:/注释）忽略；
+ * - 空行 = 一帧结束：该帧累积的 data 按 JSON 解析后产出（解析失败整帧忽略不抛）；
+ * - `data: [DONE]` 为流终止标志，不产出事件。
+ */
+export function feedSseChunk(buffer: string, text: string): { events: SseEvent[]; buffer: string } {
+  const events: SseEvent[] = []
+  let frame = '' // 当前帧累积的 data（多 data 行按 SSE 规范以 \n 合并）
+  const lines = (buffer + text).split('\n')
+  const rest = lines.pop() ?? '' // 最后一段：以 \n 结尾时为空串，否则是半行
+  for (const raw of lines) {
+    const line = raw.endsWith('\r') ? raw.slice(0, -1) : raw
+    if (line === '') {
+      // 空行分帧：攒齐的 data 落地
+      if (frame) {
+        try {
+          events.push(JSON.parse(frame) as SseEvent)
+        } catch {
+          console.warn('[sse] 忽略非 JSON 事件:', frame)
+        }
+        frame = ''
+      }
+      continue
+    }
+    if (!line.startsWith('data:')) continue
+    const piece = line.slice(5).trim()
+    if (!piece || piece === '[DONE]') continue
+    frame = frame ? `${frame}\n${piece}` : piece
+  }
+  return { events, buffer: rest }
+}
 
 /**
- * POST SSE 流。H5：fetch + ReadableStream，按 SSE 规范以空行分帧、
- * 解析 "data: <JSON>" 行后回调 onEvent。
- * weapp：留接口，抛 NotSupportedError（Task 4 用 Taro.request enableChunked 实现）。
+ * 流结束冲刷（H5 done / weapp success 共用语义）：把残余缓冲按完整行处理，
+ * 再补一个空行触发分帧，让漏发末帧空行的服务端也能落地最后一个事件；
+ * 传输中断导致的半行残帧会因 JSON 解析失败被忽略。正常流以空行收尾时
+ * buffer 已为空，本函数是空操作。
+ */
+function flushSseBuffer(buffer: string, onEvent: (event: SseEvent) => void): void {
+  if (!buffer) return
+  const { events } = feedSseChunk(buffer, '\n\n')
+  for (const ev of events) onEvent(ev)
+}
+
+/**
+ * weapp 无 TextDecoder：手写 UTF-8 流式解码器（字符串拼接，无 eval/escape）。
+ * onChunkReceived 的 chunk 边界可能切在多字节序列中间——按字节累积，不完整的
+ * 序列留在 pendingBytes 等下一个 chunk 补齐后再解码；非法字节（非法首字节、
+ * 坏续字节、代理区/越界码点）跳过不抛，保证脏数据不断流。
+ */
+export class Utf8StreamDecoder {
+  private pendingBytes: number[] = []
+
+  /** 解码一段字节，返回本次能安全解码的文本（不完整多字节序列留待下次） */
+  decode(bytes: Uint8Array): string {
+    const all = this.pendingBytes.length
+      ? this.pendingBytes.concat(Array.from(bytes))
+      : Array.from(bytes)
+    this.pendingBytes = []
+    let out = ''
+    let i = 0
+    while (i < all.length) {
+      const b0 = all[i]
+      // 首字节定序列长度；0xC0/0xC1（过长编码）与 0xF5+（越界/非字符）直接判非法
+      let len = 0
+      if (b0 < 0x80) len = 1
+      else if (b0 >= 0xc2 && b0 <= 0xdf) len = 2
+      else if (b0 >= 0xe0 && b0 <= 0xef) len = 3
+      else if (b0 >= 0xf0 && b0 <= 0xf4) len = 4
+      if (len === 0) {
+        i += 1 // 非法首字节：跳过
+        continue
+      }
+      if (i + len > all.length) {
+        this.pendingBytes = all.slice(i) // 序列被 chunk 边界切断：缓冲至补齐
+        break
+      }
+      let ok = true
+      for (let j = 1; j < len; j++) {
+        if ((all[i + j] & 0xc0) !== 0x80) {
+          ok = false
+          break
+        }
+      }
+      if (!ok) {
+        i += 1 // 坏续字节：丢弃首字节，其余字节按新序列重扫
+        continue
+      }
+      let cp = b0
+      if (len === 2) cp = ((b0 & 0x1f) << 6) | (all[i + 1] & 0x3f)
+      else if (len === 3) cp = ((b0 & 0x0f) << 12) | ((all[i + 1] & 0x3f) << 6) | (all[i + 2] & 0x3f)
+      else if (len === 4) {
+        cp = ((b0 & 0x07) << 18) | ((all[i + 1] & 0x3f) << 12) | ((all[i + 2] & 0x3f) << 6) | (all[i + 3] & 0x3f)
+      }
+      if (cp >= 0xd800 && cp <= 0xdfff) {
+        i += len // 代理区（UTF-8 不允许）：跳过整段，String.fromCodePoint 会抛
+        continue
+      }
+      out += String.fromCodePoint(cp)
+      i += len
+    }
+    return out
+  }
+}
+
+/**
+ * POST SSE 流（双端）：
+ * - H5：fetch + ReadableStream，按 SSE 规范空行分帧后回调 onEvent；
+ * - weapp：Taro.request enableChunked 分块流（基础库 >= 2.20.1），
+ *   onChunkReceived 的 ArrayBuffer 经手写 UTF-8 解码后走同一解析器 feedSseChunk。
+ * 返回可 abort 句柄；主动 abort 不触发 onError；外部 signal 可随时取消。
  */
 export function sse(
   path: string,
@@ -303,21 +413,77 @@ export function sse(
   onEvent: (event: SseEvent) => void,
   opts: SseOptions = {},
 ): SseHandle {
-  if (process.env.TARO_ENV !== 'h5') {
-    throw new NotSupportedError('sse() 目前仅实现 H5（fetch 流式）；weapp 需 Taro.request enableChunked，Task 4 接入')
-  }
+  const url = BASE_URL + path
+  assertApiOrigin(url)
 
   const controller = new AbortController()
-  const handle: SseHandle = { abort: () => controller.abort() }
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Accept: 'text/event-stream',
+  }
+  withAuth(headers)
 
-  void (async () => {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      Accept: 'text/event-stream',
+  const reportError = (err: ApiError): void => {
+    if (opts.onError) opts.onError(err)
+    else console.error('[sse]', err)
+  }
+
+  if (process.env.TARO_ENV !== 'h5') {
+    /* weapp 分支 */
+    // Taro 的 weapp 运行时（@tarojs/shared getNormalRequest）把原生 RequestTask 的
+    // abort/onChunkReceived 等方法挂到返回的 Promise 上（equipTaskMethodsIntoPromise），
+    // 与 RequestTask<T> 类型签名一致，直接按该类型使用，无需断言。
+    let task: ReturnType<typeof Taro.request> | null = null
+    const handle: SseHandle = {
+      abort: () => {
+        controller.abort()
+        task?.abort()
+      },
     }
-    withAuth(headers)
+    const decoder = new Utf8StreamDecoder()
+    let buf = ''
+    const onChunk = (res: { data: ArrayBuffer }): void => {
+      const parsed = feedSseChunk(buf, decoder.decode(new Uint8Array(res.data)))
+      buf = parsed.buffer
+      for (const ev of parsed.events) onEvent(ev)
+    }
+    task = Taro.request({
+      url,
+      method: 'POST',
+      enableChunked: true,
+      header: headers,
+      data: body,
+      success: (res) => {
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          // 非流式错误响应（401/429 等）：对齐 H5 的 !res.ok 分支；
+          // chunked 模式下普通（非 chunked）错误体仍会在 success 里带 data
+          reportError(normalizeError(res.statusCode, res.data, 'SSE 请求失败'))
+          return
+        }
+        // 流正常结束：与 H5 done 清理一致，冲刷残余完整行（正常流以空行收尾时为空操作）
+        flushSseBuffer(buf, onEvent)
+      },
+      fail: (res) => {
+        if (controller.signal.aborted) return // abort 引起的 fail 不回调（对齐 H5）
+        reportError(normalizeError(0, undefined, `SSE 失败：${msgOf(res)}`))
+      },
+    })
+    task.onChunkReceived(onChunk)
+    void task.catch(() => {
+      /* 失败已由 fail 回调处理，这里只吞掉 Promise rejection 防未处理告警 */
+    })
+    if (controller.signal.aborted) task.abort() // 请求建立前就已 abort 的兜底
+    if (opts.signal) {
+      if (opts.signal.aborted) handle.abort()
+      else opts.signal.addEventListener('abort', () => handle.abort(), { once: true })
+    }
+    return handle
+  }
+
+  /* H5 分支：fetch + ReadableStream（行为与既有实现一致，仅解析改走 feedSseChunk） */
+  void (async () => {
     try {
-      const res = await fetch(BASE_URL + path, {
+      const res = await fetch(url, {
         method: 'POST',
         headers,
         body: JSON.stringify(body),
@@ -342,32 +508,20 @@ export function sse(
       for (;;) {
         const { done, value } = await reader.read()
         if (done) break
-        buf += decoder.decode(value, { stream: true })
-        const chunks = buf.split('\n\n')
-        buf = chunks.pop() ?? ''
-        for (const chunk of chunks) {
-          for (const line of chunk.split(/\r?\n/)) {
-            const text = line.trim()
-            if (!text.startsWith('data:')) continue
-            const payload = text.slice(5).trim()
-            if (!payload || payload === '[DONE]') continue
-            try {
-              onEvent(JSON.parse(payload) as SseEvent)
-            } catch {
-              console.warn('[sse] 忽略非 JSON 事件:', payload)
-            }
-          }
-        }
+        const parsed = feedSseChunk(buf, decoder.decode(value, { stream: true }))
+        buf = parsed.buffer
+        for (const ev of parsed.events) onEvent(ev)
       }
+      // 与 weapp success 清理一致：冲刷残余完整行（正常流以空行收尾时为空操作）
+      flushSseBuffer(buf, onEvent)
     } catch (err) {
       if (controller.signal.aborted) return // 主动中断不算错误
       const apiErr = (err as ApiError | undefined)?.status !== undefined
         ? (err as ApiError)
         : normalizeError(0, undefined, `SSE 失败：${msgOf(err)}`)
-      if (opts.onError) opts.onError(apiErr)
-      else console.error('[sse]', apiErr)
+      reportError(apiErr)
     }
   })()
 
-  return handle
+  return { abort: () => controller.abort() }
 }
