@@ -1,0 +1,291 @@
+/* 行程页样式（对齐原型 07-plan-trip 的日期/计划卡语义；btn/chip/tag 共享原语在 app.scss；
+   px = 原型 390 视口数值 ×2）。 */
+@import '../../styles/tokens.css';
+
+.trips-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 24px 24px 60px;
+  background: radial-gradient(120% 30% at 50% 0%, var(--color-screen-2) 0%, var(--color-screen) 55%);
+}
+
+.trips-title {
+  font-size: 44px;
+  font-weight: var(--typography-weight-bold);
+
+  .em {
+    color: var(--color-accent);
+  }
+}
+
+.trips-sub {
+  margin-top: 10px;
+  font-size: 24px;
+  color: var(--color-muted);
+}
+
+/* ---------- tabs ---------- */
+.trips-tabs {
+  display: flex;
+  gap: 16px;
+  margin: 32px 0 28px;
+}
+
+.tab-pill {
+  flex: 1;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-line);
+  color: var(--color-muted);
+  font-size: 26px;
+  font-weight: var(--typography-weight-medium);
+
+  &.on {
+    background: rgba(164, 241, 80, 0.15);
+    border-color: rgba(164, 241, 80, 0.55);
+    color: var(--color-accent);
+  }
+
+  .cnt {
+    font-size: 22px;
+    opacity: 0.85;
+  }
+}
+
+/* ---------- 行程卡 ---------- */
+.trip-card {
+  margin-bottom: 26px;
+  padding: 26px;
+  border-radius: 34px;
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+
+  &.done {
+    opacity: 0.78;
+    border-style: dashed;
+  }
+}
+
+.trip-head {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.d-badge {
+  width: 96px;
+  height: 96px;
+  flex: none;
+  border-radius: 24px;
+  background: var(--color-grad);
+  color: var(--color-on-accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  .d-day {
+    font-size: 38px;
+    font-weight: var(--typography-weight-bold);
+    line-height: 1.05;
+  }
+
+  .d-mon {
+    font-size: 18px;
+    font-weight: var(--typography-weight-medium);
+    opacity: 0.85;
+  }
+}
+
+.trip-title {
+  flex: 1;
+  min-width: 0;
+
+  .t-name {
+    display: block;
+    font-size: 30px;
+    font-weight: var(--typography-weight-bold);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .t-region {
+    display: block;
+    margin-top: 8px;
+    font-size: 22px;
+    color: var(--color-muted);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+.status-badge {
+  flex: none;
+  font-size: 21px;
+  padding: 8px 20px;
+  border-radius: var(--radius-pill);
+  background: rgba(164, 241, 80, 0.14);
+  color: var(--color-accent);
+  border: 1px solid rgba(164, 241, 80, 0.4);
+
+  &.blue {
+    background: rgba(110, 200, 255, 0.12);
+    color: var(--color-blue);
+    border-color: rgba(110, 200, 255, 0.35);
+  }
+}
+
+.trip-meta {
+  margin-top: 20px;
+  font-size: 24px;
+  color: var(--color-muted);
+
+  .hl {
+    color: var(--color-text);
+    font-weight: var(--typography-weight-medium);
+  }
+}
+
+.trip-stats {
+  display: flex;
+  gap: 26px;
+  margin-top: 16px;
+  font-size: 23px;
+  color: var(--color-dim);
+
+  .b {
+    color: var(--color-text);
+    font-weight: var(--typography-weight-medium);
+  }
+}
+
+.trip-gear {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-glass-line);
+
+  .g-count {
+    font-size: 23px;
+    color: var(--color-amber);
+
+    .warn-ico {
+      margin-right: 8px;
+    }
+  }
+
+  .g-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+
+    .chip {
+      font-size: 21px;
+      padding: 10px 20px;
+    }
+  }
+}
+
+.trip-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 22px;
+
+  .act {
+    flex: 1;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: var(--radius-pill);
+    font-size: 24px;
+    font-weight: var(--typography-weight-medium);
+  }
+
+  .act-done {
+    background: rgba(164, 241, 80, 0.14);
+    border: 1px solid rgba(164, 241, 80, 0.5);
+    color: var(--color-accent);
+  }
+
+  .act-del {
+    flex: none;
+    width: 160px;
+    background: rgba(255, 109, 90, 0.1);
+    border: 1px solid rgba(255, 109, 90, 0.4);
+    color: var(--color-red);
+  }
+
+  .is-loading {
+    opacity: 0.7;
+  }
+}
+
+/* ---------- 空态 ---------- */
+.trips-empty {
+  margin-top: 80px;
+  padding: 60px 40px;
+  text-align: center;
+  border-radius: var(--radius-hero);
+  border: 1px dashed var(--color-line-strong);
+  background: rgba(255, 255, 255, 0.03);
+
+  .empty-ico {
+    font-size: 72px;
+  }
+
+  .empty-title {
+    margin-top: 22px;
+    font-size: 32px;
+    font-weight: var(--typography-weight-bold);
+  }
+
+  .empty-sub {
+    margin-top: 14px;
+    font-size: 24px;
+    line-height: 1.6;
+    color: var(--color-muted);
+  }
+
+  .empty-btn {
+    margin: 40px auto 0;
+    width: 70%;
+    height: 88px;
+  }
+}
+
+/* ---------- 状态卡 ---------- */
+.trips-state {
+  margin: 80px 20px 0;
+  padding: 56px 40px;
+  text-align: center;
+  border-radius: var(--radius-hero);
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-card);
+
+  .st-title {
+    font-size: 30px;
+    font-weight: var(--typography-weight-bold);
+  }
+
+  .st-sub {
+    margin-top: 14px;
+    font-size: 23px;
+    color: var(--color-muted);
+    word-break: break-all;
+  }
+
+  .btn {
+    margin: 32px auto 0;
+    width: 60%;
+    height: 84px;
+  }
+}

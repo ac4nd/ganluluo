@@ -25,7 +25,8 @@ const NAV_ITEMS: NavItem[] = [
   { title: '装备清单', desc: '勾选常用装备，参与路线匹配', url: '/pages/gear/index', ready: true },
   { title: '登录 / 注册', desc: '邮箱 + 密码', url: LOGIN_PAGE, ready: true },
   { title: '路线库', desc: '筛选 + 路线详情 + 加入计划', url: '/pages/routes/index', ready: true },
-  { title: 'AI 规划对话', desc: 'Task 4 接入（SSE 已就绪）', url: '', ready: false },
+  { title: 'AI 规划对话', desc: 'SSE 流式问答 + 配额环 + 一键生成计划', url: '/pages/chat/index', ready: true },
+  { title: '行程计划', desc: '进行中 / 足迹 + 装备提醒', url: '/pages/trips/index', ready: true },
 ]
 
 export default function Index() {
@@ -73,7 +74,7 @@ export default function Index() {
           赶路咯 <Text className="em">入口</Text>
         </View>
         <View className="hero-sub">
-          Taro 4 + React 18 + TS；登录态与类型化 API 已就绪。已接入登录、我的（额度卡）、装备清单与路线库/详情。
+          Taro 4 + React 18 + TS；已接入登录、我的（额度卡）、装备清单、路线库/详情、AI 对话（SSE 流式）与行程计划。
         </View>
       </View>
 

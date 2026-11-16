@@ -1,0 +1,500 @@
+/* AI 对话页样式（对齐原型 06-ai-plan-chat；btn/chip/tag/badge-tier 共享原语在 app.scss；
+   px = 原型 390 视口数值 ×2）。 */
+@import '../../styles/tokens.css';
+
+.chat-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  /* 底部 dock（plan 条 + 输入行）高度预留，避免最后一条消息被压住 */
+  padding: 24px 24px 320px;
+  background: radial-gradient(120% 30% at 50% 0%, var(--color-screen-2) 0%, var(--color-screen) 55%);
+}
+
+/* ---------- 登录守卫态 ---------- */
+.chat-state {
+  margin: 48px 40px 0;
+  padding: 56px 40px;
+  text-align: center;
+  border-radius: var(--radius-hero);
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-card);
+
+  .cs-ico {
+    font-size: 56px;
+  }
+
+  .cs-title {
+    margin-top: 20px;
+    font-size: 34px;
+    font-weight: var(--typography-weight-bold);
+  }
+
+  .cs-sub {
+    margin-top: 14px;
+    font-size: 24px;
+    color: var(--color-muted);
+  }
+}
+
+/* ---------- 消息流 ---------- */
+.row {
+  display: flex;
+  margin-bottom: 24px;
+
+  &.user {
+    justify-content: flex-end;
+  }
+}
+
+.bubble {
+  max-width: 86%;
+  padding: 24px 28px;
+  border-radius: 30px;
+  font-size: 27px;
+  line-height: 1.6;
+  word-break: break-word;
+  white-space: pre-wrap;
+
+  &.user {
+    background: var(--color-grad);
+    color: var(--color-on-accent);
+    border-bottom-right-radius: 10px;
+    font-weight: var(--typography-weight-medium);
+  }
+
+  &.ai {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    color: var(--color-text);
+    border-bottom-left-radius: 10px;
+  }
+
+  &.err {
+    background: rgba(255, 109, 90, 0.12);
+    border: 1px solid rgba(255, 109, 90, 0.4);
+    color: var(--color-red);
+  }
+}
+
+.cursor {
+  display: inline-block;
+  margin-left: 4px;
+  color: var(--color-accent);
+  animation: blink 0.9s step-end infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* clarify chips */
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: -8px 0 24px;
+  max-width: 86%;
+
+  .chip.opt {
+    background: rgba(164, 241, 80, 0.1);
+    border-color: rgba(164, 241, 80, 0.45);
+    color: var(--color-accent);
+
+    &.off {
+      opacity: 0.38;
+    }
+  }
+}
+
+/* cards 路线缩略卡（对齐原型 .route-mini） */
+.card-stack {
+  margin-bottom: 24px;
+}
+
+.mini-card {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  margin-bottom: 18px;
+  border-radius: 30px;
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+
+  &:active {
+    border-color: rgba(164, 241, 80, 0.4);
+  }
+
+  .mthumb {
+    width: 140px;
+    height: 140px;
+    border-radius: 22px;
+    flex: none;
+  }
+
+  .minfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+
+    .mname {
+      font-size: 28px;
+      font-weight: var(--typography-weight-bold);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .mtags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+
+      .tag {
+        font-size: 20px;
+        padding: 4px 16px;
+      }
+    }
+
+    .mmeta {
+      display: flex;
+      gap: 24px;
+      font-size: 23px;
+      color: var(--color-muted);
+
+      .b {
+        color: var(--color-text);
+        font-weight: var(--typography-weight-medium);
+      }
+    }
+  }
+}
+
+/* sources 可折叠区 */
+.src-box {
+  margin: -8px 0 24px;
+  max-width: 86%;
+  border-radius: 24px;
+  border: 1px dashed var(--color-line-strong);
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+
+  .src-head {
+    padding: 18px 26px;
+    font-size: 23px;
+    color: var(--color-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .arr {
+    color: var(--color-dim);
+    font-size: 20px;
+  }
+
+  .src-item {
+    padding: 12px 26px 12px 34px;
+    font-size: 22px;
+    color: var(--color-dim);
+    border-top: 1px solid var(--color-glass-line);
+  }
+}
+
+/* quota_exceeded 提示卡 */
+.quota-card-evt {
+  margin: -8px 0 24px;
+  max-width: 86%;
+  padding: 24px 28px;
+  border-radius: 26px;
+  background: rgba(255, 109, 90, 0.1);
+  border: 1px solid rgba(255, 109, 90, 0.38);
+
+  .qc-evt-title {
+    font-size: 27px;
+    font-weight: var(--typography-weight-bold);
+    color: var(--color-red);
+  }
+
+  .qc-evt-sub {
+    margin-top: 10px;
+    font-size: 22px;
+    color: var(--color-muted);
+  }
+}
+
+/* ---------- 底部 dock：生成计划条 + 输入行 ---------- */
+.chat-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  padding: 20px 24px calc(20px + env(safe-area-inset-bottom));
+  background: rgba(12, 17, 10, 0.92);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--color-glass-line);
+}
+
+.plan-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  .plan-btn {
+    flex: 1;
+    height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(164, 241, 80, 0.5);
+    background: rgba(164, 241, 80, 0.1);
+    color: var(--color-accent);
+    font-size: 26px;
+    font-weight: var(--typography-weight-bold);
+
+    &.off {
+      border-color: var(--color-line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--color-dim);
+    }
+
+    &.is-loading {
+      opacity: 0.7;
+    }
+  }
+}
+
+.plan-err {
+  margin: -6px 0 12px;
+  font-size: 22px;
+  line-height: 1.5;
+  color: var(--color-red);
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.chat-input {
+  flex: 1;
+  min-width: 0;
+  height: 88px;
+  box-sizing: border-box;
+  padding: 0 30px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-line);
+  color: var(--color-text);
+  font-size: 27px;
+}
+
+.chat-placeholder {
+  color: var(--color-dim);
+  font-size: 25px;
+}
+
+/* ---------- 配额环（对齐原型 .quota-ring；hover 明细改为点击弹半屏） ---------- */
+.quota-ring {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid var(--color-line-strong);
+
+  .ring {
+    position: absolute;
+    inset: -1px;
+    width: calc(100% + 2px);
+    height: calc(100% + 2px);
+    transform: rotate(-90deg);
+  }
+
+  .arc-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 3;
+  }
+
+  .arc {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease, stroke 0.3s;
+  }
+
+  &.warn .arc {
+    stroke: var(--color-amber);
+  }
+
+  &.danger .arc {
+    stroke: var(--color-red);
+  }
+
+  .ring-v {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    .qv {
+      font-size: 16px;
+      font-weight: var(--typography-weight-bold);
+      color: var(--color-text);
+      line-height: 1.1;
+    }
+
+    .qk {
+      font-size: 11px;
+      color: var(--color-dim);
+      line-height: 1.1;
+    }
+  }
+}
+
+/* 发送 / 停止按钮 */
+.send-btn {
+  width: 76px;
+  height: 76px;
+  flex: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-grad);
+  color: var(--color-on-accent);
+
+  &.stop {
+    background: rgba(255, 109, 90, 0.16);
+    border: 1px solid rgba(255, 109, 90, 0.5);
+    color: var(--color-red);
+  }
+}
+
+/* ---------- 配额半屏明细（原型 hover .quota-tip 的点击版） ---------- */
+.sheet-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(4, 8, 4, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 40px 40px 0 0;
+  background: #121a10;
+  border-top: 1px solid var(--color-line-strong);
+  padding: 40px 40px calc(48px + env(safe-area-inset-bottom));
+  animation: sheet-up 0.24s ease;
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(40%);
+    opacity: 0.4;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.qt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+
+  .qt-title {
+    font-size: 32px;
+    font-weight: var(--typography-weight-bold);
+  }
+}
+
+.qt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 24px;
+  color: var(--color-muted);
+  margin: 26px 0 12px;
+
+  .qt-val {
+    color: var(--color-text);
+    font-size: 25px;
+    font-weight: var(--typography-weight-medium);
+  }
+}
+
+.qt-bar {
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+
+  .qt-fill {
+    height: 100%;
+    border-radius: var(--radius-pill);
+    background: var(--color-grad);
+    transition: width 0.5s ease;
+  }
+
+  &.warn .qt-fill {
+    background: var(--color-amber);
+  }
+
+  &.danger .qt-fill {
+    background: var(--color-red);
+  }
+}
+
+.qt-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 34px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-glass-line);
+
+  .qt-reset {
+    font-size: 22px;
+    color: var(--color-dim);
+  }
+
+  .qt-up {
+    font-size: 24px;
+    font-weight: var(--typography-weight-bold);
+    color: var(--color-accent);
+  }
+}
+
+.sheet-close {
+  margin-top: 30px;
+  height: 88px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-line-strong);
+  color: var(--color-muted);
+  font-size: 27px;
+}

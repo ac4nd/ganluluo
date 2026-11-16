@@ -67,8 +67,15 @@ export function normalizeError(status: number, data: unknown, fallback = '请求
     } else if (d != null) {
       detail = JSON.stringify(d)
     } else {
-      const m = (data as Record<string, unknown>).message
-      if (typeof m === 'string' && m) detail = m
+      // slowapi 429 的 JSON 体是 {error: "..."}（main.py handler 原样透传）
+      const r = data as Record<string, unknown>
+      const m =
+        typeof r.message === 'string' && r.message
+          ? r.message
+          : typeof r.error === 'string' && r.error
+            ? r.error
+            : ''
+      if (m) detail = m
     }
   }
   return { status, detail, raw: data }

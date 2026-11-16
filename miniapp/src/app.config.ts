@@ -6,6 +6,8 @@ export default defineAppConfig({
     'pages/gear/index',
     'pages/routes/index',
     'pages/route-detail/index',
+    'pages/chat/index',
+    'pages/trips/index',
   ],
   window: {
     backgroundTextStyle: 'light',
