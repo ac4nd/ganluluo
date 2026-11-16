@@ -298,14 +298,25 @@ export interface SseOptions {
  * - 按 \n 分行，最后一段不以 \n 结尾（半行/半事件）保留进 buffer 等下个 chunk；
  * - `data:` 前缀剥离（有无空格均可），行尾 \r 容错，非 data 行（event:/id:/注释）忽略；
  * - 空行 = 一帧结束：该帧累积的 data 按 JSON 解析后产出（解析失败整帧忽略不抛）；
- * - `data: [DONE]` 为流终止标志，不产出事件。
+ * - `data: [DONE]` 为流终止标志，不产出事件；
+ * - 只消费到最后一个空行为止：其后未落地的行属于尚未闭合的帧，原样留在 buffer
+ *   跨 chunk 持久（chunk 边界恰切在帧终止符 \n\n 两个 \n 之间时不丢帧）。
  */
 export function feedSseChunk(buffer: string, text: string): { events: SseEvent[]; buffer: string } {
   const events: SseEvent[] = []
-  let frame = '' // 当前帧累积的 data（多 data 行按 SSE 规范以 \n 合并）
   const lines = (buffer + text).split('\n')
   const rest = lines.pop() ?? '' // 最后一段：以 \n 结尾时为空串，否则是半行
-  for (const raw of lines) {
+  // 找最后一个空行：其后的行（未闭合帧）不消费，原样回存 buffer
+  let lastBlank = -1
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i] === '' || lines[i] === '\r') {
+      lastBlank = i
+      break
+    }
+  }
+  let frame = '' // 当前帧累积的 data（多 data 行按 SSE 规范以 \n 合并）
+  for (let i = 0; i <= lastBlank; i++) {
+    const raw = lines[i]
     const line = raw.endsWith('\r') ? raw.slice(0, -1) : raw
     if (line === '') {
       // 空行分帧：攒齐的 data 落地
@@ -324,7 +335,9 @@ export function feedSseChunk(buffer: string, text: string): { events: SseEvent[]
     if (!piece || piece === '[DONE]') continue
     frame = frame ? `${frame}\n${piece}` : piece
   }
-  return { events, buffer: rest }
+  // 未闭合帧的完整行原样回存（每行补回分行的 \n），与半行 rest 拼为下轮 buffer
+  const open = lastBlank + 1 < lines.length ? lines.slice(lastBlank + 1).join('\n') + '\n' : ''
+  return { events, buffer: open + rest }
 }
 
 /**
@@ -389,8 +402,8 @@ export class Utf8StreamDecoder {
       else if (len === 4) {
         cp = ((b0 & 0x07) << 18) | ((all[i + 1] & 0x3f) << 12) | ((all[i + 2] & 0x3f) << 6) | (all[i + 3] & 0x3f)
       }
-      if (cp >= 0xd800 && cp <= 0xdfff) {
-        i += len // 代理区（UTF-8 不允许）：跳过整段，String.fromCodePoint 会抛
+      if ((cp >= 0xd800 && cp <= 0xdfff) || cp > 0x10ffff) {
+        i += len // 代理区 / 越界码点（如 F4 90 80 80 = 0x110000）：跳过整段，fromCodePoint 会抛
         continue
       }
       out += String.fromCodePoint(cp)

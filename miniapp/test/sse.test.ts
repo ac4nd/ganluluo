@@ -139,11 +139,21 @@ describe('feedSseChunk：分帧解析纯函数', () => {
     expect(r2.buffer).toBe('data: {"i":')
   })
 
+  it('关键用例 4：帧终止符 \\n\\n 被 chunk 边界切断，未闭合帧跨调用持久不丢', () => {
+    // chunk1 以 data 行 + 单个 \n 结尾，chunk2 以 \n 开头：边界恰落在 \n\n 中间
+    const first = feedSseChunk('', 'data: {"i":1}\n')
+    expect(first.events).toEqual([]) // 帧未闭合，不产出
+    expect(first.buffer).toBe('data: {"i":1}\n') // 未闭合帧原样持久（非仅半行）
+    const second = feedSseChunk(first.buffer, '\n')
+    expect(second.events).toEqual([{ i: 1 }]) // 补上第二个 \n 后事件落地，不静默丢失
+    expect(second.buffer).toBe('')
+  })
+
   it('流结束冲刷：残余完整行（帧无空行收尾）落地为事件，换行符只结束半行', () => {
-    // 仅补换行：data 行变完整但帧未闭合，不产出（严格 SSE 分帧语义）
+    // 仅补换行：data 行变完整但帧未闭合，不产出；未闭合帧持久进 buffer
     const mid = feedSseChunk('data: {"i":9}', '\n')
     expect(mid.events).toEqual([])
-    expect(mid.buffer).toBe('')
+    expect(mid.buffer).toBe('data: {"i":9}\n')
     // 冲刷语义（client.ts flushSseBuffer）：补换行 + 空行触发分帧 → 落地
     const tail = feedSseChunk('data: {"i":9}', '\n\n')
     expect(tail.events).toEqual([{ i: 9 }])
@@ -162,6 +172,13 @@ describe('Utf8StreamDecoder：手写 UTF-8 解码', () => {
   it('非法字节跳过不抛：脏数据不断流', () => {
     const dec = new Utf8StreamDecoder()
     expect(dec.decode(new Uint8Array([0xff, 0x41]))).toBe('A') // 非法首字节后跟 ASCII
+    expect(dec.decode(encoder.encode('好'))).toBe('好') // 解码器状态未被污染
+  })
+
+  it('越界码点（F4 90 80 80）跳过不抛：不触发 fromCodePoint RangeError', () => {
+    const dec = new Utf8StreamDecoder()
+    // F4 90 80 80 合法形状但 cp=0x110000 > 0x10FFFF：整段跳过，后续字节正常解码
+    expect(dec.decode(new Uint8Array([0xf4, 0x90, 0x80, 0x80, 0x41]))).toBe('A')
     expect(dec.decode(encoder.encode('好'))).toBe('好') // 解码器状态未被污染
   })
 })
