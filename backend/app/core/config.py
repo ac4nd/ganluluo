@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     minio_secret_key: str = ""
     minio_bucket: str = ""
     minio_secure: bool = False  # GL_MINIO_SECURE：MinIO 是否走 TLS（https）
+    # 微信小程序一键登录（M8）：两项齐全走真实 jscode2session；
+    # 未配置时 dev 降级确定性 mock（openid=wxmock_+sha256(code)[:24]），prod 拒绝 503
+    wechat_appid: str = ""
+    wechat_secret: str = ""
 
 
 @lru_cache

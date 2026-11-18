@@ -46,6 +46,13 @@ class RefreshIn(BaseModel):
     refresh_token: str
 
 
+class WechatLoginIn(BaseModel):
+    """M8 一键登录：wx.login() 的临时 code 换身份；nickname 可选（首次建号时的展示名）。"""
+
+    code: str = Field(min_length=1, max_length=128)
+    nickname: str | None = Field(None, max_length=32)
+
+
 class TokenPair(BaseModel):
     access_token: str
     refresh_token: str
