@@ -1,19 +1,23 @@
 /**
- * 登录页（M7 Task 2）：
+ * 登录页（M7 Task 2；M8 Task 2 加 weapp 分支）：
  * - 同页双 tab：登录（邮箱+密码）/ 注册（邮箱+昵称+密码，成功后自动 login）
  * - POST /auth/login → setTokenPair（api/auth.login 内已写 storage）→ reLaunch 首页入口
  * - 错误统一展示 normalizeError 的 detail；提交中 loading 禁重复
  * - 已登录访问本页 → 直接 reLaunch 回首页入口（简易守卫）
+ * - weapp：主按钮变「微信一键登录」→ wechat-login 页；邮箱表单折叠为次要入口
+ *   （「使用邮箱登录」展开）；H5 保持原邮箱表单（TARO_ENV 编译期分支）
  */
 import { useEffect, useState } from 'react'
 import { Input, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 
 import { login, register, getTokenPair } from '@/api/auth'
-import { HOME_PAGE, ONBOARD_SPORT_PAGE, type ApiError } from '@/api/client'
+import { HOME_PAGE, ONBOARD_SPORT_PAGE, WECHAT_LOGIN_PAGE, type ApiError } from '@/api/client'
 import './index.scss'
 
 type Mode = 'login' | 'register'
+
+const isWeapp = process.env.TARO_ENV === 'weapp'
 
 export default function Login() {
   const [mode, setMode] = useState<Mode>('login')
@@ -22,6 +26,12 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  // weapp 主推微信一键登录：邮箱表单折叠；H5 保持现状（默认展开）
+  const [emailOpen, setEmailOpen] = useState(!isWeapp)
+
+  const goWechatLogin = (): void => {
+    void Taro.navigateTo({ url: WECHAT_LOGIN_PAGE })
+  }
 
   // 简易路由守卫：已登录用户不留在登录页（MVP 约定：完整守卫在 Task 3/4 业务页接入）
   useEffect(() => {
@@ -88,85 +98,112 @@ export default function Login() {
         <View className="login-sub">让 AI 为你规划安全、合适的下一场山野徒步。</View>
       </View>
 
-      {/* 登录 / 注册 切换 tab */}
-      <View className="login-tabs">
-        <View
-          className={`login-tab${mode === 'login' ? ' on' : ''}`}
-          onClick={() => switchMode('login')}
-        >
-          登录
-        </View>
-        <View
-          className={`login-tab${mode === 'register' ? ' on' : ''}`}
-          onClick={() => switchMode('register')}
-        >
-          注册
-        </View>
-      </View>
-
-      <View className="field">
-        <Text className="field-label">邮箱</Text>
-        <View className="field-box">
-          <Input
-            className="field-input"
-            type="text"
-            placeholder="hiker@example.com"
-            placeholderClass="field-placeholder"
-            value={email}
-            onInput={(e) => setEmail(e.detail.value)}
-          />
-        </View>
-      </View>
-
-      {mode === 'register' && (
-        <View className="field">
-          <Text className="field-label">昵称</Text>
-          <View className="field-box">
-            <Input
-              className="field-input"
-              type="text"
-              placeholder="山野里的名字（最多 32 字）"
-              placeholderClass="field-placeholder"
-              value={nickname}
-              onInput={(e) => setNickname(e.detail.value)}
-            />
+      {/* weapp 折叠态：主按钮「微信一键登录」→ wechat-login 页；邮箱表单为次要入口 */}
+      {isWeapp && !emailOpen && (
+        <>
+          <View className="btn btn-wechat" onClick={goWechatLogin}>
+            微信一键登录
           </View>
-        </View>
+          <View className="login-switch">
+            <Text className="login-switch-link" onClick={() => setEmailOpen(true)}>
+              使用邮箱登录
+            </Text>
+          </View>
+        </>
       )}
 
-      <View className="field">
-        <Text className="field-label">密码</Text>
-        <View className="field-box">
-          <Input
-            className="field-input"
-            password
-            placeholder={mode === 'register' ? '至少 8 位' : '输入密码'}
-            placeholderClass="field-placeholder"
-            value={password}
-            onInput={(e) => setPassword(e.detail.value)}
-          />
-        </View>
-      </View>
+      {/* 邮箱表单（H5 常驻；weapp 点「使用邮箱登录」展开） */}
+      {emailOpen && (
+        <>
+          {/* 登录 / 注册 切换 tab */}
+          <View className="login-tabs">
+            <View
+              className={`login-tab${mode === 'login' ? ' on' : ''}`}
+              onClick={() => switchMode('login')}
+            >
+              登录
+            </View>
+            <View
+              className={`login-tab${mode === 'register' ? ' on' : ''}`}
+              onClick={() => switchMode('register')}
+            >
+              注册
+            </View>
+          </View>
 
-      {error ? (
-        <View className="login-error">
-          <Text>{error}</Text>
-        </View>
-      ) : null}
+          <View className="field">
+            <Text className="field-label">邮箱</Text>
+            <View className="field-box">
+              <Input
+                className="field-input"
+                type="text"
+                placeholder="hiker@example.com"
+                placeholderClass="field-placeholder"
+                value={email}
+                onInput={(e) => setEmail(e.detail.value)}
+              />
+            </View>
+          </View>
 
-      <View
-        className={`btn btn-primary${submitting ? ' is-loading' : ''}`}
-        onClick={submit}
-      >
-        {submitting ? '处理中…' : mode === 'login' ? '登 录' : '注 册 并 登 录'}
-      </View>
+          {mode === 'register' && (
+            <View className="field">
+              <Text className="field-label">昵称</Text>
+              <View className="field-box">
+                <Input
+                  className="field-input"
+                  type="text"
+                  placeholder="山野里的名字（最多 32 字）"
+                  placeholderClass="field-placeholder"
+                  value={nickname}
+                  onInput={(e) => setNickname(e.detail.value)}
+                />
+              </View>
+            </View>
+          )}
 
-      <View className="login-switch">
-        {mode === 'login' ? '还没有账号？' : '已有账号？'}
-        <Text className="login-switch-link" onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}>
-          {mode === 'login' ? '马上注册' : '直接登录'}
-        </Text>
-      </View>
+          <View className="field">
+            <Text className="field-label">密码</Text>
+            <View className="field-box">
+              <Input
+                className="field-input"
+                password
+                placeholder={mode === 'register' ? '至少 8 位' : '输入密码'}
+                placeholderClass="field-placeholder"
+                value={password}
+                onInput={(e) => setPassword(e.detail.value)}
+              />
+            </View>
+          </View>
+
+          {error ? (
+            <View className="login-error">
+              <Text>{error}</Text>
+            </View>
+          ) : null}
+
+          <View
+            className={`btn btn-primary${submitting ? ' is-loading' : ''}`}
+            onClick={submit}
+          >
+            {submitting ? '处理中…' : mode === 'login' ? '登 录' : '注 册 并 登 录'}
+          </View>
+
+          <View className="login-switch">
+            {mode === 'login' ? '还没有账号？' : '已有账号？'}
+            <Text className="login-switch-link" onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}>
+              {mode === 'login' ? '马上注册' : '直接登录'}
+            </Text>
+            {isWeapp && (
+              <>
+                {'　'}
+                <Text className="login-switch-link" onClick={() => setEmailOpen(false)}>
+                  使用微信一键登录
+                </Text>
+              </>
+            )}
+          </View>
+        </>
+      )}
     </View>
   )
 }

@@ -28,6 +28,8 @@ export const TOKEN_KEY = 'gl_token_pair'
 export const HOME_PAGE = '/pages/index/index'
 /** 登录态彻底失效后的统一去向（login 页在 Task 2 注册进 app.config 后生效） */
 export const LOGIN_PAGE = '/pages/login/index'
+/** 微信一键登录页（M8 Task 2；Task 1 后端 /auth/wechat-login 已就绪） */
+export const WECHAT_LOGIN_PAGE = '/pages/wechat-login/index'
 /** 引导流入口（M7.5：注册成功 → 02 运动偏好 → 03 经验体能 → 04 装备 → 首页） */
 export const ONBOARD_SPORT_PAGE = '/pages/onboard/sport/index'
 export const ONBOARD_EXP_PAGE = '/pages/onboard/exp/index'

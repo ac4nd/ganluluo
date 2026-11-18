@@ -23,6 +23,18 @@ export type RefreshIn = S['RefreshIn']
 export type UserOut = S['UserOut']
 export type LogoutOut = S['LogoutOut']
 
+/**
+ * 微信一键登录请求体（M8 Task 1 后端 d999327 已落 WechatLoginIn，但
+ * backend/openapi.json 尚未重导出，先本地定义保持一致：code 1..128、
+ * nickname ≤32 字可空）。
+ */
+export interface WechatLoginIn {
+  /** wx.login() 取到的临时登录凭证 code */
+  code: string
+  /** 可选昵称；缺省后端用「徒步者 + 4 位随机数字」 */
+  nickname?: string
+}
+
 export {
   /** 读本地登录态（TokenPair | null） */
   getTokenPair,
@@ -50,6 +62,23 @@ export async function register(payload: RegisterIn): Promise<UserOut> {
 /** POST /auth/refresh：显式换新 token 对（client 内部 401 也会自动走这条链路） */
 export async function refresh(payload: RefreshIn): Promise<TokenPair> {
   return request<TokenPair>('/auth/refresh', { method: 'POST', data: payload, skipAuth: true })
+}
+
+/**
+ * POST /auth/wechat-login：微信一键登录（M8 Task 2）。
+ * wx.login() code 换 TokenPair；成功即写登录态（同 login 口径）。
+ * 后端语义：dev 未配置微信凭据时走确定性 mock（同 code 同账号），
+ * 401 微信失败/登录态缺失、403 disabled、502 上游不可达、503 prod 未配置。
+ */
+export async function wechatLogin(code: string, nickname?: string): Promise<TokenPair> {
+  const payload: WechatLoginIn = nickname ? { code, nickname } : { code }
+  const pair = await request<TokenPair>('/auth/wechat-login', {
+    method: 'POST',
+    data: payload,
+    skipAuth: true,
+  })
+  setTokenPair(pair)
+  return pair
 }
 
 /** GET /auth/me：当前用户 */

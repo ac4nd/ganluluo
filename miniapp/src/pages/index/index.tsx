@@ -3,6 +3,8 @@
  * - 展示登录态（getTokenPair → /auth/me 拉昵称）
  * - 已登录：用户摘要 + 各页导航链接（我的 / 装备清单；AI 对话、路线为 Task 3/4 占位）
  * - 未登录：显示「去登录」按钮
+ * - M8 Task 2：useDidShow 触发启动序列（launch.ts，一次冷启动一次）——
+ *   首次启动弹自定义半屏隐私弹窗（同意后触发位置授权；不同意保留弹窗不可进主功能）
  * 完整路由守卫在 Task 3/4 业务页接入时用 auth.ts 的 getTokenPair 判断。
  */
 import { useCallback, useState } from 'react'
@@ -11,6 +13,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 
 import { me, getTokenPair, type UserOut } from '@/api/auth'
 import { LOGIN_PAGE, type ApiError, type TokenPair } from '@/api/client'
+import { agreePrivacy, startLaunchSequence } from '@/launch'
 import './index.scss'
 
 interface NavItem {
@@ -32,6 +35,8 @@ const NAV_ITEMS: NavItem[] = [
 export default function Index() {
   const [pair, setPair] = useState<TokenPair | null>(null)
   const [user, setUser] = useState<UserOut | null>(null)
+  // 启动序列①：首次启动（gl_privacy_ok 无值）弹半屏隐私弹窗
+  const [privacyOpen, setPrivacyOpen] = useState(false)
 
   const refresh = useCallback(async (): Promise<void> => {
     const cur = getTokenPair()
@@ -50,7 +55,20 @@ export default function Index() {
 
   useDidShow(() => {
     void refresh()
+    // 启动序列编排（launch.ts）：一次冷启动只跑一遍；未同意隐私 → 打开弹窗
+    startLaunchSequence(() => setPrivacyOpen(true))
   })
+
+  /** 「不同意」：toast 提示并保留弹窗（遮罩盖住页面，不可进主功能） */
+  const refusePrivacy = (): void => {
+    void Taro.showToast({ title: '需要同意后才能使用', icon: 'none', duration: 2000 })
+  }
+
+  /** 「同意并继续」：写一次性标记（launch.ts 内续跑步骤②位置授权）并关弹窗 */
+  const acceptPrivacy = (): void => {
+    agreePrivacy()
+    setPrivacyOpen(false)
+  }
 
   const go = (item: NavItem): void => {
     if (!item.ready) return
@@ -122,6 +140,36 @@ export default function Index() {
       </View>
 
       <View className="index-foot">dev 提示：H5 走 devServer 同源代理 → 本地 uvicorn 8123</View>
+
+      {/* 启动序列①：隐私政策半屏弹窗（不同意不关闭，遮罩盖住页面不可进主功能） */}
+      {privacyOpen && (
+        <View className="privacy-mask">
+          <View className="privacy-sheet">
+            <View className="privacy-title">服务协议与隐私政策</View>
+            <View className="privacy-body">
+              <Text className="privacy-text">欢迎使用赶路咯！在开始使用前，请了解我们如何处理你的信息：</Text>
+              <Text className="privacy-text">1. 位置信息：在你授权后获取地理位置（wgs84），仅用于路线匹配与行程定位；拒绝授权不影响核心功能的使用。</Text>
+              <Text className="privacy-text">2. 登录信息：微信一键登录会使用微信登录凭证与你的微信昵称创建/识别账号；邮箱登录仅收集邮箱与昵称。</Text>
+              <Text className="privacy-text">3. 你的画像、装备清单与行程数据仅用于向你提供规划服务，不会对外共享。</Text>
+              <Text className="privacy-text">
+                继续使用即表示你已阅读并同意
+                <Text className="privacy-link">《用户协议》</Text>
+                与
+                <Text className="privacy-link">《隐私政策》</Text>
+                。
+              </Text>
+            </View>
+            <View className="privacy-btns">
+              <View className="privacy-btn ghost" onClick={refusePrivacy}>
+                不同意
+              </View>
+              <View className="privacy-btn primary" onClick={acceptPrivacy}>
+                同意并继续
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   )
 }

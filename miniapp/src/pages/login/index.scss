@@ -100,3 +100,13 @@
   color: var(--color-accent);
   font-weight: var(--typography-weight-medium);
 }
+
+/* ---------- M8 Task 2：weapp 主推微信一键登录 ---------- */
+/* 主按钮变微信绿；邮箱表单折叠为「使用邮箱登录」次要入口 */
+.btn-wechat {
+  width: 100%;
+  height: 108px;
+  background: #07c160;
+  color: #ffffff;
+  font-size: 32px;
+}

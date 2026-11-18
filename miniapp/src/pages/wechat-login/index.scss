@@ -1,0 +1,152 @@
+/* 微信一键登录页样式。px 约定：designWidth=750 双倍稿；颜色走 design tokens。 */
+@import '../../styles/tokens.css';
+
+.wxlogin-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 120px 56px 64px;
+  background: radial-gradient(120% 40% at 50% 0%, var(--color-screen-2) 0%, var(--color-screen) 60%);
+}
+
+/* ---------- 品牌区 ---------- */
+.wxlogin-brand {
+  margin-bottom: 72px;
+  text-align: center;
+}
+
+.wxlogin-logo {
+  width: 152px;
+  height: 152px;
+  margin: 0 auto 32px;
+  border-radius: 44px;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-card);
+  font-size: 56px;
+  font-weight: var(--typography-weight-bold);
+  line-height: 152px;
+  color: var(--color-accent);
+}
+
+.wxlogin-title {
+  font-size: 44px;
+  font-weight: var(--typography-weight-bold);
+}
+
+.wxlogin-sub {
+  margin-top: 16px;
+  font-size: 25px;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+
+/* ---------- weapp：勾选 + 大按钮 ---------- */
+.wxlogin-check {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 36px;
+}
+
+.wxlogin-checkbox {
+  flex: none;
+  box-sizing: border-box;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--color-dim);
+  background: var(--color-card);
+  font-size: 26px;
+  line-height: 34px;
+  text-align: center;
+  color: var(--color-on-accent);
+
+  &.on {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+  }
+}
+
+.wxlogin-check-text {
+  flex: 1;
+  font-size: 23px;
+  color: var(--color-muted);
+}
+
+.wxlogin-link {
+  color: var(--color-accent);
+}
+
+.wxlogin-error {
+  margin-bottom: 28px;
+  padding: 20px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 109, 90, 0.35);
+  background: rgba(255, 109, 90, 0.12);
+  font-size: 23px;
+  line-height: 1.55;
+  color: var(--color-red);
+}
+
+.wxlogin-btn {
+  padding: 30px 0;
+  border-radius: var(--radius-pill);
+  background: #07c160;
+  font-size: 31px;
+  font-weight: var(--typography-weight-medium);
+  text-align: center;
+  color: #ffffff;
+
+  &.is-loading {
+    opacity: 0.55;
+  }
+}
+
+.wxlogin-alt {
+  margin-top: 36px;
+  font-size: 24px;
+  text-align: center;
+  color: var(--color-dim);
+}
+
+/* ---------- H5 降级卡 ---------- */
+.wxlogin-degrade {
+  padding: 48px 36px 40px;
+  border-radius: var(--radius-hero);
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-card);
+  text-align: center;
+}
+
+.wxlogin-degrade-badge {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 28px;
+  border-radius: 50%;
+  background: #07c160;
+  font-size: 44px;
+  font-weight: var(--typography-weight-bold);
+  line-height: 96px;
+  color: #ffffff;
+}
+
+.wxlogin-degrade-title {
+  font-size: 29px;
+  font-weight: var(--typography-weight-medium);
+}
+
+.wxlogin-degrade-desc {
+  margin-top: 18px;
+  font-size: 24px;
+  line-height: 1.7;
+  color: var(--color-muted);
+}
+
+.wxlogin-degrade-link {
+  margin-top: 36px;
+  padding: 22px 0;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-card-2);
+  font-size: 26px;
+  color: var(--color-accent);
+}
