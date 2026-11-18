@@ -23,6 +23,7 @@ import {
   type Sport,
 } from '@/api/profile'
 import { LOGIN_PAGE, ONBOARD_SPORT_PAGE } from '@/api/client'
+import { M3Fab, M3TabBar } from '@/components/m3'
 import './index.scss'
 
 type PagePhase = 'checking' | 'guest' | 'ready'
@@ -147,6 +148,9 @@ export default function Profile() {
             </View>
           )}
         </View>
+        {/* M8 Task 3 安卓形态：导航常驻（未登录点受限 tab / FAB 统一去登录） */}
+        <M3Fab />
+        <M3TabBar active="profile" />
       </View>
     )
   }
@@ -167,6 +171,12 @@ export default function Profile() {
 
   return (
     <View className="profile-page">
+      {/* M3 顶部大标题（左对齐 title-xl 形态，替代 iOS 居中 pill） */}
+      <View className="page-greet">山野档案 · AI 路线匹配的依据</View>
+      <View className="page-title-xl">
+        我的<Text className="em">画像</Text>
+      </View>
+
       {/* 顶部：头像 + 昵称 + 画像标签 */}
       <View className="profile-top">
         <View className="avatar-lg">{nickname.slice(0, 1)}</View>
@@ -322,6 +332,10 @@ export default function Profile() {
       <View className="btn btn-ghost logout-btn" onClick={doLogout}>
         退出登录
       </View>
+
+      {/* M8 Task 3 安卓形态：AI 对话 FAB + M3 药丸底导航（四主页面共用） */}
+      <M3Fab />
+      <M3TabBar active="profile" />
     </View>
   )
 }

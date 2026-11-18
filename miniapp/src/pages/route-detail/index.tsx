@@ -314,7 +314,18 @@ export default function RouteDetail() {
 
   return (
     <View className="rd-page">
-      {/* ---------- 封面 ---------- */}
+      {/* ---------- M3 顶栏（a-detail：返回 icon-btn + 居中标题 + 收藏 icon-btn，封面卡上方） ---------- */}
+      <View className="rd-topbar">
+        <View className="icon-btn" onClick={goBack}>
+          ‹
+        </View>
+        <Text className="rd-topbar-title">路线详情</Text>
+        <View className="icon-btn" onClick={tapFavorite}>
+          ♡
+        </View>
+      </View>
+
+      {/* ---------- 封面（a-detail：内缩圆角卡形态，非全幅出血） ---------- */}
       <View className="rd-hero">
         <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" className="rd-hero-svg">
           <defs>
@@ -331,14 +342,6 @@ export default function RouteDetail() {
           <path d="M0 196l64-22 58 16 78-28 70 22 60-16 70 18v34H0z" fill="#081108" />
         </svg>
         <View className="rd-hero-shade" />
-        <View className="rd-hero-btns">
-          <View className="icon-btn" onClick={goBack}>
-            ‹
-          </View>
-          <View className="icon-btn" onClick={tapFavorite}>
-            ♡
-          </View>
-        </View>
         <View className="rd-hero-cap">
           <View className="rd-hero-tags">
             <View className="tag">

@@ -1,0 +1,68 @@
+/* M8 Task 3 · 安卓 Material 3 共享组件样式（基准 protype/a-home.html，逐元素对照）：
+   .m3-nav 底部导航（a-home .nav-md：整宽贴底 + 药丸指示器）、
+   .m3-fab AI 对话悬浮钮（a-home .fab：56dp 圆角方钮 + 渐变 + 阴影，浮于导航上方）。
+   px = 原型 390 视口 ×2（designWidth 750 双倍稿）；色板仍走 tokens，
+   阴影允许 rgba 中性/品牌光晕变体（非裸 hex）。 */
+@import '../styles/tokens.css';
+
+/* ---------- M3 底部导航（a-home .nav-md） ---------- */
+.m3-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  height: 168px;
+  padding-top: 20px;
+  background: rgba(16, 22, 11, 0.72);
+  backdrop-filter: blur(32px) saturate(1.8);
+  border-top: 1px solid var(--color-line);
+}
+
+.m3-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  font-weight: var(--typography-weight-medium);
+  color: var(--color-dim);
+
+  .pill {
+    width: 112px;
+    height: 60px;
+    border-radius: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 选中态：accent 药丸底托住图标（M3 active indicator） */
+  &.on {
+    color: var(--color-accent);
+
+    .pill {
+      background: rgba(164, 241, 80, 0.16);
+    }
+  }
+}
+
+/* ---------- FAB（a-home .fab：56dp + 16dp 圆角 + 渐变底 + sparkle + 阴影） ---------- */
+.m3-fab {
+  position: fixed;
+  right: 40px;
+  bottom: 204px;
+  z-index: 60;
+  width: 112px;
+  height: 112px;
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-grad);
+  color: var(--color-on-accent);
+  box-shadow: 0 28px 60px rgba(140, 235, 80, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.4);
+}

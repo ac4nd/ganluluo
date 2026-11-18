@@ -14,6 +14,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import { me, getTokenPair, type UserOut } from '@/api/auth'
 import { LOGIN_PAGE, type ApiError, type TokenPair } from '@/api/client'
 import { agreePrivacy, startLaunchSequence } from '@/launch'
+import { M3Fab, M3TabBar } from '@/components/m3'
 import './index.scss'
 
 interface NavItem {
@@ -86,14 +87,22 @@ export default function Index() {
 
   return (
     <View className="index-page">
-      <View className="hero-card">
-        <View className="hero-label">GANLULUO · M7 轻端</View>
-        <View className="hero-title">
-          赶路咯 <Text className="em">入口</Text>
-        </View>
-        <View className="hero-sub">
-          Taro 4 + React 18 + TS；已接入登录、我的（额度卡）、装备清单、路线库/详情、AI 对话（SSE 流式）与行程计划。
-        </View>
+      {/* M3 顶部大标题（a-home：问候行 + 左对齐 title-xl，替代 iOS 居中 pill） */}
+      <View className="page-greet">
+        {pair
+          ? user
+            ? `嗨，${user.nickname} 👋 · 欢迎回来`
+            : '嗨 👋 · 正在同步你的资料…'
+          : '嗨，山友 👋 · 登录后解锁 AI 规划'}
+      </View>
+      <View className="page-title-xl">
+        准备好你的<Text className="em">下一场冒险</Text>了吗？
+      </View>
+
+      {/* M3 搜索条（a-home .search 56dp 圆角矩形形态；点击进路线库） */}
+      <View className="m3-search" onClick={() => go(NAV_ITEMS[3])}>
+        <Text className="m3-search-ico">⌕</Text>
+        <Text className="m3-search-text">搜索城市、路线或问 AI「附近有什么好走的」…</Text>
       </View>
 
       {/* 登录态摘要 */}
@@ -140,6 +149,10 @@ export default function Index() {
       </View>
 
       <View className="index-foot">dev 提示：H5 走 devServer 同源代理 → 本地 uvicorn 8123</View>
+
+      {/* M8 Task 3 安卓形态：AI 对话 FAB（右下悬浮）+ M3 药丸底导航（四主页面共用） */}
+      <M3Fab />
+      <M3TabBar active="home" />
 
       {/* 启动序列①：隐私政策半屏弹窗（不同意不关闭，遮罩盖住页面不可进主功能） */}
       {privacyOpen && (

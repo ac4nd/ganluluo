@@ -15,6 +15,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import { deleteTrip, listTrips, updateTripStatus, type TripPlanCard, type TripStatus } from '@/api/trips'
 import { getCatalog } from '@/api/gear'
 import { getTokenPair, LOGIN_PAGE, type ApiError } from '@/api/client'
+import { M3Fab, M3TabBar } from '@/components/m3'
 import './index.scss'
 
 const CHAT_PAGE = '/pages/chat/index'
@@ -269,6 +270,10 @@ export default function Trips() {
       ) : null}
 
       {!loading && !error && trips.length > 0 ? <View className="trip-list">{trips.map(renderCard)}</View> : null}
+
+      {/* M8 Task 3 安卓形态：AI 对话 FAB + M3 药丸底导航（四主页面共用） */}
+      <M3Fab />
+      <M3TabBar active="trips" />
     </View>
   )
 }

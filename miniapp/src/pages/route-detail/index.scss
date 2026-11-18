@@ -4,8 +4,22 @@
 .rd-page {
   box-sizing: border-box;
   min-height: 100vh;
+  padding-top: 24px;
   padding-bottom: 220px;
   background: radial-gradient(120% 30% at 50% 0%, var(--color-screen-2) 0%, var(--color-screen) 55%);
+}
+
+/* ---------- M3 顶栏（a-detail：38dp 圆钮 + 居中标题；.icon-btn 共享原语在 app.scss） ---------- */
+.rd-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 40px 16px;
+
+  .rd-topbar-title {
+    font-size: 30px;
+    font-weight: var(--typography-weight-bold);
+  }
 }
 
 .rd-state-card {
@@ -35,10 +49,14 @@
   width: 60%;
 }
 
-/* ---------- 封面（对齐原型 08 hero） ---------- */
+/* ---------- 封面（a-detail 形态：内缩 16dp 圆角卡 + 品牌线描边，非全幅出血） ---------- */
 .rd-hero {
   position: relative;
   height: 380px;
+  margin: 0 40px;
+  border-radius: 32px;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
 }
 
 .rd-hero-svg {
@@ -52,40 +70,14 @@
 .rd-hero-shade {
   position: absolute;
   inset: 0;
+  border-radius: 32px;
   background: linear-gradient(180deg, rgba(12, 17, 10, 0.5), rgba(12, 17, 10, 0) 34%, rgba(12, 17, 10, 0) 52%, rgba(12, 17, 10, 0.96) 96%);
-}
-
-.rd-hero-btns {
-  position: absolute;
-  top: 56px;
-  left: 32px;
-  right: 32px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.icon-btn {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(12, 17, 10, 0.5);
-  border: 1px solid var(--color-glass-hi);
-  color: var(--color-text);
-  font-size: 36px;
-  line-height: 1;
-
-  &:active {
-    background: rgba(12, 17, 10, 0.7);
-  }
 }
 
 .rd-hero-cap {
   position: absolute;
-  left: 40px;
-  right: 40px;
+  left: 32px;
+  right: 32px;
   bottom: 28px;
 }
 
@@ -137,19 +129,22 @@
   padding: 0 40px;
 }
 
+/* ---------- 指标四项（a-detail 形态：4 个独立 m3 卡片瓦片，非拼接单卡） ---------- */
 .metrics {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
   margin-top: 28px;
-  border-radius: var(--radius-lg);
-  background: var(--color-card);
-  border: 1px solid var(--color-glass-line);
-  padding: 26px 0;
 }
 
 .metric {
-  flex: 1;
   text-align: center;
   min-width: 0;
+  padding: 24px 8px;
+  border-radius: 28px;
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
 
   .v {
     font-size: 34px;
@@ -177,8 +172,14 @@
     color: var(--color-dim);
   }
 
-  &.hl .v {
-    color: var(--color-accent);
+  /* a-detail .metric.hl：accent 底色瓦片 */
+  &.hl {
+    background: rgba(164, 241, 80, 0.1);
+    border-color: rgba(164, 241, 80, 0.4);
+
+    .v {
+      color: var(--color-accent);
+    }
   }
 }
 
@@ -194,13 +195,14 @@
   }
 }
 
-/* ---------- chart-card（对齐原型 .chart-card） ---------- */
+/* ---------- chart-card（M8 Task 3：m3-card 形态——大圆角 + 品牌 outline + 轻投影） ---------- */
 .chart-card {
   margin-top: 32px;
   padding: 28px;
-  border-radius: var(--radius-lg);
+  border-radius: 32px;
   background: var(--color-card);
-  border: 1px solid var(--color-glass-line);
+  border: 1px solid var(--color-line);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
 }
 
 .chart-head {
@@ -360,17 +362,18 @@
   backdrop-filter: blur(12px);
 }
 
+/* M8 Task 3：操作条改 M3 Filled + Tonal 组合（a-detail .action-bar）——
+   收藏为 Tonal 药丸钮（accent 16% 底、无描边），主操作保持 Filled 渐变 */
 .sq-btn {
-  width: 108px;
   height: 108px;
+  padding: 0 44px;
   flex: none;
-  border-radius: 30px;
+  border-radius: var(--radius-pill);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--color-line-strong);
-  color: var(--color-muted);
+  background: rgba(164, 241, 80, 0.16);
+  color: var(--color-accent);
   font-size: 40px;
   line-height: 1;
 }

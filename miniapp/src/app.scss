@@ -317,6 +317,8 @@ page {
   }
 }
 
+/* M8 Task 3：返回键改 M3 icon-btn 形态（a-detail 顶部 38dp 圆钮：深底 + 品牌线描边，
+   去 iOS 玻璃内高光底）；数值与下方 .icon-btn 共享原语一致 */
 .back-btn {
   width: 76px;
   height: 76px;
@@ -325,7 +327,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(24, 33, 17, 0.42);
+  background: rgba(9, 13, 6, 0.62);
   border: 1px solid var(--color-line);
   color: var(--color-text);
   font-size: 30px;
@@ -662,4 +664,63 @@ page {
       font-weight: var(--typography-weight-bold);
     }
   }
+}
+
+/* ============================================================
+   M8 Task 3 · 安卓 Material 3 语言（基准 protype/a-home.html / a-detail.html）
+   只改组件形态/布局/阴影：色板仍走 tokens；px = 原型 390 视口 ×2。
+   底部导航与 FAB 在 components/m3.scss（M3TabBar/M3Fab 共享组件）。
+   ============================================================ */
+
+/* ---------- M3 顶部大标题（a-home .title-xl：左对齐大字 + em 高亮，替代 iOS 居中 pill） ---------- */
+.page-greet {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 26px;
+  color: var(--color-muted);
+}
+
+.page-title-xl {
+  font-size: 52px;
+  line-height: 1.24;
+  font-weight: var(--typography-weight-bold);
+  letter-spacing: 0.4px;
+
+  .em {
+    font-style: italic;
+    color: var(--color-accent);
+  }
+}
+
+/* ---------- M3 icon-btn（a-detail 顶部 38dp 圆钮：深底 + 品牌线描边，无玻璃高光） ---------- */
+.icon-btn {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(9, 13, 6, 0.62);
+  border: 1px solid var(--color-line);
+  color: var(--color-text);
+  font-size: 36px;
+  line-height: 1;
+
+  &:active {
+    background: rgba(9, 13, 6, 0.82);
+  }
+}
+
+/* ---------- M3 卡片层级（a-home .m3-card / a-detail .chart-card.m3-card）：
+   更大圆角 16dp、品牌 outline（去 iOS 玻璃白描边）、底色提档到 --color-card、
+   iOS inset 高光环改 M3 elevation 轻投影（rgba 中性阴影） ---------- */
+.quota-card,
+.icon-tile,
+.option,
+.gear-item {
+  border-radius: 32px;
+  border-color: var(--color-line);
+  background: var(--color-card);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
 }

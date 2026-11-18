@@ -17,7 +17,7 @@ import { Input, Text, View } from '@tarojs/components'
 import Taro, { useDidHide, useDidShow } from '@tarojs/taro'
 
 import { chat, generatePlan, quota, type UsageOut } from '@/api/assistant'
-import { getTokenPair, LOGIN_PAGE, type ApiError, type SseEvent, type SseHandle } from '@/api/client'
+import { getTokenPair, HOME_PAGE, LOGIN_PAGE, type ApiError, type SseEvent, type SseHandle } from '@/api/client'
 import { SPORTS } from '@/api/profile'
 import './index.scss'
 
@@ -411,6 +411,10 @@ export default function Chat() {
   }
 
   /* ---------- 渲染 ---------- */
+  const goBack = (): void => {
+    void Taro.navigateBack().catch(() => void Taro.reLaunch({ url: HOME_PAGE }))
+  }
+
   if (!authed) {
     return (
       <View className="chat-page">
@@ -525,6 +529,17 @@ export default function Chat() {
 
   return (
     <View className="chat-page">
+      {/* M3 顶栏（大标题形态 + 返回圆钮；H5 无原生返回键，weapp 与原生导航并存——同引导页模式） */}
+      <View className="chat-top">
+        <View className="icon-btn" onClick={goBack}>
+          ‹
+        </View>
+        <View className="chat-top-text">
+          <View className="chat-title">AI 规划</View>
+          <View className="chat-sub">流式问答 · 聊完一键生成计划</View>
+        </View>
+      </View>
+
       <View className="chat-list">{renderList()}</View>
 
       {/* 底部 dock：生成计划条 + 输入行 */}

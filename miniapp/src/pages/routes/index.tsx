@@ -13,6 +13,7 @@ import Taro from '@tarojs/taro'
 import { listRoutes, type RouteOut, type Sport } from '@/api/routes'
 import { SPORTS } from '@/api/profile'
 import type { ApiError } from '@/api/client'
+import { M3Fab, M3TabBar } from '@/components/m3'
 import './index.scss'
 
 const DETAIL_PAGE = '/pages/route-detail/index'
@@ -224,6 +225,10 @@ export default function Routes() {
           )
         })}
       </View>
+
+      {/* M8 Task 3 安卓形态：AI 对话 FAB + M3 药丸底导航（四主页面共用） */}
+      <M3Fab />
+      <M3TabBar active="routes" />
     </View>
   )
 }
