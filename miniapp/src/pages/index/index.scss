@@ -1,160 +1,438 @@
-/* 入口/导航页样式。px 约定：Taro designWidth=750（= 原型 390 视口的 2 倍稿），
-   颜色一律引用 design tokens（--color-* / --radius-*）。 */
+/* 首页样式（M75H：一比一转换 protype/05-home.html）。
+   px 约定：Taro designWidth=750（= 原型 390 视口的 2 倍稿，下述数值 = 原型 px × 2）；
+   颜色一律引用 design tokens（--color-* / --radius-*）；仅场景插画 SVG 的
+   渐变色值照抄原型（插画数据，非主题 token）。 */
 @import '../../styles/tokens.css';
 
 .index-page {
   box-sizing: border-box;
   min-height: 100vh;
-  /* M8 Task 3：底部留出 M3 导航（168px）+ FAB 悬浮空间（a-home content padding-bottom 140×2） */
-  padding: 40px 40px 300px;
-  background: radial-gradient(120% 40% at 50% 0%, var(--color-screen-2) 0%, var(--color-screen) 60%);
+  position: relative;
+  /* 上半屏被场景层（cinema-layer）+ 暗化盖层覆盖，盖层末端即 --color-screen，无缝衔接 */
+  padding: 20px 44px 300px;
+  background: var(--color-screen);
 }
 
-/* ---------- M3 搜索条（a-home .search：border-radius 28dp，非 iOS 全圆 pill） ---------- */
-.m3-search {
+/* ---------- ① 上半屏场景层（05 原型 cinema 视频轮播的 MVP 替代：静态渐变场景 SVG） ----------
+   absolute 定位 + 内容 relative z 上移，同构原型「content 叠加于 cinema-layer」；
+   视频轮播 defer（G-12 资源下发票）。高度约 42% 屏（原型 62%，M75H 任务定 42%）。 */
+.sport-sprite {
+  display: none;
+}
+
+.cinema-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 42vh;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cinema-layer .scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 05 原型 .cinema-shade 同款暗化渐变（末端 var(--color-screen) 收口） */
+.cinema-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 17, 10, 0.5) 0%,
+    rgba(12, 17, 10, 0.16) 26%,
+    rgba(12, 17, 10, 0.04) 46%,
+    rgba(12, 17, 10, 0.28) 70%,
+    rgba(12, 17, 10, 0.88) 93%,
+    var(--color-screen) 100%
+  );
+}
+
+.home-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- ② page-head（05 原型 .page-head / .who / .avatar / .icon-btn） ---------- */
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-width: 0;
+}
+
+.who-text {
+  min-width: 0;
+}
+
+.who-name {
+  display: block;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.who-sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 23px;
+  color: var(--color-dim);
+}
+
+.avatar {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: var(--color-grad);
+  color: var(--color-on-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 34px;
+  flex: none;
+}
+
+/* 未登录：灰底「客」（M75H：登录入口并入头像点击） */
+.avatar.guest {
+  background: var(--color-card-2);
+  color: var(--color-dim);
+}
+
+.icon-btn {
+  width: 84px;
+  height: 84px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: rgba(9, 13, 6, 0.62);
+  border: 1px solid var(--color-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  flex: none;
+
+  /* 铃铛 19dp → 38 双倍稿；svg 用 CSS 定尺寸（width/height 属性不吃 designWidth 换算） */
+  svg {
+    width: 38px;
+    height: 38px;
+    flex: none;
+  }
+}
+
+.bell {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    border: 4px solid var(--color-screen);
+  }
+}
+
+/* ---------- ③ title-xl（05 原型两行结构：准备好你的 / 下一场冒险 了吗？） ---------- */
+.title-xl {
+  margin: 28px 0 32px;
+  font-size: 60px;
+  line-height: 1.24;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+
+  .tl-line {
+    display: block;
+  }
+
+  .em {
+    font-style: italic;
+    color: var(--color-accent);
+  }
+}
+
+/* ---------- ④ search 条（05 原型 .search：999 pill + mic） ---------- */
+.search {
   display: flex;
   align-items: center;
   gap: 20px;
   height: 100px;
-  margin-top: 32px;
+  box-sizing: border-box;
   padding: 0 36px;
-  border-radius: 56px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.055);
   border: 1px solid var(--color-line);
   color: var(--color-dim);
   font-size: 26px;
+  white-space: nowrap;
   overflow: hidden;
 
-  .m3-search-ico {
+  /* 放大镜 16dp → 32 双倍稿 */
+  > svg {
+    width: 32px;
+    height: 32px;
     flex: none;
-    font-size: 32px;
-  }
-
-  .m3-search-text {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
   }
 
   &:active {
     background: rgba(255, 255, 255, 0.09);
   }
+
+  .search-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mic {
+    margin-left: auto;
+    color: var(--color-muted);
+    display: flex;
+
+    /* mic 15dp → 30 双倍稿 */
+    svg {
+      width: 30px;
+      height: 30px;
+      flex: none;
+    }
+  }
 }
 
-/* ---------- 登录态摘要（M8 Task 3：M3 卡片形态，玻璃描边改品牌 outline + 轻投影） ---------- */
-.auth-card {
+/* ---------- sec 区头（05 原型 .sec：h3 + 右链接） ---------- */
+.sec {
   display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 28px 30px;
-  margin-top: 32px;
-  margin-bottom: 28px;
-  border-radius: 32px;
-  border: 1px solid var(--color-line);
-  background: var(--color-card);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
-}
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 48px 0 24px;
 
-.auth-dot {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--color-dim);
+  .sec-h {
+    font-size: 34px;
+    font-weight: 800;
+  }
 
-  &.on {
-    background: var(--color-accent);
-    box-shadow: 0 0 16px rgba(164, 241, 80, 0.6);
+  .sec-link {
+    font-size: 24px;
+    color: var(--color-muted);
   }
 }
 
-.auth-text {
-  flex: 1;
-  min-width: 0;
-
-  .auth-line {
-    display: block;
-    font-size: 27px;
-    font-weight: 700;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  .auth-mail {
-    display: block;
-    margin-top: 4px;
-    font-size: 21px;
-    color: var(--color-dim);
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
+/* ---------- ⑤ hero-card 大卡（05 原型 .hero-card：scene + shade + hero-info + fab） ---------- */
+.hero-card {
+  position: relative;
+  display: block;
+  height: 476px;
+  box-sizing: border-box;
+  border-radius: 52px;
+  overflow: hidden;
+  border: 1px solid var(--color-line-strong);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.12), 0 36px 80px rgba(0, 0, 0, 0.38);
 }
 
-.btn-login {
-  flex: none;
-  padding: 14px 28px;
-  border-radius: var(--radius-pill);
-  background: var(--color-grad);
-  color: var(--color-on-accent);
+.hero-card .scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(4, 7, 2, 0) 32%, rgba(4, 7, 2, 0.88) 100%);
+}
+
+.hero-info {
+  position: absolute;
+  left: 36px;
+  right: 144px;
+  bottom: 32px;
+}
+
+.hero-name {
+  display: block;
+  font-size: 46px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+.hero-name .em {
+  font-style: italic;
+  color: var(--color-accent);
+}
+
+.hero-sub {
+  display: block;
+  margin-top: 10px;
   font-size: 24px;
-  font-weight: var(--typography-weight-bold);
+  color: rgba(240, 246, 230, 0.75);
 }
 
-/* ---------- 导航列表 ---------- */
-.nav-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.nav-item {
+/* 卡内箭头钮（05 原型 hero-card 内 .fab：全局 .fab 规则渲染为 56dp 圆角方、
+   right 20 / bottom 102 —— 照抄该渲染形态；页面级 M3Fab 是 M8 决策，二者并存） */
+.hero-fab {
+  position: absolute;
+  right: 40px;
+  bottom: 204px;
+  width: 112px;
+  height: 112px;
+  border-radius: 32px;
+  background: var(--color-grad);
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 30px 30px;
-  border-radius: 32px;
-  background: var(--color-card);
-  border: 1px solid var(--color-line);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+  justify-content: center;
+  color: var(--color-on-accent);
+  box-shadow: 0 28px 60px rgba(140, 235, 80, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.4);
 
-  .nav-text {
-    flex: 1;
-    min-width: 0;
-
-    .nav-title {
-      display: block;
-      font-size: 29px;
-      font-weight: 700;
-    }
-
-    .nav-desc {
-      display: block;
-      margin-top: 6px;
-      font-size: 22px;
-      color: var(--color-dim);
-    }
-  }
-
-  .nav-arrow {
-    font-size: 36px;
-    color: var(--color-dim);
-  }
-
-  &.disabled {
-    opacity: 0.45;
+  /* 箭头 18dp → 36 双倍稿 */
+  svg {
+    width: 36px;
+    height: 36px;
+    flex: none;
   }
 }
 
-.index-foot {
-  margin-top: 48px;
-  text-align: center;
+/* mock 标注：hero-sub 中天气/匹配度为示例数据（P2 G-7/G-9 待后端） */
+.mock-tag {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  padding: 8px 20px;
+  border-radius: var(--radius-pill);
+  background: rgba(6, 10, 4, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 20px;
+  color: rgba(230, 244, 205, 0.9);
+}
+
+/* ---------- ⑥⑦ 横滚 mini-card（05 原型 .hrow / .mini-card） ----------
+   ScrollView scrollX + inline-block 子项（H5/weapp 双端通吃）；
+   负 margin 出血到屏幕边（同原型 .hrow margin 0 -22px）。 */
+.hrow {
+  margin: 0 -44px;
+  padding: 8px 44px 20px;
+  white-space: nowrap;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.mini-card {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  width: 304px;
+  height: 364px;
+  box-sizing: border-box;
+  margin-right: 24px;
+  border-radius: 40px;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  background: var(--color-card);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.12), 0 36px 80px rgba(0, 0, 0, 0.38);
+
+  &:last-child {
+    margin-right: 0;
+  }
+}
+
+.mini-card .scene {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 212px;
+}
+
+/* 05 原型 .mini-card .scene::after 的盖层（显式 View 承载，双端可用） */
+.m-shade {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 212px;
+  background: linear-gradient(180deg, rgba(4, 7, 2, 0) 40%, rgba(6, 10, 4, 0.9) 100%);
+}
+
+.m-sport {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+
+.mini-sport {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: rgba(6, 10, 4, 0.72);
+  border: 1px solid rgba(164, 241, 80, 0.35);
+  font-size: 20px;
+  color: var(--color-accent);
+
+  .icon {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: -0.125em;
+    flex: none;
+  }
+}
+
+.m-info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20px 24px 24px;
+}
+
+.m-name {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.m-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
   font-size: 21px;
   color: var(--color-dim);
 }
 
-/* ---------- 启动序列①：隐私政策半屏弹窗（M8 Task 2） ---------- */
+/* 足迹/路线 空态（区块显示、卡片空态，M75H 任务约定） */
+.row-empty {
+  display: inline-block;
+  width: 100%;
+  padding: 60px 0;
+  text-align: center;
+  font-size: 24px;
+  color: var(--color-dim);
+  white-space: normal;
+}
+
+/* ---------- 启动序列①：隐私政策半屏弹窗（M8 Task 2，原样保留） ---------- */
 /* 遮罩盖住整页：不同意状态下不可与主功能交互（遮罩无关闭手势） */
 .privacy-mask {
   position: fixed;
