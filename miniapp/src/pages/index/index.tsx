@@ -5,7 +5,8 @@
  * - 未登录：显示「去登录」按钮
  * - M8 Task 2：useDidShow 触发启动序列（launch.ts，一次冷启动一次）——
  *   首次启动弹自定义半屏隐私弹窗（同意后触发位置授权；不同意保留弹窗不可进主功能）
- * 完整路由守卫在 Task 3/4 业务页接入时用 auth.ts 的 getTokenPair 判断。
+ * - M8 Task 4 游客模式：路线库公开放行；受限入口（AI 对话/行程/我的/装备）
+ *   统一走 api/guard.requireAuth() 弹「登录后可用」，不再硬跳登录页。
  */
 import { useCallback, useState } from 'react'
 import { Text, View } from '@tarojs/components'
@@ -13,6 +14,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 
 import { me, getTokenPair, type UserOut } from '@/api/auth'
 import { LOGIN_PAGE, type ApiError, type TokenPair } from '@/api/client'
+import { requireAuth } from '@/api/guard'
 import { agreePrivacy, startLaunchSequence } from '@/launch'
 import { M3Fab, M3TabBar } from '@/components/m3'
 import './index.scss'
@@ -24,11 +26,14 @@ interface NavItem {
   ready: boolean
 }
 
+/** 路线库：公开浏览页（游客可进，GET /routes 公开端点游客直接 200） */
+const ROUTES_PAGE = '/pages/routes/index'
+
 const NAV_ITEMS: NavItem[] = [
   { title: '我的', desc: '画像编辑 + AI 额度卡', url: '/pages/profile/index', ready: true },
   { title: '装备清单', desc: '勾选常用装备，参与路线匹配', url: '/pages/gear/index', ready: true },
   { title: '登录 / 注册', desc: '邮箱 + 密码', url: LOGIN_PAGE, ready: true },
-  { title: '路线库', desc: '筛选 + 路线详情 + 加入计划', url: '/pages/routes/index', ready: true },
+  { title: '路线库', desc: '筛选 + 路线详情 + 加入计划', url: ROUTES_PAGE, ready: true },
   { title: 'AI 规划对话', desc: 'SSE 流式问答 + 配额环 + 一键生成计划', url: '/pages/chat/index', ready: true },
   { title: '行程计划', desc: '进行中 / 足迹 + 装备提醒', url: '/pages/trips/index', ready: true },
 ]
@@ -73,15 +78,22 @@ export default function Index() {
 
   const go = (item: NavItem): void => {
     if (!item.ready) return
-    // 未登录业务页统一去登录页；登录页自己也可以直达
-    if (item.url !== LOGIN_PAGE && !getTokenPair()) {
-      void Taro.reLaunch({ url: LOGIN_PAGE })
+    // 登录页入口：已登录去我的页；未登录直达登录页
+    if (item.url === LOGIN_PAGE) {
+      if (getTokenPair()) {
+        void Taro.reLaunch({ url: '/pages/profile/index' })
+        return
+      }
+      void Taro.navigateTo({ url: item.url })
       return
     }
-    if (item.url === LOGIN_PAGE && getTokenPair()) {
-      void Taro.reLaunch({ url: '/pages/profile/index' })
+    // M8 Task 4 游客模式：路线库公开浏览放行（详情也公开，加入计划在详情页内拦截）
+    if (item.url === ROUTES_PAGE) {
+      void Taro.navigateTo({ url: item.url })
       return
     }
+    // 受限页（AI 对话 / 行程 / 我的 / 装备）：统一弹「登录后可用」，确认才去登录
+    if (!requireAuth()) return
     void Taro.navigateTo({ url: item.url })
   }
 

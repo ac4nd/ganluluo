@@ -10,6 +10,8 @@
  * - 「生成完整计划」→ POST /assistant/plan({session_id}) → 200 跳 /pages/trips + toast；
  *   422/404 在 plan 条下方显示 detail
  * - 401：sse() 无自动续期（chat 为登录态必需端点，审查备忘接受该行为）→ onError 提示重登并跳登录页
+ * - M8 Task 4 游客模式：入口即拦（FAB/tab requireAuth 弹「登录后可用」）；页内防御保留
+ *   （游客深链直入 → 登录提示卡 + 900ms 兜底跳登录），发送 / 生成计划前再统一 requireAuth()
  * - 发送中禁重复提交；useDidHide / 卸载时 abort
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -18,6 +20,7 @@ import Taro, { useDidHide, useDidShow } from '@tarojs/taro'
 
 import { chat, generatePlan, quota, type UsageOut } from '@/api/assistant'
 import { getTokenPair, HOME_PAGE, LOGIN_PAGE, type ApiError, type SseEvent, type SseHandle } from '@/api/client'
+import { requireAuth } from '@/api/guard'
 import { SPORTS } from '@/api/profile'
 import './index.scss'
 
@@ -279,10 +282,9 @@ export default function Chat() {
     (raw: string): void => {
       const text = raw.trim()
       if (!text || streaming) return
-      if (!getTokenPair()) {
-        void Taro.reLaunch({ url: LOGIN_PAGE })
-        return
-      }
+      // M8 Task 4：页级防御（游客深链直入时入口已被 FAB/tab requireAuth 拦下，
+      // 这里兜底）；统一弹「登录后可用」，不再静默 reLaunch 登录页
+      if (!requireAuth()) return
       setInput('')
       setPlanErr('')
       setMsgs((prev) => [...markAiDone(prev), { kind: 'user', id: nid(), text }])
@@ -342,6 +344,8 @@ export default function Chat() {
   /* ---------- 生成完整计划 ---------- */
   const doPlan = async (): Promise<void> => {
     if (planning) return
+    // M8 Task 4：游客统一拦截（弹「登录后可用」），原动作不执行
+    if (!requireAuth()) return
     if (quotaExceeded) {
       void Taro.showToast({ title: '今日 AI 额度已用尽', icon: 'none' })
       return

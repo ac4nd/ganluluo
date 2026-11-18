@@ -7,6 +7,8 @@
  * - 卡操作：planned → 「标记完成」（PATCH status=done）+「删除」（确认后 DELETE）；
  *   done → 「删除」
  * - 空态：「还没有行程计划，去 AI 对话生成 →」（跳 /pages/chat）
+ * - M8 Task 4 游客模式：页面可达（游客看「登录后查看行程」空态 + 去登录引导，
+ *   不再硬 reLaunch 登录页）；行程数据接口仍需登录态，不向游客发起请求
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Text, View } from '@tarojs/components'
@@ -14,7 +16,8 @@ import Taro, { useDidShow } from '@tarojs/taro'
 
 import { deleteTrip, listTrips, updateTripStatus, type TripPlanCard, type TripStatus } from '@/api/trips'
 import { getCatalog } from '@/api/gear'
-import { getTokenPair, LOGIN_PAGE, type ApiError } from '@/api/client'
+import { getTokenPair, type ApiError } from '@/api/client'
+import { goLoginEntry, requireAuth } from '@/api/guard'
 import { M3Fab, M3TabBar } from '@/components/m3'
 import './index.scss'
 
@@ -48,6 +51,8 @@ export default function Trips() {
   const [gearLabels, setGearLabels] = useState<Record<string, string>>({})
   /** 正在被单卡操作（完成/删除）锁住的 trip id，防重复提交 */
   const [busyId, setBusyId] = useState<number | null>(null)
+  /** M8 Task 4 游客态：页面可达（空态 + 登录引导），不发 /trips 请求 */
+  const [isGuest, setIsGuest] = useState(false)
   const aliveRef = useRef(true)
 
   useEffect(() => {
@@ -66,10 +71,17 @@ export default function Trips() {
   }, [])
 
   const load = useCallback(async (t: TripStatus = tab): Promise<void> => {
+    // M8 Task 4 游客模式：行程属用户数据，页面保持登录守卫，但不再硬 reLaunch——
+    // 游客可达本页看「登录后查看行程」空态 + 引导，操作时才统一拦截
     if (!getTokenPair()) {
-      void Taro.reLaunch({ url: LOGIN_PAGE })
+      setIsGuest(true)
+      setTrips([])
+      setCounts({ planned: 0, done: 0 })
+      setLoading(false)
+      setError('')
       return
     }
+    setIsGuest(false)
     setLoading(true)
     setError('')
     try {
@@ -143,6 +155,8 @@ export default function Trips() {
   }
 
   const goChat = (): void => {
+    // AI 对话为登录态必需端点：游客从空态引导点进来也统一弹「登录后可用」
+    if (!requireAuth()) return
     void Taro.navigateTo({ url: CHAT_PAGE }).catch(() => undefined)
   }
 
@@ -250,7 +264,19 @@ export default function Trips() {
         </View>
       ) : null}
 
-      {!loading && !error && trips.length === 0 ? (
+      {/* M8 Task 4 游客空态：页面可达 + 登录引导（去登录直达登录入口页） */}
+      {!loading && !error && isGuest ? (
+        <View className="trips-empty">
+          <View className="empty-ico">🔐</View>
+          <View className="empty-title">登录后查看行程</View>
+          <View className="empty-sub">行程计划与足迹属于你的个人数据，登录后即可同步查看</View>
+          <View className="btn btn-primary empty-btn" onClick={goLoginEntry}>
+            去登录
+          </View>
+        </View>
+      ) : null}
+
+      {!loading && !error && !isGuest && trips.length === 0 ? (
         tab === 'planned' ? (
           <View className="trips-empty">
             <View className="empty-ico">🧭</View>

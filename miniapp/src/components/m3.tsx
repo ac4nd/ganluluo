@@ -5,13 +5,14 @@
  *   自绘导航不走原生 tabBar，tab 切换用 reLaunch（同时防 navigateTo 路由栈超限）。
  * - M3Fab：AI 对话悬浮入口（56dp 渐变圆角钮 + sparkle 图标 + 阴影，浮于底导航
  *   上方右下角，对齐 a-home .fab）；对话页自身不渲染。
- * 纯 UI/导航组件，不带业务状态；未登录点受限 tab / FAB 统一 reLaunch 登录页
- * （与 index 页 go() 的路由守卫同口径）。
+ * 纯 UI/导航组件，不带业务状态；M8 Task 4 游客模式：未登录点受限 tab / FAB 统一
+ * requireAuth() 弹「登录后可用」提示（确认才去登录页），不再硬 reLaunch。
  */
 import { Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 
-import { getTokenPair, HOME_PAGE, LOGIN_PAGE } from '@/api/client'
+import { HOME_PAGE } from '@/api/client'
+import { requireAuth } from '@/api/guard'
 import './m3.scss'
 
 export type M3Tab = 'home' | 'routes' | 'trips' | 'profile'
@@ -90,12 +91,9 @@ const TABS: TabDef[] = [
   },
 ]
 
-/** tab 切换：受限 tab 未登录 → 登录页；目标即当前页时 no-op 防自跳 */
+/** tab 切换：受限 tab（行程 / 我的）未登录 → requireAuth 弹「登录后可用」；公开 tab 直接放行 */
 function goTab(tab: TabDef): void {
-  if (tab.authed && !getTokenPair()) {
-    void Taro.reLaunch({ url: LOGIN_PAGE })
-    return
-  }
+  if (tab.authed && !requireAuth()) return
   void Taro.reLaunch({ url: tab.url })
 }
 
@@ -129,10 +127,8 @@ function sparkleIcon(): JSX.Element {
 
 export function M3Fab(): JSX.Element {
   const goChat = (): void => {
-    if (!getTokenPair()) {
-      void Taro.reLaunch({ url: LOGIN_PAGE })
-      return
-    }
+    // AI 对话是登录态必需端点（SSE 401 无续期）：游客入口即拦（统一弹窗）
+    if (!requireAuth()) return
     void Taro.navigateTo({ url: CHAT_PAGE })
   }
   return (

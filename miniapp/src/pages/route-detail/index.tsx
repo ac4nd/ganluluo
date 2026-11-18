@@ -28,7 +28,8 @@ import {
 import { createTrip } from '@/api/trips'
 import { getCatalog } from '@/api/gear'
 import { SPORTS } from '@/api/profile'
-import { getTokenPair, LOGIN_PAGE, type ApiError } from '@/api/client'
+import { requireAuth } from '@/api/guard'
+import { type ApiError } from '@/api/client'
 import './index.scss'
 
 const TRIPS_PAGE = '/pages/trips/index'
@@ -238,11 +239,9 @@ export default function RouteDetail() {
 
   /* ---------- 交互 ---------- */
   const openPlanSheet = (): void => {
-    if (!getTokenPair()) {
-      void Taro.showToast({ title: '请先登录', icon: 'none' })
-      setTimeout(() => void Taro.reLaunch({ url: LOGIN_PAGE }), 900)
-      return
-    }
+    // M8 Task 4：详情页公开浏览不踢登录；「加入计划」是受限动作，游客点击统一
+    // 弹「登录后可用」（原 toast + 900ms reLaunch 登录写法已移除）
+    if (!requireAuth()) return
     setSubmitErr('')
     setDate(todayStr())
     setMeetAt('08:00')
