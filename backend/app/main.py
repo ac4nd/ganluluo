@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from starlette.requests import Request
@@ -33,6 +36,12 @@ def create_app() -> FastAPI:
     app = FastAPI(title="GanLuLuo API", version="0.1.0")
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+    # 静态媒体（首页背景轮播视频；大体积不入库，生产走对象存储/CDN，defer G-12）
+    app.mount(
+        "/static",
+        StaticFiles(directory=Path(__file__).resolve().parents[1] / "static"),
+        name="static",
+    )
     app.include_router(ops_router, prefix="/ops", tags=["ops"])
     app.include_router(admin_router, prefix="/admin", tags=["admin"])
     app.include_router(assistant_router, prefix="/assistant", tags=["assistant"])

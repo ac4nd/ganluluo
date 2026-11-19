@@ -78,6 +78,7 @@ export default defineConfig<'webpack5'>(async (merge) => {
         // 同源代理转发到本地 uvicorn（curl http://127.0.0.1:10086/ops/health 验证）。
         proxy: {
           '/ops': { target: 'http://127.0.0.1:8123', changeOrigin: true },
+          '/static': { target: 'http://127.0.0.1:8123', changeOrigin: true },
           '/auth': { target: 'http://127.0.0.1:8123', changeOrigin: true },
           '/assistant': { target: 'http://127.0.0.1:8123', changeOrigin: true },
           '/trips': { target: 'http://127.0.0.1:8123', changeOrigin: true },

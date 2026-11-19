@@ -39,6 +39,14 @@
   display: block;
 }
 
+/* 背景视频（05 原型 cinema 行为）：铺满 + cover 切片；失败降级 .scene 静态图 */
+.cinema-layer .cinema-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 /* 05 原型 .cinema-shade 同款暗化渐变（末端 var(--color-screen) 收口） */
 .cinema-shade {
   position: absolute;

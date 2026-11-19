@@ -22,11 +22,11 @@
  *   requireAuth() 弹「登录后可用」；路线库与详情公开浏览放行。
  */
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { Image, ScrollView, Text, View } from '@tarojs/components'
+import { Image, ScrollView, Text, Video, View } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 
 import { me, getTokenPair, type UserOut } from '@/api/auth'
-import { type ApiError, type TokenPair } from '@/api/client'
+import { apiBaseUrl, type ApiError, type TokenPair } from '@/api/client'
 import { goLoginEntry, requireAuth } from '@/api/guard'
 import { listRoutes, type RouteOut } from '@/api/routes'
 import { listTrips, type TripPlanCard } from '@/api/trips'
@@ -39,6 +39,14 @@ import './index.scss'
 const ROUTES_PAGE = '/pages/routes/index'
 const DETAIL_PAGE = '/pages/route-detail/index'
 const PROFILE_PAGE = '/pages/profile/index'
+
+/* ① 首页背景风景视频：05 原型 13 地貌（cinema.js 同款优先级序），src 走后端
+   /static 托管（weapp 绝对地址/开发者工具；H5 同源代理），生产换对象存储/CDN（G-12）。 */
+const CINEMA_VIDEOS = [
+  'l-snow', 'l-danxia', 'l-desert', 'l-waterfall', 'l-volcano', 'l-karst',
+  'l-plateaulake', 'l-fjord', 'l-granite', 'l-peakforest', 'l-faultblock',
+  'l-meadow', 'l-grassland',
+]
 
 /**
  * 横滚容器（构建期平台分支）：
@@ -223,12 +231,31 @@ export default function Index() {
   // ⑥ 附近热门：取前 4 条，scene 按 s1-s4 模板轮换
   const nearRoutes = routes.slice(0, 4)
 
+  /* ① 背景视频轮播：视频流失败（无网络/资源缺失）→ 降级静态场景（SVG data URI） */
+  const [videoIdx, setVideoIdx] = useState(0)
+  const [videoOk, setVideoOk] = useState(false)
+
   return (
     <View className="index-page">
-      {/* ① 上半屏场景层：静态渐变场景（SVG data URI + Image，weapp 不支持内联 svg）+
-          同款暗化盖层（05 原型视频轮播 defer G-12） */}
+      {/* ① 上半屏场景层：风景视频轮播（05 原型 cinema 行为：muted 自动播放、
+          onEnded 顺序切下一个循环）；视频流失败 → 降级静态渐变场景（SVG data URI，
+          weapp 不支持内联 svg 故走 Image）。盖层/高度同原型。 */}
       <View className="cinema-layer">
-        <Image className="scene" mode="aspectFill" src={mountainSceneUri(true)} />
+        {videoOk ? (
+          <Video
+            className="cinema-video"
+            src={`${apiBaseUrl()}/static/videos/${CINEMA_VIDEOS[videoIdx]}.mp4`}
+            autoplay
+            muted
+            loop={false}
+            objectFit="cover"
+            onPlay={() => setVideoOk(true)}
+            onEnded={() => setVideoIdx((i) => (i + 1) % CINEMA_VIDEOS.length)}
+            onError={() => setVideoOk(false)}
+          />
+        ) : (
+          <Image className="scene" mode="aspectFill" src={mountainSceneUri(true)} />
+        )}
         <View className="cinema-shade" />
       </View>
 
