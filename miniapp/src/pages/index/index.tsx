@@ -21,8 +21,8 @@
  * - M8 Task 4 游客模式不变：受限入口（全部足迹/行程 tab/我的/FAB）统一
  *   requireAuth() 弹「登录后可用」；路线库与详情公开浏览放行。
  */
-import { useCallback, useState } from 'react'
-import { Text, View } from '@tarojs/components'
+import { useCallback, useState, type ReactNode } from 'react'
+import { ScrollView, Text, View } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 
 import { me, getTokenPair, type UserOut } from '@/api/auth'
@@ -38,6 +38,24 @@ import './index.scss'
 const ROUTES_PAGE = '/pages/routes/index'
 const DETAIL_PAGE = '/pages/route-detail/index'
 const PROFILE_PAGE = '/pages/profile/index'
+
+/**
+ * 横滚容器（构建期平台分支）：
+ * - weapp：官方 scroll-view（scrollX）——普通 View 的 CSS overflow 在小程序不滚动；
+ * - H5：普通 View + CSS overflow-x——Taro H5 ScrollView 是 Stencil Web Component，
+ *   其 slot 投影在 useDidShow 重渲染后重建，会破坏 inline-block 布局（卡片纵排 bug）。
+ * TARO_ENV 被构建期静态替换，双端产物各自只含一个分支。
+ */
+function HRow({ children }: { children: ReactNode }) {
+  if (process.env.TARO_ENV === 'weapp') {
+    return (
+      <ScrollView className="hrow" scrollX>
+        {children}
+      </ScrollView>
+    )
+  }
+  return <View className="hrow">{children}</View>
+}
 
 /** 运动枚举 → 页顶 sprite 的 symbol id（照抄 05 原型 8 个运动 icon） */
 const SPORT_ICON: Record<string, string> = {
@@ -511,9 +529,8 @@ export default function Index() {
             全部 {routes.length} 条
           </Text>
         </View>
-        {/* 横滚用普通 View + CSS overflow（原型 .hrow 同构）：Taro H5 ScrollView 的
-            slot 投影在 useDidShow 重渲染后会重建，破坏 inline-block 布局（卡片纵排） */}
-        <View className="hrow">
+        {/* 横滚容器见 HRow 注释（weapp scroll-view / H5 CSS overflow 双分支） */}
+        <HRow>
           {nearRoutes.length === 0 ? (
             <View className="row-empty">{routesErr || '路线加载中…'}</View>
           ) : (
@@ -540,7 +557,7 @@ export default function Index() {
               </View>
             ))
           )}
-        </View>
+        </HRow>
 
         {/* ⑦ sec「最近足迹」+ 横滚：GET /trips?status=done（真实）；空态按登录态区分 */}
         <View className="sec">
@@ -549,7 +566,7 @@ export default function Index() {
             全部足迹
           </Text>
         </View>
-        <View className="hrow">
+        <HRow>
           {!authed ? (
             <View className="row-empty">登录后查看足迹</View>
           ) : doneTrips && doneTrips.length > 0 ? (
@@ -570,7 +587,7 @@ export default function Index() {
           ) : (
             <View className="row-empty">完成徒步后出现在这里</View>
           )}
-        </View>
+        </HRow>
       </View>
 
       {/* ⑧ M8 安卓形态：AI 对话 FAB（页面级，M8 决策保留）+ M3 药丸底导航 */}
