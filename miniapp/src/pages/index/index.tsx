@@ -231,10 +231,12 @@ export default function Index() {
   // ⑥ 附近热门：取前 4 条，scene 按 s1-s4 模板轮换
   const nearRoutes = routes.slice(0, 4)
 
-  /* ① 背景视频轮播：首轮按高对比地貌优先级（05 原型 cinema.js priority），之后随机；
-     切换时 cinema-fade 黑场过渡（原型同款）防闪跳；视频流失败 → 降级静态场景 */
+  /* ① 背景视频轮播：乐观渲染——Video 始终挂载（若条件渲染则永不触发 onPlay，
+     状态机死锁，这正是上一版不播的根因）；底层垫静态场景图，视频加载失败
+     （onError）才卸载 Video 露出兜底。首轮按高对比地貌优先级，之后随机；
+     切换时 cinema-fade 黑场过渡（原型同款）防闪跳。 */
   const [videoIdx, setVideoIdx] = useState(0)
-  const [videoOk, setVideoOk] = useState(false)
+  const [videoFailed, setVideoFailed] = useState(false)
   const [firstRound, setFirstRound] = useState(true)
   const [fading, setFading] = useState(false)
 
@@ -256,10 +258,11 @@ export default function Index() {
   return (
     <View className="index-page">
       {/* ① 上半屏场景层：风景视频轮播（05 原型 cinema 行为：muted 自动播放、
-          onEnded 顺序切下一个循环）；视频流失败 → 降级静态渐变场景（SVG data URI，
-          weapp 不支持内联 svg 故走 Image）。盖层/高度同原型。 */}
+          onEnded 轮换）；加载失败 → 卸载 Video 露出底层静态渐变场景兜底
+          （SVG data URI + Image，weapp 不支持内联 svg 故走 Image）。 */}
       <View className="cinema-layer">
-        {videoOk ? (
+        <Image className="scene" mode="aspectFill" src={mountainSceneUri(true)} />
+        {!videoFailed && (
           <Video
             className="cinema-video"
             src={`${apiBaseUrl()}/static/videos/${CINEMA_VIDEOS[videoIdx]}.mp4`}
@@ -267,12 +270,9 @@ export default function Index() {
             muted
             loop={false}
             objectFit="cover"
-            onPlay={() => setVideoOk(true)}
             onEnded={nextVideo}
-            onError={() => setVideoOk(false)}
+            onError={() => setVideoFailed(true)}
           />
-        ) : (
-          <Image className="scene" mode="aspectFill" src={mountainSceneUri(true)} />
         )}
         <View className={`cinema-fade${fading ? ' on' : ''}`} />
         <View className="cinema-shade" />
