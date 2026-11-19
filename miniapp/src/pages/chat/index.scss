@@ -138,7 +138,9 @@
   margin-bottom: 24px;
 }
 
-.mini-card {
+/* chat 专属命名：与 index 页 05 原型 .mini-card 区分——Taro H5 页面 CSS 按访问
+   顺序动态插入，同名类后插入者覆盖前者（进 chat 返回首页卡片纵排 bug 根因） */
+.chat-card {
   display: flex;
   gap: 20px;
   padding: 20px;
@@ -411,7 +413,7 @@
 }
 
 /* ---------- 配额半屏明细（原型 hover .quota-tip 的点击版） ---------- */
-.sheet-mask {
+.chat-sheet-mask {
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -419,7 +421,7 @@
   backdrop-filter: blur(4px);
 }
 
-.sheet {
+.chat-sheet {
   position: absolute;
   left: 0;
   right: 0;
@@ -512,7 +514,7 @@
   }
 }
 
-.sheet-close {
+.chat-sheet-close {
   margin-top: 30px;
   height: 88px;
   border-radius: var(--radius-pill);

@@ -127,7 +127,7 @@ function MiniRouteCard({ card, onOpen }: { card: MiniCard; onOpen: () => void })
   const [c1, c2] = SPORT_THUMB[card.sport] ?? ['#41603a', '#0b140b']
   const gid = `mc-grad-${card.id}`
   return (
-    <View className="mini-card" onClick={onOpen}>
+    <View className="chat-card" onClick={onOpen}>
       <svg className="mthumb" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
@@ -619,8 +619,8 @@ export default function Chat() {
 
       {/* 配额半屏明细 */}
       {quotaOpen ? (
-        <View className="sheet-mask" onClick={() => setQuotaOpen(false)}>
-          <View className="sheet" onClick={(e) => e.stopPropagation()}>
+        <View className="chat-sheet-mask" onClick={() => setQuotaOpen(false)}>
+          <View className="chat-sheet" onClick={(e) => e.stopPropagation()}>
             <View className="qt-head">
               <Text className="qt-title">今日 AI 额度</Text>
               <View className={`badge-tier ${quotaInfo?.tier === 'vip' ? 'vip' : 'trial'}`}>
@@ -689,7 +689,7 @@ export default function Chat() {
               ) : null}
             </View>
 
-            <View className="sheet-close" onClick={() => setQuotaOpen(false)}>
+            <View className="chat-sheet-close" onClick={() => setQuotaOpen(false)}>
               关闭
             </View>
           </View>
