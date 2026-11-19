@@ -231,9 +231,27 @@ export default function Index() {
   // ⑥ 附近热门：取前 4 条，scene 按 s1-s4 模板轮换
   const nearRoutes = routes.slice(0, 4)
 
-  /* ① 背景视频轮播：视频流失败（无网络/资源缺失）→ 降级静态场景（SVG data URI） */
+  /* ① 背景视频轮播：首轮按高对比地貌优先级（05 原型 cinema.js priority），之后随机；
+     切换时 cinema-fade 黑场过渡（原型同款）防闪跳；视频流失败 → 降级静态场景 */
   const [videoIdx, setVideoIdx] = useState(0)
   const [videoOk, setVideoOk] = useState(false)
+  const [firstRound, setFirstRound] = useState(true)
+  const [fading, setFading] = useState(false)
+
+  const nextVideo = (): void => {
+    setFading(true) // 黑场盖层先合上，500ms 后换片再掀开
+    window.setTimeout(() => {
+      setVideoIdx((i) => {
+        if (firstRound) {
+          // 首轮走完优先级清单 → 进入随机轮播（可重复地貌）
+          if (i >= CINEMA_VIDEOS.length - 1) setFirstRound(false)
+          return (i + 1) % CINEMA_VIDEOS.length
+        }
+        return Math.floor(Math.random() * CINEMA_VIDEOS.length)
+      })
+      window.setTimeout(() => setFading(false), 150)
+    }, 500)
+  }
 
   return (
     <View className="index-page">
@@ -250,12 +268,13 @@ export default function Index() {
             loop={false}
             objectFit="cover"
             onPlay={() => setVideoOk(true)}
-            onEnded={() => setVideoIdx((i) => (i + 1) % CINEMA_VIDEOS.length)}
+            onEnded={nextVideo}
             onError={() => setVideoOk(false)}
           />
         ) : (
           <Image className="scene" mode="aspectFill" src={mountainSceneUri(true)} />
         )}
+        <View className={`cinema-fade${fading ? ' on' : ''}`} />
         <View className="cinema-shade" />
       </View>
 

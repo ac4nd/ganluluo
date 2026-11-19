@@ -47,6 +47,21 @@
   height: 100%;
 }
 
+/* 切片黑场过渡（05 原型 .cinema-fade 同款）：nextVideo 时合上 500ms 再掀开 */
+.cinema-fade {
+  position: absolute;
+  inset: 0;
+  background: #050804;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cinema-fade.on {
+  opacity: 1;
+}
+
 /* 05 原型 .cinema-shade 同款暗化渐变（末端 var(--color-screen) 收口） */
 .cinema-shade {
   position: absolute;
