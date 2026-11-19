@@ -22,7 +22,7 @@
  *   requireAuth() 弹「登录后可用」；路线库与详情公开浏览放行。
  */
 import { useCallback, useState } from 'react'
-import { ScrollView, Text, View } from '@tarojs/components'
+import { Text, View } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 
 import { me, getTokenPair, type UserOut } from '@/api/auth'
@@ -511,7 +511,9 @@ export default function Index() {
             全部 {routes.length} 条
           </Text>
         </View>
-        <ScrollView className="hrow" scrollX>
+        {/* 横滚用普通 View + CSS overflow（原型 .hrow 同构）：Taro H5 ScrollView 的
+            slot 投影在 useDidShow 重渲染后会重建，破坏 inline-block 布局（卡片纵排） */}
+        <View className="hrow">
           {nearRoutes.length === 0 ? (
             <View className="row-empty">{routesErr || '路线加载中…'}</View>
           ) : (
@@ -538,7 +540,7 @@ export default function Index() {
               </View>
             ))
           )}
-        </ScrollView>
+        </View>
 
         {/* ⑦ sec「最近足迹」+ 横滚：GET /trips?status=done（真实）；空态按登录态区分 */}
         <View className="sec">
@@ -547,7 +549,7 @@ export default function Index() {
             全部足迹
           </Text>
         </View>
-        <ScrollView className="hrow" scrollX>
+        <View className="hrow">
           {!authed ? (
             <View className="row-empty">登录后查看足迹</View>
           ) : doneTrips && doneTrips.length > 0 ? (
@@ -568,7 +570,7 @@ export default function Index() {
           ) : (
             <View className="row-empty">完成徒步后出现在这里</View>
           )}
-        </ScrollView>
+        </View>
       </View>
 
       {/* ⑧ M8 安卓形态：AI 对话 FAB（页面级，M8 决策保留）+ M3 药丸底导航 */}

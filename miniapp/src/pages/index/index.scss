@@ -320,11 +320,15 @@
 }
 
 /* ---------- ⑥⑦ 横滚 mini-card（05 原型 .hrow / .mini-card） ----------
-   ScrollView scrollX + inline-block 子项（H5/weapp 双端通吃）；
+   普通 View + CSS overflow（原型 .hrow 同构）——Taro H5 ScrollView 的 slot
+   投影在 useDidShow 重渲染后重建会破坏 inline-block 布局（卡片纵排 bug）；
+   weapp 端 View 不滚动属既有降级缺口（defer）。
    负 margin 出血到屏幕边（同原型 .hrow margin 0 -22px）。 */
 .hrow {
   margin: 0 -44px;
   padding: 8px 44px 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   white-space: nowrap;
 
   &::-webkit-scrollbar {
