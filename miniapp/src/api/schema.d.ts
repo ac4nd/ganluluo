@@ -910,6 +910,8 @@ export interface components {
             duration_h: number | null;
             /** Clarity */
             clarity: string;
+            /** Cover Url */
+            cover_url?: string | null;
             /** Elevation */
             elevation: {
                 [key: string]: unknown;
@@ -980,6 +982,8 @@ export interface components {
             duration_h: number | null;
             /** Clarity */
             clarity: string;
+            /** Cover Url */
+            cover_url?: string | null;
         };
         /**
          * Sport
@@ -2087,6 +2091,10 @@ export interface operations {
                 created_after?: string | null;
                 /** @description 排序方式：new=最新创建在前，points=轨迹标记最多在前 */
                 sort?: string | null;
+                /** @description 分页大小（1-200，缺省 50） */
+                limit?: number;
+                /** @description 分页偏移（与 limit 组合翻页） */
+                offset?: number;
             };
             header?: never;
             path?: never;

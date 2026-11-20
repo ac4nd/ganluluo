@@ -12,7 +12,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Image, Input, Text, View } from '@tarojs/components'
 import Taro, { useReachBottom } from '@tarojs/taro'
 
-import { coverUrl, listRoutes, type RouteOut, type Sport } from '@/api/routes'
+import { listRoutes, type RouteOut, type Sport } from '@/api/routes'
 import { SPORTS } from '@/api/profile'
 import type { ApiError } from '@/api/client'
 import { M3Fab, M3TabBar } from '@/components/m3'
@@ -65,7 +65,8 @@ function clarityMeta(clarity: string): { text: string; cls: string } {
   return { text: '清晰度 · 中', cls: 'amber' }
 }
 
-/** 卡片缩略图：封面 PNG（M8.7 轨迹示意图）叠在山景渐变兜底上；加载失败回退渐变 */
+/** 卡片缩略图：真实封面（RouteOut.cover_url，M8.8 MinIO）叠在山景渐变兜底上；
+ * cover_url 空 或 加载失败（covered=false）回退渐变 */
 function RouteThumb({ route, covered, onFail }: {
   route: RouteOut
   covered: boolean
@@ -89,12 +90,12 @@ function RouteThumb({ route, covered, onFail }: {
         <path d={`M${-4 + dx} 70l34-26 26 18 24-18 24 12v56H${-4 + dx}z`} fill="#17311c" opacity=".85" />
         <path d={`M${-4 - dx} 90l30-18 28 14 26-16 24 10v32H${-4 - dx}z`} fill="#0c1c10" />
       </svg>
-      {covered ? (
+      {covered && route.cover_url ? (
         <Image
           className="rthumb-img"
           mode="aspectFill"
           lazyLoad
-          src={coverUrl(route.id)}
+          src={route.cover_url}
           onError={() => onFail(route.id)}
         />
       ) : null}

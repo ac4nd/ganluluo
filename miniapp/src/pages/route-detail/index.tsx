@@ -18,7 +18,6 @@ import {
   asPace,
   asTerrain,
   asTrackPoints,
-  coverUrl,
   getRoute,
   trackCumKm,
   type ElevPoint,
@@ -330,7 +329,7 @@ export default function RouteDetail() {
         </View>
       </View>
 
-      {/* ---------- 封面（a-detail：内缩圆角卡形态；M8.7 封面 PNG 叠加，失败回退渐变 svg） ---------- */}
+      {/* ---------- 封面（a-detail：内缩圆角卡形态；M8.8 cover_url 真实封面，空/失败回退渐变 svg） ---------- */}
       <View className="rd-hero">
         <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" className="rd-hero-svg">
           <defs>
@@ -346,12 +345,12 @@ export default function RouteDetail() {
           <path d="M0 168l70-36 62 28 82-40 72 36 58-24 56 24v64H0z" fill="#0e2013" />
           <path d="M0 196l64-22 58 16 78-28 70 22 60-16 70 18v34H0z" fill="#081108" />
         </svg>
-        {!failedCovers.has(detail.id) ? (
+        {!failedCovers.has(detail.id) && detail.cover_url ? (
           <Image
             className="rd-hero-img"
             mode="aspectFill"
             lazyLoad
-            src={coverUrl(detail.id)}
+            src={detail.cover_url}
             onError={() => markCoverFail(detail.id)}
           />
         ) : null}
