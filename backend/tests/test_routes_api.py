@@ -1,3 +1,8 @@
+from datetime import UTC, datetime, timedelta
+
+from sqlalchemy import update
+
+from app.models.route import Route
 from app.seeds.seed_routes import seed_routes
 
 from .test_track_service import GPX
@@ -101,3 +106,64 @@ async def test_track_malformed_body_422(client, db):
     await seed_routes(db)
     r = await client.post("/routes/1/track", content=b"", headers={"Content-Type": "text/plain"})
     assert r.status_code == 422
+
+
+# ---------- M8.6：created_after 时间过滤 + sort 排序 ----------
+
+
+async def test_created_after_filters_old_route(client, db):
+    """手动把 route 2 的 created_at 改到 30 天前；created_after=今天只回新线。"""
+    await seed_routes(db)
+    days_ago = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=30)
+    await db.execute(update(Route).where(Route.id == 2).values(created_at=days_ago))
+    await db.commit()
+    today = datetime.now(UTC).date().isoformat()
+    r = await client.get("/routes", params={"created_after": today})
+    assert r.status_code == 200
+    ids = {x["id"] for x in r.json()}
+    assert 1 in ids and 2 not in ids
+
+
+async def test_created_after_old_date_combines_with_region(client, db):
+    """下界早于所有路线时不过滤，且可与既有 region 参数叠加。"""
+    await seed_routes(db)
+    r = await client.get("/routes", params={"created_after": "2020-01-01", "region": "云南"})
+    assert r.status_code == 200
+    assert {x["id"] for x in r.json()} == {1, 2}
+
+
+async def test_sort_new_desc(client, db):
+    """sort=new 按 created_at 降序：显式把 6 条种子线错开（id 越大越新）。"""
+    await seed_routes(db)
+    now = datetime.now(UTC).replace(tzinfo=None)
+    for i in range(1, 7):
+        await db.execute(update(Route).where(Route.id == i)
+                         .values(created_at=now - timedelta(minutes=10 - i)))
+    await db.commit()
+    r = await client.get("/routes", params={"sort": "new"})
+    assert r.status_code == 200
+    assert [x["id"] for x in r.json()] == [6, 5, 4, 3, 2, 1]
+
+
+async def test_sort_points_tracked_route_first(client, db):
+    """sort=points：上传过轨迹（5 点）的 route 1 排最前，无轨迹种子线排后。"""
+    await seed_routes(db)
+    r = await client.post("/routes/1/track", content=GPX.encode(), headers={"Content-Type": "text/plain"})
+    assert r.status_code == 200
+    r = await client.get("/routes", params={"sort": "points"})
+    assert r.status_code == 200
+    ids = [x["id"] for x in r.json()]
+    assert ids[0] == 1
+    assert set(ids) == set(range(1, 7))  # 全量仍在，只是排序变化
+
+
+async def test_created_after_bad_format_422(client, db):
+    r = await client.get("/routes", params={"created_after": "2026/01/02"})
+    assert r.status_code == 422
+    assert r.json()["detail"] == "时间格式应为 YYYY-MM-DD"
+
+
+async def test_sort_invalid_value_422(client, db):
+    r = await client.get("/routes", params={"sort": "hot"})
+    assert r.status_code == 422
+    assert r.json()["detail"] == "非法排序方式"

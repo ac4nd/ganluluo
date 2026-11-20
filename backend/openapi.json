@@ -1025,6 +1025,49 @@
         }
       }
     },
+    "/auth/wechat-login": {
+      "post": {
+        "tags": [
+          "auth",
+          "auth"
+        ],
+        "summary": "Wechat Login",
+        "description": "微信一键登录（M8）：wx.login() code 换 openid → 查/建用户 → 签发 TokenPair。\n\n配置齐全走真实 jscode2session；未配置时 dev 用确定性 mock（同 code 同用户），\nprod 拒绝 503（mock 通道不得在生产可达）。",
+        "operationId": "wechat_login_auth_wechat_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WechatLoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenPair"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/refresh": {
       "post": {
         "tags": [
@@ -1382,6 +1425,42 @@
               ],
               "title": "Clarity"
             }
+          },
+          {
+            "name": "created_after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "时间过滤下界 YYYY-MM-DD，只返回该日及以后创建的路线",
+              "title": "Created After"
+            },
+            "description": "时间过滤下界 YYYY-MM-DD，只返回该日及以后创建的路线"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "排序方式：new=最新创建在前，points=轨迹标记最多在前",
+              "title": "Sort"
+            },
+            "description": "排序方式：new=最新创建在前，points=轨迹标记最多在前"
           }
         ],
         "responses": {
@@ -3218,6 +3297,34 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WechatLoginIn": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Code"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "WechatLoginIn",
+        "description": "M8 一键登录：wx.login() 的临时 code 换身份；nickname 可选（首次建号时的展示名）。"
       }
     },
     "securitySchemes": {

@@ -15,8 +15,14 @@ router = APIRouter(prefix="/routes", tags=["routes"])
 async def list_routes(sport: str | None = None,
                       region: str | None = Query(None, description="地区关键词，匹配地区或路线名"),
                       difficulty_max: int | None = None, clarity: str | None = None,
+                      created_after: str | None = Query(None, description="时间过滤下界 YYYY-MM-DD，只返回该日及以后创建的路线"),
+                      sort: str | None = Query(None, description="排序方式：new=最新创建在前，points=轨迹标记最多在前"),
                       session: AsyncSession = Depends(get_session)) -> list[RouteOut]:
-    rows = await route_service.list_routes(session, sport, region, difficulty_max, clarity)
+    try:
+        rows = await route_service.list_routes(session, sport, region, difficulty_max, clarity,
+                                               created_after, sort)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from None
     return [RouteOut.model_validate(r) for r in rows]
 
 
