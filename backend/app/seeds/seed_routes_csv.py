@@ -1,8 +1,10 @@
-"""路线库种子：protype/route_guides.csv 每行 → 一条 Route（幂等：按 name 查重跳过）。
+"""路线库种子：protype/route_guides.csv 每行 → 一条 Route（幂等：按 name upsert）。
 
-与既有手工种子（seed_routes.py 6 条）共存：CSV 含同名线（雨崩/虎跳峡等 5 条）则跳过，
-保留手工行（track_points 演示数据不丢）。数字字段解析失败给安全默认并打 warning，
-不中断导入（M8.7 计划全局约束）。
+M8.7：新增行导入；同名行（含手工种子雨崩/虎跳峡等）跳过。
+M8.8 起同名行改为**更新非空解析字段**（build_update_fields：distance/climb/difficulty/
+duration/clarity/terrain/warning 仅解析成功或原文非空才覆盖——安全默认 0/1/None 不覆盖
+既有值；track_points 等演示数据不在字段清单，保留不丢）。
+数字字段解析失败给安全默认并打 warning，不中断导入（M8.7 计划全局约束）。
 """
 import asyncio
 import csv
@@ -10,7 +12,7 @@ import os
 import re
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import SessionLocal
@@ -134,16 +136,60 @@ def load_rows() -> list[dict[str, str]]:
         return list(csv.DictReader(f))
 
 
+def build_update_fields(row: dict[str, str]) -> dict[str, object]:
+    """同名行更新集（M8.8 同步语义）：仅**解析成功或原文非空**的字段。
+
+    与 build_route 的差异：build_route 给安全默认（里程 0/爬升 0/难度 1/用时 None），
+    这里解析失败的字段**不进更新集**——避免用占位值覆盖库内已有真实数据。
+    """
+    fields: dict[str, object] = {}
+    distance = _first_float(row.get("里程(km)"))
+    if distance is not None:
+        fields["distance_km"] = distance
+    climb = _first_float(row.get("累计爬升(m)"))
+    if climb is not None:
+        fields["climb_m"] = round(climb)  # 同 build_route：RouteOut.climb_m 为 int
+    diff_text = row.get("难度(1-5)") or ""
+    if _FLOAT_RE.search(diff_text):
+        fields["difficulty"] = parse_difficulty(diff_text)
+    duration = parse_hours(row.get("建议用时") or "")
+    if duration is not None:
+        fields["duration_h"] = duration
+    if (row.get("轨迹清晰度") or "").strip():
+        fields["clarity"] = parse_clarity(row.get("轨迹清晰度") or "")
+    terrain_text = (row.get("地形构成") or "").strip()
+    if terrain_text:
+        fields["terrain"] = [{"type": terrain_text, "pct": 0}]
+    warning_text = (row.get("安全提醒") or "").strip()
+    if warning_text:
+        fields["warning"] = _trunc(warning_text, 255)
+    return fields
+
+
 async def seed_routes_csv(session: AsyncSession) -> dict[str, int]:
-    """幂等导入：existing names 查询后跳过；返回统计（rows/added/skipped/warnings）。"""
+    """幂等同步：新增行导入；同名行更新非空解析字段。
+
+    返回统计键保持 rows/added/skipped/warnings 四键（既有调用/断言兼容）；
+    updated 计数走打印（M8.8 同步报告口径）。
+    """
     rows = await asyncio.to_thread(load_rows)
-    existing = set((await session.execute(select(Route.name))).scalars())
-    added = skipped = warn_total = 0
+    id_by_name: dict[str, int] = {name: rid for rid, name in
+                                  (await session.execute(select(Route.id, Route.name))).all()}
+    existing: set[str] = set(id_by_name)
+    added = skipped = updated = warn_total = 0
     for row in rows:
         name = (row.get("路线名称") or "").strip()[:64]
         if not name:
             continue
         if name in existing:
+            # 同名行（含手工种子）：更新非空解析字段（track_points 等不在清单，保留）；
+            # 本轮已新增的同名行（id_by_name 无记录）只计 skip 不重复更新
+            rid = id_by_name.get(name)
+            if rid is not None:
+                fields = build_update_fields(row)
+                if fields:
+                    await session.execute(update(Route).where(Route.id == rid).values(**fields))
+                    updated += 1
             skipped += 1
             continue
         data, warns = build_route(row)
@@ -154,6 +200,7 @@ async def seed_routes_csv(session: AsyncSession) -> dict[str, int]:
         existing.add(name)
         added += 1
     await session.commit()
+    print(f"updated(existing same-name rows): {updated}")
     return {"rows": len(rows), "added": added, "skipped": skipped, "warnings": warn_total}
 
 

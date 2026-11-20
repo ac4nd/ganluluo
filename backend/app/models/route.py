@@ -29,6 +29,8 @@ class Route(Base):
     start_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
     start_lon: Mapped[float | None] = mapped_column(Float, nullable=True)
     track_points: Mapped[list | None] = mapped_column(JsonVariant, nullable=True)
+    # M8.8：封面图完整访问 URL（MinIO 公共读 covers/{id}.jpg）；NULL → 前端渐变模板回退
+    cover_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     source: Mapped[str] = mapped_column(String(16), default="seed")
     status: Mapped[str] = mapped_column(String(16), default="published")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

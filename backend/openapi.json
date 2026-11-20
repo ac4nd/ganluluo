@@ -2653,6 +2653,17 @@
             "type": "string",
             "title": "Clarity"
           },
+          "cover_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Url"
+          },
           "elevation": {
             "items": {
               "additionalProperties": true,
@@ -2864,6 +2875,17 @@
           "clarity": {
             "type": "string",
             "title": "Clarity"
+          },
+          "cover_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Url"
           }
         },
         "type": "object",

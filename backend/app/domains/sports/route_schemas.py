@@ -27,6 +27,8 @@ class RouteOut(BaseModel):
     climb_m: int
     duration_h: float | None
     clarity: str
+    # M8.8：封面图完整访问 URL（MinIO 公共读 covers/{id}.jpg）；None → 前端渐变模板回退
+    cover_url: str | None = None
     model_config = {"from_attributes": True}
 
 

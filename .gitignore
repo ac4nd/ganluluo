@@ -13,3 +13,5 @@ htmlcov/
 .pytest_cache/
 backend/ganluluo_backend.egg-info/
 *.stackdump
+# 用户素材：路线封面源图 476MB（经 scripts/upload_covers.py 上传 MinIO 后不入库）
+protype/covers/

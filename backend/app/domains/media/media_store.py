@@ -11,6 +11,7 @@ async 化；MinioMediaStore 的 SDK 网络调用统一 asyncio.to_thread 包裹�
 同样会阻塞事件循环），presign 放行前 bucket 必就绪。
 """
 import asyncio
+import io
 import logging
 from datetime import timedelta
 from typing import Protocol
@@ -92,6 +93,22 @@ class MinioMediaStore:
         # 登记侧必判"大小与声明不符"422，不静默放行。
         size = (await asyncio.to_thread(self._client.stat_object, self.bucket, key)).size
         return 0 if size is None else size
+
+    async def put_object(self, key: str, data: bytes, content_type: str) -> None:
+        """服务端直传对象（M8.8 封面上传用；同 key 覆盖 → 脚本可重跑幂等）。
+
+        put_object 网络上传 → to_thread（I-6 同模式）；data 以 BytesIO+length 交给 SDK。
+        不入 MediaStore 协议：presign 流程用不到服务端直传，离线上传脚本按
+        MinioMediaStore 具体类型注入（测试用同签名 Fake 替身）。
+        """
+        await asyncio.to_thread(
+            self._client.put_object,
+            self.bucket,
+            key,
+            io.BytesIO(data),
+            len(data),
+            content_type=content_type,
+        )
 
 
 class FakeMediaStore:
