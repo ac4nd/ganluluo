@@ -39,12 +39,22 @@
   display: block;
 }
 
-/* 背景视频（05 原型 cinema 行为）：铺满 + cover 切片；失败降级 .scene 静态图 */
+/* 背景视频（05 原型 cinema 行为）：铺满 + cover 切片；失败降级 .scene 静态图。
+   控件兜底隐藏：controls={false} 后 Taro H5 web component 仍可能渲染控制条/大
+   播放钮 DOM，样式层再压一层保证纯背景形态。 */
 .cinema-layer .cinema-video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+}
+
+.cinema-layer .cinema-video .taro-video-controls,
+.cinema-layer .cinema-video .taro-video-bar,
+.cinema-layer .cinema-video .taro-video-cover,
+.cinema-layer .cinema-video .taro-video-cover-play-button,
+.cinema-layer .cinema-video .taro-video-danmu-button {
+  display: none !important;
 }
 
 /* 切片黑场过渡（05 原型 .cinema-fade 同款）：nextVideo 时合上 500ms 再掀开 */

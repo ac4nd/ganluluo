@@ -270,6 +270,10 @@ export default function Index() {
             muted
             loop={false}
             objectFit="cover"
+            controls={false}
+            showPlayBtn={false}
+            showCenterPlayBtn={false}
+            enableProgressGesture={false}
             onEnded={nextVideo}
             onError={() => setVideoFailed(true)}
           />
