@@ -3,3 +3,6 @@ uploads/
 
 # 首页背景轮播视频（大体积媒体，不入库；生产走对象存储/CDN，defer G-12）
 static/videos/
+
+# 路线轨迹封面 PNG（scripts/gen_covers.py 确定性生成产物，不入库）
+static/covers/
