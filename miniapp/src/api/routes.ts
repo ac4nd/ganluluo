@@ -27,6 +27,9 @@ export type RouteListParams = {
   created_after?: string
   /** 排序：new=最新创建在前，points=轨迹标记最多在前（M8.6；缺省 id 升序） */
   sort?: string
+  /** 分页（M8.7 I-1：1141 条实化后不全量拉）；缺省后端返回前 50 */
+  limit?: number
+  offset?: number
 }
 
 export async function listRoutes(params?: RouteListParams): Promise<RouteOut[]> {

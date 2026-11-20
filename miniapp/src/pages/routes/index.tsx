@@ -10,7 +10,7 @@
  */
 import { useEffect, useMemo, useState } from 'react'
 import { Image, Input, Text, View } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { useReachBottom } from '@tarojs/taro'
 
 import { coverUrl, listRoutes, type RouteOut, type Sport } from '@/api/routes'
 import { SPORTS } from '@/api/profile'
@@ -93,6 +93,7 @@ function RouteThumb({ route, covered, onFail }: {
         <Image
           className="rthumb-img"
           mode="aspectFill"
+          lazyLoad
           src={coverUrl(route.id)}
           onError={() => onFail(route.id)}
         />
@@ -124,6 +125,12 @@ export default function Routes() {
     setFailedCovers((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
   }
 
+  /* 分页（M8.7 I-1：1141 条不全量拉）：page 从 0 起，筛选变更重置回 0（替换列表），
+     触底 page+1（追加）；返回不足一页即到底。 */
+  const PAGE = 20
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+
   // 搜索 400ms 防抖，避免每敲一个字打一次后端
   useEffect(() => {
     const t = setTimeout(() => setKwDebounced(keyword.trim()), 400)
@@ -141,12 +148,18 @@ export default function Routes() {
       region: kwDebounced || regionSel || undefined,
       created_after: days ? isoDaysAgo(days) : undefined,
       sort: sort || undefined,
+      limit: PAGE,
+      offset: page * PAGE,
     })
       .then((rows) => {
         if (!alive) return
-        setRoutes(rows)
-        const words = rows.map((r) => r.region.slice(0, 2))
-        if (words.length) setRegionSeen((prev) => Array.from(new Set([...prev, ...words])))
+        setRoutes((prev) => (page === 0 ? rows : [...prev, ...rows]))
+        setHasMore(rows.length >= PAGE)
+        // 地区词表取第一页样本即可（跨筛选累积，全量无必要）
+        if (page === 0) {
+          const words = rows.map((r) => r.region.slice(0, 2))
+          if (words.length) setRegionSeen((prev) => Array.from(new Set([...prev, ...words])))
+        }
       })
       .catch((err: ApiError) => {
         if (alive) setError(err?.detail || String(err))
@@ -157,9 +170,16 @@ export default function Routes() {
     return () => {
       alive = false
     }
-  }, [sport, diffMax, clarityOnly, kwDebounced, regionSel, days, sort])
+  }, [sport, diffMax, clarityOnly, kwDebounced, regionSel, days, sort, page])
 
+  /** 触底加载下一页（Taro 页面级滚动钩子，H5/weapp 双端支持） */
+  useReachBottom(() => {
+    if (hasMore && !loading) setPage((p) => p + 1)
+  })
+
+  /** 筛选变更重置回第一页（各 setter 包装：先 setPage(0) 再改值） */
   const resetAll = (): void => {
+    setPage(0)
     setSport('')
     setDiffMax(false)
     setClarityOnly(false)
@@ -173,15 +193,17 @@ export default function Routes() {
 
   /** 选地区词：清掉关键词搜索（两者共用后端 region 参数，互斥避免语义打架） */
   const pickRegion = (word: string): void => {
+    setPage(0)
     setRegionSel(word)
     setKeyword('')
     setKwDebounced('')
   }
   const summary = useMemo(() => {
-    if (loading) return '加载中…'
+    // 分页追加（page>0）不闪"加载中"，已加载条数实时可见
+    if (loading && page === 0) return '加载中…'
     if (error) return '加载失败'
-    return `${routes.length} 条经过 AI 核验的成熟轨迹`
-  }, [loading, error, routes.length])
+    return `已加载 ${routes.length} 条${hasMore ? '，上滑加载更多' : ''}`
+  }, [loading, page, error, routes.length, hasMore])
 
   const openDetail = (id: number): void => {
     void Taro.navigateTo({ url: `${DETAIL_PAGE}?id=${id}` })
@@ -205,12 +227,19 @@ export default function Routes() {
           placeholderClass="search-placeholder"
           onInput={(e) => {
             const v = e.detail.value
+            setPage(0)
             setKeyword(v)
             if (v.trim()) setRegionSel('') // 关键词与地区 chips 共用 region 参数，互斥
           }}
         />
         {keyword ? (
-          <Text className="search-clear" onClick={() => setKeyword('')}>
+          <Text
+            className="search-clear"
+            onClick={() => {
+              setPage(0)
+              setKeyword('')
+            }}
+          >
             ×
           </Text>
         ) : null}
@@ -225,18 +254,30 @@ export default function Routes() {
           <View
             key={s.key}
             className={`chip${sport === s.key ? ' on' : ''}`}
-            onClick={() => setSport(sport === s.key ? '' : s.key)}
+            onClick={() => {
+              setPage(0)
+              setSport(sport === s.key ? '' : s.key)
+            }}
           >
             {s.emoji} {s.label}
           </View>
         ))}
         <View
           className={`chip${clarityOnly ? ' on' : ''}`}
-          onClick={() => setClarityOnly(!clarityOnly)}
+          onClick={() => {
+            setPage(0)
+            setClarityOnly(!clarityOnly)
+          }}
         >
           📍 轨迹清晰
         </View>
-        <View className={`chip${diffMax ? ' on' : ''}`} onClick={() => setDiffMax(!diffMax)}>
+        <View
+          className={`chip${diffMax ? ' on' : ''}`}
+          onClick={() => {
+            setPage(0)
+            setDiffMax(!diffMax)
+          }}
+        >
           ⭐ 难度 ≤3
         </View>
       </View>
@@ -254,7 +295,14 @@ export default function Routes() {
       <View className="filter-row">
         <View className="frow-tag">时间</View>
         {TIME_OPTS.map((o) => (
-          <View key={o.label} className={`chip${days === o.days ? ' on' : ''}`} onClick={() => setDays(o.days)}>
+          <View
+            key={o.label}
+            className={`chip${days === o.days ? ' on' : ''}`}
+            onClick={() => {
+              setPage(0)
+              setDays(o.days)
+            }}
+          >
             {o.label}
           </View>
         ))}
@@ -262,7 +310,14 @@ export default function Routes() {
       <View className="filter-row">
         <View className="frow-tag">排序</View>
         {SORT_OPTS.map((o) => (
-          <View key={o.label} className={`chip${sort === o.value ? ' on' : ''}`} onClick={() => setSort(o.value)}>
+          <View
+            key={o.label}
+            className={`chip${sort === o.value ? ' on' : ''}`}
+            onClick={() => {
+              setPage(0)
+              setSort(o.value)
+            }}
+          >
             {o.label}
           </View>
         ))}
@@ -319,6 +374,13 @@ export default function Routes() {
           )
         })}
       </View>
+
+      {/* 分页加载态（M8.7 I-1 触底加载）：首屏 20 条，滚动到底自动续拉 */}
+      {routes.length > 0 && !error ? (
+        <View className="list-foot">
+          {hasMore ? '加载中…（上滑加载更多）' : `已全部加载 ${routes.length} 条`}
+        </View>
+      ) : null}
 
       {/* M8 Task 3 安卓形态：AI 对话 FAB + M3 药丸底导航（四主页面共用） */}
       <M3Fab />

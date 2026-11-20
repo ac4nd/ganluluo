@@ -350,6 +350,7 @@ export default function RouteDetail() {
           <Image
             className="rd-hero-img"
             mode="aspectFill"
+            lazyLoad
             src={coverUrl(detail.id)}
             onError={() => markCoverFail(detail.id)}
           />

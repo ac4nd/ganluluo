@@ -143,9 +143,10 @@ export default function Index() {
   const refresh = useCallback(async (): Promise<void> => {
     const cur = getTokenPair()
     setPair(cur)
-    // GET /routes：公开端点，游客也拉（AI 挑选 / 附近热门 双端可见）
+    // GET /routes：公开端点，游客也拉（AI 挑选 / 附近热门 双端可见）；
+    // M8.7 I-1：只取 12 条样本（hero 1 + 热门 4 + 地区聚合），不全量拉千余条
     try {
-      setRoutes(await listRoutes())
+      setRoutes(await listRoutes({ limit: 12 }))
       setRoutesErr('')
     } catch (err) {
       const e = err as ApiError
@@ -340,6 +341,7 @@ export default function Index() {
           <Image
             className="scene"
             mode="aspectFill"
+            lazyLoad
             src={hero && !failedCovers.has(hero.id) ? coverUrl(hero.id) : mountainSceneUri(false)}
             onError={hero ? () => markCoverFail(hero.id) : undefined}
           />
@@ -364,7 +366,7 @@ export default function Index() {
         <View className="sec">
           <Text className="sec-h">附近热门路线</Text>
           <Text className="sec-link" onClick={goRoutes}>
-            全部 {routes.length} 条
+            查看全部 ›
           </Text>
         </View>
         {/* 横滚容器见 HRow 注释（weapp scroll-view / H5 CSS overflow 双分支） */}
@@ -377,6 +379,7 @@ export default function Index() {
                 <Image
                   className="scene"
                   mode="aspectFill"
+                  lazyLoad
                   src={failedCovers.has(r.id) ? miniSceneUri(i % 4) : coverUrl(r.id)}
                   onError={() => markCoverFail(r.id)}
                 />
