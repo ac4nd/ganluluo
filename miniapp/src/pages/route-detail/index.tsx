@@ -10,7 +10,7 @@
  *   未注册则回退 navigateBack）；收藏按钮 UI 位 → toast「收藏功能待后端」（G-13）
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Input, Picker, Text, View } from '@tarojs/components'
+import { Image, Input, Picker, Text, View } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 
 import {
@@ -18,6 +18,7 @@ import {
   asPace,
   asTerrain,
   asTrackPoints,
+  coverUrl,
   getRoute,
   trackCumKm,
   type ElevPoint,
@@ -174,6 +175,11 @@ export default function RouteDetail() {
   const [error, setError] = useState('')
   const [gearLabels, setGearLabels] = useState<Record<string, string>>({})
   const [tab, setTab] = useState<'info' | 'track'>('info')
+  // M8.7 封面加载失败标记：失败 id 回退渐变 svg 兜底（函数式 add，单页单路线）
+  const [failedCovers, setFailedCovers] = useState<Set<number>>(new Set())
+  const markCoverFail = useCallback((id: number): void => {
+    setFailedCovers((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
+  }, [])
 
   // 加入计划半屏表单
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -324,7 +330,7 @@ export default function RouteDetail() {
         </View>
       </View>
 
-      {/* ---------- 封面（a-detail：内缩圆角卡形态，非全幅出血） ---------- */}
+      {/* ---------- 封面（a-detail：内缩圆角卡形态；M8.7 封面 PNG 叠加，失败回退渐变 svg） ---------- */}
       <View className="rd-hero">
         <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" className="rd-hero-svg">
           <defs>
@@ -340,6 +346,14 @@ export default function RouteDetail() {
           <path d="M0 168l70-36 62 28 82-40 72 36 58-24 56 24v64H0z" fill="#0e2013" />
           <path d="M0 196l64-22 58 16 78-28 70 22 60-16 70 18v34H0z" fill="#081108" />
         </svg>
+        {!failedCovers.has(detail.id) ? (
+          <Image
+            className="rd-hero-img"
+            mode="aspectFill"
+            src={coverUrl(detail.id)}
+            onError={() => markCoverFail(detail.id)}
+          />
+        ) : null}
         <View className="rd-hero-shade" />
         <View className="rd-hero-cap">
           <View className="rd-hero-tags">

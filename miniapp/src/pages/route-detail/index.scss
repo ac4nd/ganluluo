@@ -67,6 +67,14 @@
   display: block;
 }
 
+/* M8.7 封面 PNG（叠加在渐变 svg 兜底之上，加载失败时卸载露出兜底） */
+.rd-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .rd-hero-shade {
   position: absolute;
   inset: 0;

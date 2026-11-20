@@ -3,15 +3,16 @@
  * - GET /routes（公开端点）：四行筛选 chips——运动（全部 + 8 枚举 + 难度≤3 + 轨迹清晰）
  *   / 地区（从已加载数据聚合 region 前缀）/ 时间（近一周~近三月）/ 排序（最新/标记最多）
  *   + region 关键词搜索（后端 region OR name 匹配，对齐矩阵 10 页「徽杭/临安」用例）
- * - RouteOut 卡片：名称/地区/运动/难度★/里程/爬升/用时/清晰度
+ * - RouteOut 卡片：封面（M8.7 /static/covers/{id}.png 轨迹示意图，失败回退渐变模板）
+ *   + 名称/地区/运动/难度★/里程/爬升/用时/清晰度
  *   + 匹配度 bar 占位（P2 G-7 推荐端点缺口，标「待后端」）
  * - 点卡片 → /pages/route-detail/index?id=N
  */
 import { useEffect, useMemo, useState } from 'react'
-import { Input, Text, View } from '@tarojs/components'
+import { Image, Input, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 
-import { listRoutes, type RouteOut, type Sport } from '@/api/routes'
+import { coverUrl, listRoutes, type RouteOut, type Sport } from '@/api/routes'
 import { SPORTS } from '@/api/profile'
 import type { ApiError } from '@/api/client'
 import { M3Fab, M3TabBar } from '@/components/m3'
@@ -64,25 +65,39 @@ function clarityMeta(clarity: string): { text: string; cls: string } {
   return { text: '清晰度 · 中', cls: 'amber' }
 }
 
-/** 卡片缩略图：山景渐变 + 太阳（纯 SVG，无图片资源依赖） */
-function RouteThumb({ route }: { route: RouteOut }) {
+/** 卡片缩略图：封面 PNG（M8.7 轨迹示意图）叠在山景渐变兜底上；加载失败回退渐变 */
+function RouteThumb({ route, covered, onFail }: {
+  route: RouteOut
+  covered: boolean
+  onFail: (id: number) => void
+}) {
   const [c1, c2] = SPORT_THUMB[route.sport] ?? ['#41603a', '#0b140b']
   const gid = `rt-grad-${route.id}`
   // 用 id 做确定性微移，让卡片山形不完全一样
   const dx = (route.id % 3) * 6
   return (
-    <svg className="rthumb" viewBox="0 0 100 112" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={c1} />
-          <stop offset="1" stopColor={c2} />
-        </linearGradient>
-      </defs>
-      <rect width="100" height="112" fill={`url(#${gid})`} />
-      <circle cx={72 - dx} cy="24" r="13" fill="#f2dd7d" opacity=".9" />
-      <path d={`M${-4 + dx} 70l34-26 26 18 24-18 24 12v56H${-4 + dx}z`} fill="#17311c" opacity=".85" />
-      <path d={`M${-4 - dx} 90l30-18 28 14 26-16 24 10v32H${-4 - dx}z`} fill="#0c1c10" />
-    </svg>
+    <View className="rthumb-box">
+      <svg className="rthumb" viewBox="0 0 100 112" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor={c1} />
+            <stop offset="1" stopColor={c2} />
+          </linearGradient>
+        </defs>
+        <rect width="100" height="112" fill={`url(#${gid})`} />
+        <circle cx={72 - dx} cy="24" r="13" fill="#f2dd7d" opacity=".9" />
+        <path d={`M${-4 + dx} 70l34-26 26 18 24-18 24 12v56H${-4 + dx}z`} fill="#17311c" opacity=".85" />
+        <path d={`M${-4 - dx} 90l30-18 28 14 26-16 24 10v32H${-4 - dx}z`} fill="#0c1c10" />
+      </svg>
+      {covered ? (
+        <Image
+          className="rthumb-img"
+          mode="aspectFill"
+          src={coverUrl(route.id)}
+          onError={() => onFail(route.id)}
+        />
+      ) : null}
+    </View>
   )
 }
 
@@ -103,6 +118,11 @@ export default function Routes() {
   // 地区 chips 词表：从已加载 routes 聚合 region 前缀（省/市两字口径），
   // 跨筛选累积——选中某地区后列表收窄，其余地区词仍可选
   const [regionSeen, setRegionSeen] = useState<string[]>([])
+  // M8.7 封面加载失败标记（页面级 Set）：失败 id 回退渐变模板（函数式 add 防重复触发）
+  const [failedCovers, setFailedCovers] = useState<Set<number>>(new Set())
+  const markCoverFail = (id: number): void => {
+    setFailedCovers((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
+  }
 
   // 搜索 400ms 防抖，避免每敲一个字打一次后端
   useEffect(() => {
@@ -264,7 +284,7 @@ export default function Routes() {
           const cm = clarityMeta(r.clarity)
           return (
             <View key={r.id} className="route-card" onClick={() => openDetail(r.id)}>
-              <RouteThumb route={r} />
+              <RouteThumb route={r} covered={!failedCovers.has(r.id)} onFail={markCoverFail} />
               <View className="rinfo">
                 <Text className="r-name">{r.name}</Text>
                 <Text className="r-region">{r.region}</Text>

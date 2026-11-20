@@ -33,6 +33,13 @@ export async function listRoutes(params?: RouteListParams): Promise<RouteOut[]> 
   return request<RouteOut[]>('/routes', { params })
 }
 
+/**
+ * 路线轨迹封面（后端 scripts/gen_covers.py 按路线 id 确定性生成并托管在
+ * /static/covers/{id}.png）。缺失/加载失败时页面 onError 回退渐变模板——
+ * 封面是增强视觉而非必需数据，不做 404 探测。
+ */
+export const coverUrl = (id: number): string => `${apiBaseUrl()}/static/covers/${id}.png`
+
 /* ---------- RouteDetailOut loose dict 字段的窄型 + 归一（对齐后端实际形状） ----------
  * schema.d.ts 里 elevation/pace/terrain/track_points 都是 {[key:string]:unknown}[]
  * （后端 pydantic list[dict]），页面按下列形状消费：

@@ -10,9 +10,10 @@
  * - ③ title-xl 两行主标题（em accent 斜体）；④ search 条 → 路线库。
  * - ⑤「AI 为你挑选」hero-card：GET /routes 取第一条渲染 name/distance_km（真实）；
  *   天气与匹配度沿用原型文案（mock，P2 G-7/G-9 待后端），卡片右上角「示例」小标标注。
- * - ⑥「附近热门路线」横滚 mini-card（scene SVG 按 s1-s4 渐变模板轮换 + m-sport
- *   运动标签）。运动图标 `<use href="#icon-*">` 引用页顶内嵌 symbol sprite
- *   （weapp `<use>` 跨文件 CORS 已知坑 → sprite 内嵌进本页，照抄原型 8 个运动 symbol）。
+ * - ⑥「附近热门路线」横滚 mini-card（M8.7 起封面走 /static/covers/{id}.png 轨迹示意图，
+ *   失败回退 scene SVG 渐变模板 s1-s4 轮换 + m-sport 运动标签）。运动图标
+ *   `<use href="#icon-*">` 引用页顶内嵌 symbol sprite（weapp `<use>` 跨文件 CORS
+ *   已知坑 → sprite 内嵌进本页，照抄原型 8 个运动 symbol）。
  * - ⑦「最近足迹」横滚：GET /trips?status=done（真实接口）渲染已完成计划；
  *   未登录 / 无足迹 → 空态文案（卡片空态）。
  * - ⑧ M3Fab + M3TabBar + 隐私弹窗：M8 语义原样保留（页面级 FAB 是 M8 安卓决策；
@@ -28,7 +29,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import { me, getTokenPair, type UserOut } from '@/api/auth'
 import { apiBaseUrl, type ApiError, type TokenPair } from '@/api/client'
 import { goLoginEntry, requireAuth } from '@/api/guard'
-import { listRoutes, type RouteOut } from '@/api/routes'
+import { coverUrl, listRoutes, type RouteOut } from '@/api/routes'
 import { listTrips, type TripPlanCard } from '@/api/trips'
 import { SPORTS } from '@/api/profile'
 import { agreePrivacy, startLaunchSequence } from '@/launch'
@@ -133,6 +134,11 @@ export default function Index() {
   const [doneTrips, setDoneTrips] = useState<TripPlanCard[] | null>(null)
   // 启动序列①：首次启动（gl_privacy_ok 无值）弹半屏隐私弹窗
   const [privacyOpen, setPrivacyOpen] = useState(false)
+  // M8.7 封面加载失败标记（hero/mini-card 共用）：失败 id 回退渐变模板（函数式 add）
+  const [failedCovers, setFailedCovers] = useState<Set<number>>(new Set())
+  const markCoverFail = (id: number): void => {
+    setFailedCovers((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
+  }
 
   const refresh = useCallback(async (): Promise<void> => {
     const cur = getTokenPair()
@@ -331,7 +337,12 @@ export default function Index() {
           </Text>
         </View>
         <View className="hero-card" onClick={hero ? () => goDetail(hero.id) : undefined}>
-          <Image className="scene" mode="aspectFill" src={mountainSceneUri(false)} />
+          <Image
+            className="scene"
+            mode="aspectFill"
+            src={hero && !failedCovers.has(hero.id) ? coverUrl(hero.id) : mountainSceneUri(false)}
+            onError={hero ? () => markCoverFail(hero.id) : undefined}
+          />
           <View className="hero-shade" />
           <View className="hero-info">
             <Text className="hero-name">
@@ -363,7 +374,12 @@ export default function Index() {
           ) : (
             nearRoutes.map((r, i) => (
               <View key={r.id} className="mini-card" onClick={() => goDetail(r.id)}>
-                <Image className="scene" mode="aspectFill" src={miniSceneUri(i % 4)} />
+                <Image
+                  className="scene"
+                  mode="aspectFill"
+                  src={failedCovers.has(r.id) ? miniSceneUri(i % 4) : coverUrl(r.id)}
+                  onError={() => markCoverFail(r.id)}
+                />
                 <View className="m-shade" />
                 <View className="m-sport">
                   <View className="mini-sport">

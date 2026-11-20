@@ -156,12 +156,27 @@
   }
 }
 
-.rthumb {
+/* M8.7：封面容器（渐变 svg 兜底 + 封面 PNG 叠加，圆角由容器裁切） */
+.rthumb-box {
+  position: relative;
   width: 150px;
   height: 168px;
   border-radius: 22px;
   flex: none;
+  overflow: hidden;
+}
+
+.rthumb {
   display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.rthumb-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .rinfo {
