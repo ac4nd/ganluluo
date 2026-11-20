@@ -364,6 +364,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/wechat-login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Wechat Login
+         * @description 微信一键登录（M8）：wx.login() code 换 openid → 查/建用户 → 签发 TokenPair。
+         *
+         *     配置齐全走真实 jscode2session；未配置时 dev 用确定性 mock（同 code 同用户），
+         *     prod 拒绝 503（mock 通道不得在生产可达）。
+         */
+        post: operations["wechat_login_auth_wechat_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/refresh": {
         parameters: {
             query?: never;
@@ -1126,6 +1149,16 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /**
+         * WechatLoginIn
+         * @description M8 一键登录：wx.login() 的临时 code 换身份；nickname 可选（首次建号时的展示名）。
+         */
+        WechatLoginIn: {
+            /** Code */
+            code: string;
+            /** Nickname */
+            nickname?: string | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -1795,6 +1828,39 @@ export interface operations {
             };
         };
     };
+    wechat_login_auth_wechat_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WechatLoginIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenPair"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     refresh_auth_refresh_post: {
         parameters: {
             query?: never;
@@ -2017,6 +2083,10 @@ export interface operations {
                 region?: string | null;
                 difficulty_max?: number | null;
                 clarity?: string | null;
+                /** @description 时间过滤下界 YYYY-MM-DD，只返回该日及以后创建的路线 */
+                created_after?: string | null;
+                /** @description 排序方式：new=最新创建在前，points=轨迹标记最多在前 */
+                sort?: string | null;
             };
             header?: never;
             path?: never;

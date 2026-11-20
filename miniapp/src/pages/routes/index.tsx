@@ -1,6 +1,7 @@
 /**
- * 路线库页（M7 Task 3，对齐原型 10-routes）：
- * - GET /routes（公开端点）：筛选 chips（全部 + 8 运动枚举 + 难度≤3 + 轨迹清晰）
+ * 路线库页（M7 Task 3，对齐原型 10-routes；M8.6 筛选对齐「两步路」）：
+ * - GET /routes（公开端点）：四行筛选 chips——运动（全部 + 8 枚举 + 难度≤3 + 轨迹清晰）
+ *   / 地区（从已加载数据聚合 region 前缀）/ 时间（近一周~近三月）/ 排序（最新/标记最多）
  *   + region 关键词搜索（后端 region OR name 匹配，对齐矩阵 10 页「徽杭/临安」用例）
  * - RouteOut 卡片：名称/地区/运动/难度★/里程/爬升/用时/清晰度
  *   + 匹配度 bar 占位（P2 G-7 推荐端点缺口，标「待后端」）
@@ -32,6 +33,25 @@ const SPORT_THUMB: Record<string, [string, string]> = {
 
 const sportLabel = (key: string): string => SPORTS.find((s) => s.key === key)?.label ?? key
 const sportEmoji = (key: string): string => SPORTS.find((s) => s.key === key)?.emoji ?? '🥾'
+
+/** M8.6 时间筛选档：N=0 表示全部；N 天 → created_after ISO 日期（UTC 口径，
+ * 与后端 SQLite CURRENT_TIMESTAMP 的 UTC 存储对齐） */
+const TIME_OPTS: { label: string; days: number }[] = [
+  { label: '全部', days: 0 },
+  { label: '近一周', days: 7 },
+  { label: '近一月', days: 30 },
+  { label: '近三月', days: 90 },
+]
+
+/** M8.6 排序档：'' = 后端缺省 id 升序 */
+const SORT_OPTS: { label: string; value: '' | 'new' | 'points' }[] = [
+  { label: '默认', value: '' },
+  { label: '最新', value: 'new' },
+  { label: '标记最多', value: 'points' },
+]
+
+const isoDaysAgo = (n: number): string =>
+  new Date(Date.now() - n * 86400000).toISOString().slice(0, 10)
 
 const fmtKm = (v: number): string => v.toFixed(1).replace(/\.0$/, '')
 const fmtDuration = (v: number | null): string =>
@@ -76,6 +96,13 @@ export default function Routes() {
   const [clarityOnly, setClarityOnly] = useState(false)
   const [keyword, setKeyword] = useState('')
   const [kwDebounced, setKwDebounced] = useState('')
+  // M8.6：地区（'' = 全部，选中词作 region 参数）/ 时间（0 = 全部）/ 排序（'' = 默认）
+  const [regionSel, setRegionSel] = useState('')
+  const [days, setDays] = useState(0)
+  const [sort, setSort] = useState<'' | 'new' | 'points'>('')
+  // 地区 chips 词表：从已加载 routes 聚合 region 前缀（省/市两字口径），
+  // 跨筛选累积——选中某地区后列表收窄，其余地区词仍可选
+  const [regionSeen, setRegionSeen] = useState<string[]>([])
 
   // 搜索 400ms 防抖，避免每敲一个字打一次后端
   useEffect(() => {
@@ -91,10 +118,15 @@ export default function Routes() {
       sport: sport || undefined,
       difficulty_max: diffMax ? 3 : undefined,
       clarity: clarityOnly ? 'high' : undefined,
-      region: kwDebounced || undefined,
+      region: kwDebounced || regionSel || undefined,
+      created_after: days ? isoDaysAgo(days) : undefined,
+      sort: sort || undefined,
     })
       .then((rows) => {
-        if (alive) setRoutes(rows)
+        if (!alive) return
+        setRoutes(rows)
+        const words = rows.map((r) => r.region.slice(0, 2))
+        if (words.length) setRegionSeen((prev) => Array.from(new Set([...prev, ...words])))
       })
       .catch((err: ApiError) => {
         if (alive) setError(err?.detail || String(err))
@@ -105,15 +137,26 @@ export default function Routes() {
     return () => {
       alive = false
     }
-  }, [sport, diffMax, clarityOnly, kwDebounced])
+  }, [sport, diffMax, clarityOnly, kwDebounced, regionSel, days, sort])
 
   const resetAll = (): void => {
     setSport('')
     setDiffMax(false)
     setClarityOnly(false)
+    setRegionSel('')
+    setDays(0)
+    setSort('')
   }
 
-  const hasFilter = sport !== '' || diffMax || clarityOnly
+  const hasFilter =
+    sport !== '' || diffMax || clarityOnly || regionSel !== '' || days !== 0 || sort !== ''
+
+  /** 选地区词：清掉关键词搜索（两者共用后端 region 参数，互斥避免语义打架） */
+  const pickRegion = (word: string): void => {
+    setRegionSel(word)
+    setKeyword('')
+    setKwDebounced('')
+  }
   const summary = useMemo(() => {
     if (loading) return '加载中…'
     if (error) return '加载失败'
@@ -140,7 +183,11 @@ export default function Routes() {
           value={keyword}
           placeholder="搜索路线名或地区，如「徽杭」「临安」…"
           placeholderClass="search-placeholder"
-          onInput={(e) => setKeyword(e.detail.value)}
+          onInput={(e) => {
+            const v = e.detail.value
+            setKeyword(v)
+            if (v.trim()) setRegionSel('') // 关键词与地区 chips 共用 region 参数，互斥
+          }}
         />
         {keyword ? (
           <Text className="search-clear" onClick={() => setKeyword('')}>
@@ -149,7 +196,7 @@ export default function Routes() {
         ) : null}
       </View>
 
-      {/* 筛选 chips：全部 + 8 运动 + 轨迹清晰 + 难度≤3（当天往返 F-5 缺参数未上） */}
+      {/* 筛选区（M8.6 两步路式四行 chips，行内横向滚动；类名 frow-tag 已 grep 全项目确认无同名） */}
       <View className="filter-row">
         <View className={`chip${!hasFilter ? ' on' : ''}`} onClick={resetAll}>
           🏅 全部
@@ -172,6 +219,33 @@ export default function Routes() {
         <View className={`chip${diffMax ? ' on' : ''}`} onClick={() => setDiffMax(!diffMax)}>
           ⭐ 难度 ≤3
         </View>
+      </View>
+      <View className="filter-row">
+        <View className="frow-tag">地区</View>
+        <View className={`chip${regionSel === '' ? ' on' : ''}`} onClick={() => pickRegion('')}>
+          全部
+        </View>
+        {regionSeen.map((w) => (
+          <View key={w} className={`chip${regionSel === w ? ' on' : ''}`} onClick={() => pickRegion(w)}>
+            {w}
+          </View>
+        ))}
+      </View>
+      <View className="filter-row">
+        <View className="frow-tag">时间</View>
+        {TIME_OPTS.map((o) => (
+          <View key={o.label} className={`chip${days === o.days ? ' on' : ''}`} onClick={() => setDays(o.days)}>
+            {o.label}
+          </View>
+        ))}
+      </View>
+      <View className="filter-row">
+        <View className="frow-tag">排序</View>
+        {SORT_OPTS.map((o) => (
+          <View key={o.label} className={`chip${sort === o.value ? ' on' : ''}`} onClick={() => setSort(o.value)}>
+            {o.label}
+          </View>
+        ))}
       </View>
 
       {error ? <View className="routes-error">{error}</View> : null}

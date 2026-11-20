@@ -23,6 +23,10 @@ export type RouteListParams = {
   difficulty_max?: number
   /** 后端 clarity: str（'high'/'mid'/'low'），「轨迹清晰」chip 传 'high' */
   clarity?: string
+  /** 时间过滤下界 YYYY-MM-DD（M8.6；只返回该日及以后创建的路线） */
+  created_after?: string
+  /** 排序：new=最新创建在前，points=轨迹标记最多在前（M8.6；缺省 id 升序） */
+  sort?: string
 }
 
 export async function listRoutes(params?: RouteListParams): Promise<RouteOut[]> {

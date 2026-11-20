@@ -87,6 +87,18 @@
   }
 }
 
+/* M8.6 地区/时间/排序行的行首小标签（frow-tag 已 grep 全项目确认无同名） */
+.frow-tag {
+  flex: none;
+  align-self: center;
+  padding: 8px 20px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-line);
+  color: var(--color-muted);
+  font-size: 20px;
+}
+
 .routes-error {
   margin-top: 24px;
   padding: 20px 26px;
