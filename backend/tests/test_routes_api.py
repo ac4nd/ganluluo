@@ -167,3 +167,60 @@ async def test_sort_invalid_value_422(client, db):
     r = await client.get("/routes", params={"sort": "hot"})
     assert r.status_code == 422
     assert r.json()["detail"] == "非法排序方式"
+
+
+# ---------- M8.7 I-1：limit/offset 分页（1141 条实化后移动端限量拉取） ----------
+
+
+async def test_limit_returns_subset(client, db):
+    """limit=3 只回前 3 条（默认 id 升序），默认 limit=50 下 6 条种子不受影响。"""
+    await seed_routes(db)
+    r = await client.get("/routes", params={"limit": 3})
+    assert r.status_code == 200
+    assert [x["id"] for x in r.json()] == [1, 2, 3]
+
+
+async def test_offset_pages_disjoint(client, db):
+    """limit=3 offset=0/3 两页连续无重叠：合起来即全量 6 条。"""
+    await seed_routes(db)
+    p1 = (await client.get("/routes", params={"limit": 3, "offset": 0})).json()
+    p2 = (await client.get("/routes", params={"limit": 3, "offset": 3})).json()
+    assert [x["id"] for x in p1] == [1, 2, 3]
+    assert [x["id"] for x in p2] == [4, 5, 6]
+    assert not ({x["id"] for x in p1} & {x["id"] for x in p2})
+
+
+async def test_limit_zero_422(client, db):
+    """limit=0 违反 ge=1 约束 → FastAPI 422。"""
+    r = await client.get("/routes", params={"limit": 0})
+    assert r.status_code == 422
+
+
+async def test_offset_beyond_end_returns_empty(client, db):
+    """offset 越界返回空数组而非报错（前端据此判定 hasMore=False）。"""
+    await seed_routes(db)
+    r = await client.get("/routes", params={"limit": 20, "offset": 100})
+    assert r.status_code == 200
+    assert r.json() == []
+
+
+async def test_sort_points_paginates_after_python_sort(client, db):
+    """sort=points：全量 python 排序后切页，跨页顺序仍连续（第一页头一条是有轨迹的 route 1）。"""
+    await seed_routes(db)
+    r = await client.post("/routes/1/track", content=GPX.encode(),
+                          headers={"Content-Type": "text/plain"})
+    assert r.status_code == 200
+    p1 = (await client.get("/routes", params={"sort": "points", "limit": 2})).json()
+    p2 = (await client.get("/routes", params={"sort": "points", "limit": 2, "offset": 2})).json()
+    assert [x["id"] for x in p1] == [1, 2]
+    assert [x["id"] for x in p2] == [3, 4]
+    assert not ({x["id"] for x in p1} & {x["id"] for x in p2})
+
+
+async def test_service_list_routes_default_no_pagination(db):
+    """service 层 limit 缺省不分页：assistant 检索（tools.search_routes_for）
+    依赖全量候选集，HTTP 默认页大小不能下沉到 service。"""
+    await seed_routes(db)
+    from app.domains.sports import route_service
+    rows = await route_service.list_routes(db)
+    assert len(rows) == 6

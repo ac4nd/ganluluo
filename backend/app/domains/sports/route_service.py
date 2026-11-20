@@ -11,7 +11,15 @@ _VALID_SORTS = {"new", "points"}
 
 async def list_routes(session: AsyncSession, sport: str | None = None, region: str | None = None,
                       difficulty_max: int | None = None, clarity: str | None = None,
-                      created_after: str | None = None, sort: str | None = None) -> list[Route]:
+                      created_after: str | None = None, sort: str | None = None,
+                      limit: int | None = None, offset: int = 0) -> list[Route]:
+    """已发布路线列表（M8.7 I-1 起支持 limit/offset 分页）。
+
+    - limit=None（缺省）不分页：assistant 检索/评分（tools.search_routes_for）
+      依赖全量候选集，不走 HTTP 层默认页大小；
+    - sort=points 时轨迹点数排序在 python 侧做，必须全量取回排序后再切页，
+      其余排序直接 SQL limit/offset（1141 条实化后避免全表加载）。
+    """
     if sort is not None and sort not in _VALID_SORTS:
         raise ValueError("非法排序方式")
     stmt = select(Route).where(Route.status == "published")
@@ -37,11 +45,17 @@ async def list_routes(session: AsyncSession, sport: str | None = None, region: s
     else:
         # 默认与 points 均保持 id 升序（points 的 python 稳定排序依赖它）
         stmt = stmt.order_by(Route.id)
+    sql_paged = sort != "points" and limit is not None
+    if sql_paged:
+        # SQL 侧切页（new/默认排序语义已在 order_by 里确定），rows 已是本页数据
+        stmt = stmt.limit(limit).offset(offset)
     rows = list((await session.execute(stmt)).scalars().all())
     if sort == "points":
-        # MVP 数据量小：SQL 按 id 序取回后，python 稳定排序按轨迹点数降序
-        # （无轨迹排后；跨方言 JSON 长度函数不值得）
+        # 轨迹点数排序需全量取回（分页在排序后切，否则跨页顺序错乱）：
+        # python 稳定排序按轨迹点数降序（无轨迹排后；跨方言 JSON 长度函数不值得）
         rows.sort(key=lambda r: len(r.track_points or []), reverse=True)
+        if offset or limit is not None:
+            rows = rows[offset : offset + limit if limit is not None else None]
     return rows
 
 
